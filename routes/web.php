@@ -11,6 +11,9 @@ use App\Livewire\HumanResource\Employments\Index as HrEmploymentIndex;
 use App\Livewire\HumanResource\Positions\Create as HrPositionCreate;
 use App\Livewire\HumanResource\Positions\Index as HrPositionIndex;
 use App\Livewire\HumanResource\Portal as HrPortal;
+use App\Livewire\Inventory\Branches\Create as InventoryBranchCreate;
+use App\Livewire\Inventory\Branches\Index as InventoryBranchIndex;
+use App\Livewire\Inventory\Portal as InventoryPortal;
 use App\Livewire\Pos\Screen as PosScreen;
 use App\Models\Branch;
 use Illuminate\Http\Request;
@@ -33,6 +36,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 
     Route::get('/pos', PosScreen::class)->name('pos');
+    Route::get('/inventory', InventoryPortal::class)->name('inventory.portal');
+    Route::get('/inventory/branches', InventoryBranchIndex::class)->name('inventory.branches.index');
+    Route::get('/inventory/branches/create', InventoryBranchCreate::class)->name('inventory.branches.create');
     Route::get('/general-setup', GeneralSetupPortal::class)->name('general-setup.portal');
     Route::get('/hr', HrPortal::class)->name('hr.portal');
     Route::get('/hr/employees', HrEmployeeIndex::class)->name('hr.employees');

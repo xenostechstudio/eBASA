@@ -12,8 +12,29 @@
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
+
+        <script>
+            (function () {
+                const storageKey = 'ebasa-theme';
+                const mediaQuery = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+                const prefersDark = mediaQuery ? mediaQuery.matches : false;
+
+                try {
+                    const stored = localStorage.getItem(storageKey) ?? 'system';
+                    if (stored === 'dark' || (stored === 'system' && prefersDark) || (!stored && prefersDark)) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                } catch (error) {
+                    if (prefersDark) {
+                        document.documentElement.classList.add('dark');
+                    }
+                }
+            })();
+        </script>
     </head>
-    <body class="font-sans antialiased bg-slate-950 text-white min-h-screen m-0">
+    <body class="font-sans antialiased min-h-screen m-0 bg-slate-50 text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-white">
         @php
             $branchShortcuts = \App\Models\Branch::query()->orderBy('name')->get();
             $activeBranchId = (int) session('active_branch_id');
@@ -28,7 +49,7 @@
             />
 
             <div class="flex flex-1 flex-col px-8 pb-10 lg:px-12">
-                <section class="flex h-full flex-1 rounded-[32px] border border-white/10 bg-white/5 p-6 backdrop-blur">
+                <section class="flex h-full flex-1 rounded-[32px] border border-slate-200/60 bg-white/80 p-6 backdrop-blur dark:border-white/10 dark:bg-white/5">
                     <div class="flex h-full w-full flex-col overflow-hidden">
                         {{ $slot }}
                     </div>
@@ -96,6 +117,54 @@
                         }
                     });
                 }
+
+                const themeButtons = Array.from(document.querySelectorAll('[data-theme-choice]'));
+                const storageKey = 'ebasa-theme';
+                const mediaQuery = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+
+                const getStoredTheme = () => {
+                    try {
+                        return localStorage.getItem(storageKey) || 'system';
+                    } catch (error) {
+                        return 'system';
+                    }
+                };
+
+                const setStoredTheme = (mode) => {
+                    try {
+                        localStorage.setItem(storageKey, mode);
+                    } catch (error) {
+                        // ignore storage errors
+                    }
+                };
+
+                const prefersDark = () => (mediaQuery ? mediaQuery.matches : false);
+
+                const applyThemeState = (mode) => {
+                    const effectiveMode = mode || getStoredTheme();
+                    const isDark = effectiveMode === 'dark' || (effectiveMode === 'system' && prefersDark());
+                    document.documentElement.classList.toggle('dark', isDark);
+                    themeButtons.forEach((button) => {
+                        button.dataset.active = button.dataset.themeChoice === effectiveMode ? 'true' : 'false';
+                    });
+                };
+
+                const initialTheme = getStoredTheme();
+                applyThemeState(initialTheme);
+
+                themeButtons.forEach((button) => {
+                    button.addEventListener('click', () => {
+                        const choice = button.dataset.themeChoice || 'system';
+                        setStoredTheme(choice);
+                        applyThemeState(choice);
+                    });
+                });
+
+                mediaQuery?.addEventListener('change', () => {
+                    if (getStoredTheme() === 'system') {
+                        applyThemeState('system');
+                    }
+                });
             });
         </script>
 
