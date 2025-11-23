@@ -39,10 +39,35 @@
             <div class="flex flex-wrap items-center justify-between gap-4">
                 @if ($selectedCount > 0)
                     <div class="flex flex-wrap items-center gap-3 text-xs text-white/70">
-                        <span>
-                            <span class="font-semibold text-white">{{ $selectedCount }}</span>
-                            {{ \Illuminate\Support\Str::plural('selected on this page', $selectedCount) }}
-                        </span>
+                        <div class="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-3 py-1.5">
+                            <span>
+                                <span class="font-semibold text-white">{{ $selectedCount }}</span>
+                                {{ \Illuminate\Support\Str::plural('selected on this page', $selectedCount) }}
+                            </span>
+                            <div class="relative" data-dropdown>
+                                <button
+                                    type="button"
+                                    data-dropdown-trigger
+                                    class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-white/20 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
+                                    aria-label="Selection actions"
+                                >
+                                    @svg('heroicon-o-ellipsis-vertical', 'h-4 w-4')
+                                </button>
+                                <div
+                                    data-dropdown-panel
+                                    class="absolute right-0 z-40 mt-2 hidden min-w-[9rem] rounded-xl border border-white/10 bg-slate-900/95 p-1 text-xs text-white shadow-xl"
+                                >
+                                    <button
+                                        type="button"
+                                        wire:click="bulkDelete"
+                                        class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left hover:bg-white/10"
+                                    >
+                                        @svg('heroicon-o-trash', 'h-4 w-4')
+                                        <span>Delete selected</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                         <button
                             type="button"
                             wire:click="selectAllOnPage"
@@ -56,12 +81,6 @@
                             class="text-white/80 underline-offset-2 hover:text-white hover:underline"
                         >
                             Deselect all
-                        </button>
-                        <button
-                            wire:click="bulkDelete"
-                            class="rounded-full border border-white/20 px-3 py-1 text-xs font-semibold text-white/80 transition hover:bg-white/10"
-                        >
-                            Delete selected
                         </button>
                     </div>
                 @endif

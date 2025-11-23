@@ -13,7 +13,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
     </head>
-    <body class="font-sans antialiased bg-slate-950 text-white min-h-screen overflow-hidden">
+    <body class="font-sans antialiased min-h-screen overflow-hidden bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-white">
         <div class="flex min-h-screen flex-col overflow-hidden">
             <main class="flex flex-1 overflow-hidden p-4 lg:p-6">
                 <div class="flex flex-1 w-full overflow-hidden">

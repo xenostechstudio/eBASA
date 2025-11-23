@@ -22,8 +22,6 @@ class Screen extends Component
 
         $quickActions = [
             ['label' => 'Suspend Sale', 'icon' => 'pause'],
-            ['label' => 'No Sale Receipt', 'icon' => 'receipt'],
-            ['label' => 'Open Drawer', 'icon' => 'archive'],
         ];
 
         $cartItems = [

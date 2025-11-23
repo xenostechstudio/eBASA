@@ -1,33 +1,24 @@
 <div class="flex flex-1 min-h-0 flex-col gap-6 text-slate-900 dark:text-white">
-    <header class="flex flex-col gap-3 rounded-3xl border border-slate-200/70 bg-white/90 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/5">
-        <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+    <header class="relative flex flex-col gap-3 rounded-3xl border border-slate-200/70 bg-white/90 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/5">
+        <button type="button"
+            x-data="{ isDark: document.documentElement.classList.contains('dark'), toggleTheme() { const dark = document.documentElement.classList.toggle('dark'); this.isDark = dark; localStorage.setItem('theme', dark ? 'dark' : 'light'); } }"
+            @click="toggleTheme()"
+            class="absolute right-4 top-4 inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white/80 px-3 py-2 text-slate-700 shadow-sm hover:bg-slate-100 dark:border-white/20 dark:bg-white/10 dark:text-white/80 dark:hover:bg-white/20"
+            title="Toggle theme">
+            <svg x-show="!isDark" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364 6.364-1.414-1.414M7.05 7.05 5.636 5.636m12.728 0-1.414 1.414M7.05 16.95l-1.414 1.414" />
+            </svg>
+            <svg x-show="isDark" x-cloak class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
+            </svg>
+        </button>
+
+        <div class="flex flex-col gap-3 pr-12 lg:flex-row lg:items-center lg:justify-between lg:pr-0">
             <div>
                 <p class="text-sm uppercase tracking-[0.3em] text-slate-500 dark:text-white/60">Active Shift</p>
                 <h1 class="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">{{ $shiftSummary['branch'] }}</h1>
                 <p class="text-slate-600 dark:text-white/80">Cashier: <span class="font-medium text-slate-900 dark:text-white">{{ $shiftSummary['cashier'] }}</span> · Started {{ $shiftSummary['since'] }}</p>
-            </div>
-            <div class="flex flex-wrap gap-2 text-xs lg:items-center lg:justify-end">
-                <button type="button"
-                    x-data="{ isDark: document.documentElement.classList.contains('dark'), toggleTheme() { const dark = document.documentElement.classList.toggle('dark'); this.isDark = dark; localStorage.setItem('theme', dark ? 'dark' : 'light'); } }"
-                    @click="toggleTheme()"
-                    class="inline-flex items-center justify-center rounded-2xl border border-slate-200 px-3 py-2 text-slate-700 hover:bg-slate-100 dark:border-white/20 dark:text-white/80 dark:hover:bg-white/10"
-                    title="Toggle theme">
-                    <svg x-show="!isDark" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <circle cx="12" cy="12" r="4" />
-                        <path d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.364 6.364-1.414-1.414M7.05 7.05 5.636 5.636m12.728 0-1.414 1.414M7.05 16.95l-1.414 1.414" />
-                    </svg>
-                    <svg x-show="isDark" x-cloak class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
-                    </svg>
-                </button>
-                <button type="button" x-data class="inline-flex items-center gap-2 rounded-2xl border border-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white/80 hover:bg-white/10"
-                    @click="$dispatch('open-modal', 'pos-shift-summary')">
-                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M12 5v14" />
-                        <path d="M5 12h14" />
-                    </svg>
-                    View Summary
-                </button>
             </div>
         </div>
         <div class="flex flex-col gap-2 text-sm"></div>
@@ -53,21 +44,37 @@
                 </div>
             </div>
 
-            <div>
+            <div class="mt-auto">
                 <p class="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-white/60">Quick Actions</p>
                 <div class="mt-3 space-y-2">
-                    @foreach ($quickActions as $action)
-                        <button type="button" class="flex w-full items-center justify-between rounded-2xl border border-slate-200/70 bg-white/70 px-4 py-3 text-left text-sm font-medium text-slate-700 hover:border-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-white/80 dark:hover:border-white/30">
-                            <span>{{ $action['label'] }}</span>
+                    <div class="flex gap-2">
+                        <button type="button" class="flex flex-1 items-center justify-between rounded-2xl border border-slate-200/70 bg-white/70 px-4 py-3 text-left text-sm font-medium text-slate-700 hover:border-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-white/80 dark:hover:border-white/30">
+                            <span class="inline-flex items-center gap-2">
+                                {{ svg('heroicon-o-pause-circle', 'w-4 h-4 text-amber-500 dark:text-amber-300') }}
+                                <span>Suspend Sale</span>
+                            </span>
                             <span class="text-slate-400 dark:text-white/50">⟶</span>
                         </button>
-                    @endforeach
-                </div>
-            </div>
 
-            <div class="mt-auto rounded-2xl border border-amber-400/30 bg-amber-100 px-4 py-3 text-sm text-amber-900 dark:bg-amber-500/10 dark:text-amber-100">
-                <p class="text-xs uppercase tracking-[0.3em] text-amber-800 dark:text-white/70">Sync Warning</p>
-                <p class="mt-1 font-medium">Inventory update delayed ~2 minutes.</p>
+                        <button type="button" class="flex flex-1 items-center justify-between rounded-2xl border border-slate-200/70 bg-white/70 px-4 py-3 text-left text-sm font-medium text-slate-700 hover:border-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-white/80 dark:hover:border-white/30">
+                            <span class="inline-flex items-center gap-2">
+                                {{ svg('heroicon-o-archive-box', 'w-4 h-4 text-sky-500 dark:text-sky-300') }}
+                                <span>Park Sale</span>
+                            </span>
+                            <span class="text-slate-400 dark:text-white/50">⟶</span>
+                        </button>
+                    </div>
+
+                    <button type="button" x-data
+                        class="flex w-full items-center justify-between rounded-2xl border border-slate-200/70 bg-white/70 px-4 py-3 text-left text-sm font-medium text-slate-700 hover:border-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-white/80 dark:hover:border-white/30"
+                        @click="$dispatch('open-modal', 'pos-shift-summary')">
+                        <span class="inline-flex items-center gap-2">
+                            {{ svg('heroicon-o-document-currency-dollar', 'w-4 h-4 text-emerald-500 dark:text-emerald-300') }}
+                            <span>View Shift Summary</span>
+                        </span>
+                        <span class="text-slate-400 dark:text-white/50">⟶</span>
+                    </button>
+                </div>
             </div>
         </section>
 
@@ -81,7 +88,7 @@
                     <p class="col-span-2 text-center">Qty</p>
                     <p class="col-span-2 text-right">Total</p>
                 </div>
-                <div class="flex-1 divide-y divide-white/10 overflow-y-auto max-h-[calc(100vh-450px)]">
+                <div class="flex-1 divide-y divide-white/10 overflow-y-auto max-h-[calc(100vh-380px)]">
                     @foreach ($cartItems as $item)
                         <div class="grid grid-cols-12 gap-3 px-6 py-3">
                             <div class="col-span-3 text-sm font-semibold text-slate-500 tabular-nums dark:text-white/70">{{ $item['sku'] }}</div>
@@ -112,10 +119,6 @@
                         </svg>
                     </div>
                 </button>
-
-                <div class="flex flex-col gap-2">
-                    <button type="button" class="rounded-2xl border border-slate-200/70 bg-white py-3 text-center text-base font-semibold text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:bg-white/10 dark:text-white/80 dark:hover:bg-white/20">Park Sale</button>
-                </div>
             </div>
         </section>
 
@@ -202,12 +205,12 @@
                     <div class="flex gap-4">
                         <div class="flex flex-col items-center gap-1">
                             <button type="button"
-                                class="inline-flex h-14 w-14 items-center justify-center rounded-full border border-white/30 text-white/80 hover:bg-white/10"
+                                class="inline-flex h-14 w-14 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50 dark:border-white/30 dark:bg-white/5 dark:text-white/80 dark:hover:bg-white/10"
                                 @click="$dispatch('close-modal', 'pos-checkout-review')"
                                 title="Cancel / Back">
                                 {{ svg('heroicon-o-x-mark', 'w-8 h-8') }}
                             </button>
-                            <span class="rounded-xl border border-white/30 bg-white/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/70">
+                            <span class="rounded-xl border border-slate-200 bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-700 dark:border-white/30 dark:bg-white/5 dark:text-white/70">
                                 Esc
                             </span>
                         </div>
