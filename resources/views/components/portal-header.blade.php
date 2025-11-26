@@ -37,24 +37,26 @@
         <nav class="flex flex-wrap items-center gap-2 text-sm text-white/70 lg:ml-6">
             @foreach ($resolvedNavLinks as $link)
                 @if (! empty($link['children']))
-                    <div class="relative" data-dropdown>
-                        <button type="button" data-dropdown-trigger class="flex items-center gap-1 rounded-full px-3 py-1 transition {{ ($link['active'] ?? false) ? 'bg-white/20 text-white' : 'hover:bg-white/10' }}">
+                    <div class="relative" data-nav-dropdown>
+                        <button type="button" data-nav-trigger class="flex items-center gap-1 rounded-full px-3 py-1 transition {{ ($link['active'] ?? false) ? 'bg-white/20 text-white' : 'hover:bg-white/10' }}">
                             <span>{{ $link['label'] ?? '' }}</span>
-                            <svg class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <svg class="h-3 w-3 transition-transform" data-nav-chevron viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                 <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.084l3.71-3.854a.75.75 0 011.08 1.04l-4.24 4.4a.75.75 0 01-1.08 0l-4.24-4.4a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
                             </svg>
                         </button>
-                        <div data-dropdown-panel class="absolute left-0 z-50 mt-3 hidden min-w-[15rem] rounded-2xl border border-white/10 bg-slate-900/95 p-3 text-white shadow-2xl">
-                            <div class="space-y-2">
-                                @foreach ($link['children'] as $child)
-                                    <a href="{{ $child['href'] ?? '#' }}"
-                                        class="block rounded-xl px-3 py-2 text-left transition hover:bg-white/10">
-                                        <span class="text-sm font-medium text-white">{{ $child['label'] ?? '' }}</span>
-                                        @if (! empty($child['description']))
-                                            <p class="text-xs text-white/60">{{ $child['description'] }}</p>
-                                        @endif
-                                    </a>
-                                @endforeach
+                        <div data-nav-panel class="invisible absolute left-0 z-50 pt-2 opacity-0 transition-all duration-150">
+                            <div class="min-w-[15rem] scale-95 rounded-2xl border border-white/10 bg-slate-900/95 p-3 text-white shadow-2xl transition-transform duration-150">
+                                <div class="space-y-1">
+                                    @foreach ($link['children'] as $child)
+                                        <a href="{{ $child['href'] ?? '#' }}"
+                                            class="block rounded-xl px-3 py-2 text-left transition hover:bg-white/10 {{ ($child['active'] ?? false) ? 'bg-white/10' : '' }}">
+                                            <span class="text-sm font-medium text-white">{{ $child['label'] ?? '' }}</span>
+                                            @if (! empty($child['description']))
+                                                <p class="text-xs text-white/60">{{ $child['description'] }}</p>
+                                            @endif
+                                        </a>
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
                     </div>

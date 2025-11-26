@@ -25,6 +25,7 @@ class Index extends Component
     public int $formStep = 1;
     public int $perPage = 10;
     public array $perPageOptions = [10, 25, 50, 100, 200];
+    public string $viewType = 'list'; // 'list' or 'grid'
 
     /** @var array<int, int> */
     public array $selectedEmployees = [];
@@ -138,6 +139,16 @@ class Index extends Component
     public function saveDraft(): void
     {
         $this->dispatch('notify', message: 'Draft saved');
+    }
+
+    public function setViewType(string $type): void
+    {
+        $this->viewType = in_array($type, ['list', 'grid'], true) ? $type : 'list';
+    }
+
+    public function toggleViewType(): void
+    {
+        $this->viewType = $this->viewType === 'grid' ? 'list' : 'grid';
     }
 
     public function updatedPerPage($value): void

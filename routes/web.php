@@ -5,6 +5,7 @@ use App\Livewire\GeneralSetup\Portal as GeneralSetupPortal;
 use App\Livewire\HumanResource\Departments\Create as HrDepartmentCreate;
 use App\Livewire\HumanResource\Departments\Index as HrDepartmentIndex;
 use App\Livewire\HumanResource\Employees\Create as HrEmployeeCreate;
+use App\Livewire\HumanResource\Employees\Edit as HrEmployeeEdit;
 use App\Livewire\HumanResource\Employees\Index as HrEmployeeIndex;
 use App\Livewire\HumanResource\Employments\Create as HrEmploymentCreate;
 use App\Livewire\HumanResource\Employments\Index as HrEmploymentIndex;
@@ -46,6 +47,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/hr', HrPortal::class)->name('hr.portal');
     Route::get('/hr/employees', HrEmployeeIndex::class)->name('hr.employees');
     Route::get('/hr/employees/create', HrEmployeeCreate::class)->name('hr.employees.create');
+    Route::get('/hr/employees/{employee}/edit', HrEmployeeEdit::class)->name('hr.employees.edit');
     Route::get('/hr/employments', HrEmploymentIndex::class)->name('hr.employments');
     Route::get('/hr/employments/create', HrEmploymentCreate::class)->name('hr.employments.create');
     Route::get('/hr/departments', HrDepartmentIndex::class)->name('hr.departments');

@@ -61,6 +61,78 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', () => {
+                // Navigation dropdowns with hover support
+                const navDropdowns = Array.from(document.querySelectorAll('[data-nav-dropdown]'));
+                let navCloseTimeout = null;
+
+                const closeAllNav = (except = null) => {
+                    navDropdowns.forEach((dropdown) => {
+                        if (dropdown !== except) {
+                            const panel = dropdown.querySelector('[data-nav-panel]');
+                            const chevron = dropdown.querySelector('[data-nav-chevron]');
+                            if (panel) {
+                                panel.classList.add('invisible', 'opacity-0');
+                                panel.querySelector('div')?.classList.add('scale-95');
+                            }
+                            if (chevron) {
+                                chevron.classList.remove('rotate-180');
+                            }
+                        }
+                    });
+                };
+
+                const openNav = (dropdown) => {
+                    clearTimeout(navCloseTimeout);
+                    closeAllNav(dropdown);
+                    const panel = dropdown.querySelector('[data-nav-panel]');
+                    const chevron = dropdown.querySelector('[data-nav-chevron]');
+                    if (panel) {
+                        panel.classList.remove('invisible', 'opacity-0');
+                        panel.querySelector('div')?.classList.remove('scale-95');
+                    }
+                    if (chevron) {
+                        chevron.classList.add('rotate-180');
+                    }
+                };
+
+                const closeNav = (dropdown) => {
+                    const panel = dropdown.querySelector('[data-nav-panel]');
+                    const chevron = dropdown.querySelector('[data-nav-chevron]');
+                    if (panel) {
+                        panel.classList.add('invisible', 'opacity-0');
+                        panel.querySelector('div')?.classList.add('scale-95');
+                    }
+                    if (chevron) {
+                        chevron.classList.remove('rotate-180');
+                    }
+                };
+
+                navDropdowns.forEach((dropdown) => {
+                    dropdown.addEventListener('mouseenter', () => {
+                        openNav(dropdown);
+                    });
+
+                    dropdown.addEventListener('mouseleave', () => {
+                        navCloseTimeout = setTimeout(() => {
+                            closeNav(dropdown);
+                        }, 100);
+                    });
+
+                    // Also support click for mobile/accessibility
+                    const trigger = dropdown.querySelector('[data-nav-trigger]');
+                    trigger?.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const panel = dropdown.querySelector('[data-nav-panel]');
+                        const isOpen = !panel?.classList.contains('invisible');
+                        if (isOpen) {
+                            closeNav(dropdown);
+                        } else {
+                            openNav(dropdown);
+                        }
+                    });
+                });
+
+                // Regular click dropdowns (profile, locale, table actions)
                 const dropdowns = Array.from(document.querySelectorAll('[data-dropdown]'));
 
                 const closeAll = (except = null) => {
@@ -90,7 +162,10 @@
                     });
                 });
 
-                document.addEventListener('click', () => closeAll());
+                document.addEventListener('click', () => {
+                    closeAll();
+                    closeAllNav();
+                });
 
                 const branchSwitcher = document.querySelector('[data-branch-switcher]');
                 if (branchSwitcher) {
