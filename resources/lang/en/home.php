@@ -19,6 +19,10 @@ return [
                 'name' => 'Point of Sale',
                 'description' => 'Counter operations, transactions, and receipts.',
             ],
+            'transactions' => [
+                'name' => 'Transactions',
+                'description' => 'Manage POS settlements, cashier shifts, and histories.',
+            ],
             'inventory' => [
                 'name' => 'Inventory',
                 'description' => 'Stock, procurement, and branch visibility.',

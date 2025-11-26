@@ -36,6 +36,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 
     Route::get('/pos', PosScreen::class)->name('pos');
+    Route::get('/transactions', function () {
+        return view('transactions.index');
+    })->name('transactions');
     Route::get('/inventory', InventoryPortal::class)->name('inventory.portal');
     Route::get('/inventory/branches', InventoryBranchIndex::class)->name('inventory.branches.index');
     Route::get('/inventory/branches/create', InventoryBranchCreate::class)->name('inventory.branches.create');

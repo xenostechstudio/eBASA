@@ -12,6 +12,7 @@ export default {
 
     safelist: [
         'from-rose-200', 'to-rose-400', 'text-slate-900',
+        'from-fuchsia-200', 'to-pink-300',
         'from-amber-300', 'to-amber-400', 'text-slate-950',
         'from-sky-300', 'to-blue-400', 'text-slate-900',
         'from-purple-300', 'to-violet-400',

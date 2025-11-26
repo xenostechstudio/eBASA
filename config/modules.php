@@ -14,6 +14,17 @@ return [
             'description_key' => 'home.modules.cards.pos.description',
         ],
         [
+            'key' => 'transactions',
+            'name' => 'Transactions',
+            'description' => 'POS settlements, cashier shifts, and transaction history.',
+            'icon' => '💳',
+            'url' => '/transactions',
+            'status' => 'design',
+            'color' => 'from-fuchsia-200 to-pink-300 text-slate-900',
+            'name_key' => 'home.modules.cards.transactions.name',
+            'description_key' => 'home.modules.cards.transactions.description',
+        ],
+        [
             'key' => 'inventory',
             'name' => 'Inventory',
             'description' => 'Stock, procurement, and branch visibility.',

@@ -19,6 +19,10 @@ return [
                 'name' => 'Point of Sale',
                 'description' => 'Operasional kasir, transaksi, dan struk.',
             ],
+            'transactions' => [
+                'name' => 'Transaksi',
+                'description' => 'Settlement POS, shift kasir, dan riwayat transaksi.',
+            ],
             'inventory' => [
                 'name' => 'Inventori',
                 'description' => 'Stok, pengadaan, dan visibilitas cabang.',

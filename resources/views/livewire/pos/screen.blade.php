@@ -1,4 +1,10 @@
-<div class="flex flex-1 min-h-0 flex-col gap-6 text-slate-900 dark:text-white">
+<div class="flex flex-1 min-h-0 flex-col gap-6 text-slate-900 dark:text-white"
+    x-data="{ checkoutOpen: false }"
+    @open-modal.window="if ($event.detail === 'pos-checkout-review') checkoutOpen = true"
+    @close-modal.window="if ($event.detail === 'pos-checkout-review') checkoutOpen = false"
+    @modal-opened.window="if ($event.detail === 'pos-checkout-review') checkoutOpen = true"
+    @modal-closed.window="if ($event.detail === 'pos-checkout-review') checkoutOpen = false"
+    @keydown.window.enter.prevent="if (!checkoutOpen) { checkoutOpen = true; $dispatch('open-modal', 'pos-checkout-review'); }">
     <header class="relative flex flex-col gap-3 rounded-3xl border border-slate-200/70 bg-white/90 p-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-white/5">
         <button type="button"
             x-data="{ isDark: document.documentElement.classList.contains('dark'), toggleTheme() { const dark = document.documentElement.classList.toggle('dark'); this.isDark = dark; localStorage.setItem('theme', dark ? 'dark' : 'light'); } }"
@@ -94,218 +100,49 @@
                             <div class="col-span-3 text-sm font-semibold text-slate-500 tabular-nums dark:text-white/70">{{ $item['sku'] }}</div>
                             <div class="col-span-5">
                                 <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ $item['name'] }}</p>
+                                <p class="text-xs text-slate-500 dark:text-white/60">@ Rp {{ number_format($item['price'], 0, ',', '.') }}</p>
                             </div>
                             <div class="col-span-2 flex items-center justify-center gap-1 text-sm">
                                 <button type="button" class="rounded-full bg-slate-200 px-2 text-base leading-none text-slate-700 dark:bg-white/10 dark:text-white">−</button>
                                 <span class="text-base font-semibold tabular-nums text-slate-900 dark:text-white">{{ $item['qty'] }}</span>
                                 <button type="button" class="rounded-full bg-slate-200 px-2 text-base leading-none text-slate-700 dark:bg-white/10 dark:text-white">+</button>
                             </div>
-                            <div class="col-span-2 text-right text-sm font-semibold tabular-nums text-slate-900 dark:text-white">{{ number_format($item['total'], 0, ',', '.') }}</div>
+                            <div class="group col-span-2 text-right text-sm font-semibold tabular-nums text-slate-900 dark:text-white">
+                                {{ number_format($item['total'], 0, ',', '.') }}
+                                <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-rose-500 opacity-0 transition group-hover:opacity-100 dark:text-rose-300">Remove</p>
+                            </div>
                         </div>
                     @endforeach
                 </div>
             </div>
 
-            <div class="space-y-3">
-                <button type="button" x-data class="w-full rounded-2xl border border-slate-200/70 bg-gradient-to-br from-blue-500/20 via-indigo-500/20 to-purple-500/20 p-5 text-left transition hover:border-blue-400 dark:border-white/10 dark:bg-gradient-to-br dark:from-blue-500/30 dark:via-indigo-500/30 dark:to-purple-500/30 dark:hover:border-white/40"
-                    @click="$dispatch('open-modal', 'pos-checkout-review')">
-                    <div class="flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                            <p class="text-xs uppercase tracking-[0.3em] text-slate-700 dark:text-white/80">Grand Total</p>
-                            <p class="mt-1 text-4xl font-semibold text-slate-900 tabular-nums dark:text-white">Rp {{ number_format($paymentSummary['total'], 0, ',', '.') }}</p>
-                        </div>
-                        <svg class="h-6 w-6 text-slate-700 dark:text-white/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="m9 6 6 6-6 6" />
-                        </svg>
+            <div class="space-y-4">
+                <div class="flex items-stretch gap-3">
+                    <div class="flex w-28 flex-col items-center justify-center rounded-2xl border border-emerald-300/60 bg-white/80 p-3 text-emerald-800 shadow-sm dark:border-emerald-400/40 dark:bg-emerald-500/10 dark:text-emerald-100/80">
+                        <p class="text-[10px] uppercase tracking-[0.3em]">Items</p>
+                        <p class="mt-1 text-3xl font-semibold tabular-nums">{{ $cartItems ? array_sum(array_column($cartItems, 'qty')) : 0 }}</p>
                     </div>
-                </button>
+
+                    <button type="button" x-data class="relative flex-1 rounded-2xl border border-emerald-300/60 bg-emerald-400/15 px-5 py-4 text-left shadow-inner shadow-emerald-500/10 transition hover:border-emerald-400 dark:border-emerald-400/40 dark:bg-emerald-500/20 dark:hover:border-emerald-300"
+                        @click="$dispatch('open-modal', 'pos-checkout-review'); checkoutOpen = true">
+                        <span class="pointer-events-none absolute -top-2 right-5 rounded-full border border-emerald-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.3em] text-emerald-800 shadow-sm dark:border-emerald-400/60 dark:bg-emerald-500/20 dark:text-emerald-50">Enter</span>
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                                <p class="text-xs uppercase tracking-[0.3em] text-emerald-800 dark:text-emerald-100/80">Grand Total</p>
+                                <p class="mt-1 text-4xl font-semibold text-emerald-900 tabular-nums dark:text-emerald-50">Rp {{ number_format($paymentSummary['total'], 0, ',', '.') }}</p>
+                            </div>
+                            <svg class="h-6 w-6 text-emerald-800 dark:text-emerald-100/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="m9 6 6 6-6 6" />
+                            </svg>
+                        </div>
+                    </button>
+                </div>
             </div>
         </section>
 
     </div>
 
-    <x-modal name="pos-shift-summary" maxWidth="5xl">
-        <div class="rounded-3xl bg-white/95 p-6 text-slate-900 shadow-2xl shadow-black/20 dark:bg-slate-950/95 dark:text-white dark:shadow-black/50">
-            <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div>
-                    <p class="text-xs uppercase tracking-[0.4em] text-slate-500 dark:text-white/60">Shift Summary</p>
-                    <h2 class="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">{{ $shiftSummary['branch'] }}</h2>
-                    <p class="text-slate-600 dark:text-white/70">Cashier <span class="font-semibold text-slate-900 dark:text-white">{{ $shiftSummary['cashier'] }}</span> · Started {{ $shiftSummary['since'] }}</p>
-                </div>
-                <button type="button" x-data class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:border-white/10 dark:text-white/70 dark:hover:bg-white/5"
-                    @click="$dispatch('close-modal', 'pos-shift-summary')">
-                    Close
-                </button>
-            </div>
+    @include('livewire.pos.partials.shift-summary-modal')
 
-            <div class="mt-6 grid gap-3 lg:grid-cols-3">
-                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-slate-900/60">
-                    <p class="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-white/60">Sales</p>
-                    <p class="mt-1 text-2xl font-semibold tabular-nums text-slate-900 dark:text-white">Rp {{ number_format($shiftSummary['sales'], 0, ',', '.') }}</p>
-                </div>
-                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-slate-900/60">
-                    <p class="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-white/60">Transactions</p>
-                    <p class="mt-1 text-2xl font-semibold tabular-nums text-slate-900 dark:text-white">{{ $shiftSummary['transactions'] }}</p>
-                </div>
-                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-slate-900/60">
-                    <p class="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-white/60">Cash on Hand</p>
-                    <p class="mt-1 text-2xl font-semibold tabular-nums text-slate-900 dark:text-white">Rp {{ number_format($shiftSummary['cashOnHand'], 0, ',', '.') }}</p>
-                </div>
-            </div>
-
-            <div class="mt-6 rounded-3xl border border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-slate-900/40">
-                <div class="grid grid-cols-12 gap-3 px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-500 dark:text-white/60">
-                    <p class="col-span-4">Transaction</p>
-                    <p class="col-span-2">Time</p>
-                    <p class="col-span-2 text-center">Items</p>
-                    <p class="col-span-2">Channel</p>
-                    <p class="col-span-2 text-right">Amount</p>
-                </div>
-                <div class="max-h-80 divide-y divide-slate-200 overflow-y-auto dark:divide-white/5">
-                    @foreach ($cashierTransactions as $transaction)
-                        <div class="grid grid-cols-12 gap-3 px-5 py-3 text-sm text-slate-700 dark:text-white/80">
-                            <p class="col-span-4 font-semibold text-slate-900 dark:text-white">{{ $transaction['number'] }}</p>
-                            <p class="col-span-2 text-slate-500 dark:text-white/60">{{ $transaction['time'] }}</p>
-                            <p class="col-span-2 text-center tabular-nums">{{ $transaction['items'] }}</p>
-                            <p class="col-span-2 text-slate-600 dark:text-white/80">{{ $transaction['channel'] }}</p>
-                            <p class="col-span-2 text-right font-semibold tabular-nums text-slate-900 dark:text-white">Rp {{ number_format($transaction['amount'], 0, ',', '.') }}</p>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-    </x-modal>
-
-    <x-modal name="pos-checkout-review" maxWidth="full">
-        <div class="flex h-full w-full flex-col rounded-3xl bg-white/95 p-6 text-slate-900 shadow-2xl shadow-black/20 dark:bg-slate-950/95 dark:text-white dark:shadow-black/50">
-            <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div>
-                    <p class="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-white/60">Checkout Review</p>
-                    <h2 class="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">Receipt #{!! rand(2020, 2099) !!}</h2>
-                    <p class="text-slate-600 dark:text-white/70">Cashier {{ $shiftSummary['cashier'] }}</p>
-                </div>
-
-                <div class="flex flex-col items-end gap-3 lg:flex-row lg:items-center lg:gap-6">
-                    <div class="flex items-center gap-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-700 dark:border-white/15 dark:bg-slate-900/60 dark:text-white/70">
-                        <div>
-                            <p class="uppercase tracking-[0.25em] text-slate-500 dark:text-white/50">Grand Total</p>
-                            <p class="mt-1 text-lg font-semibold text-slate-900 tabular-nums dark:text-white">Rp {{ number_format($paymentSummary['total'], 0, ',', '.') }}</p>
-                        </div>
-                        <div class="h-10 w-px bg-slate-200 dark:bg-white/10"></div>
-                        <div>
-                            <p class="uppercase tracking-[0.25em] text-slate-500 dark:text-white/50">Items</p>
-                            <p class="mt-1 text-sm font-semibold text-slate-900 tabular-nums dark:text-white">{{ count($cartItems) }}</p>
-                        </div>
-                        <div>
-                            <p class="uppercase tracking-[0.25em] text-slate-500 dark:text-white/50">Discount</p>
-                            <p class="mt-1 text-sm font-semibold text-emerald-600 tabular-nums dark:text-emerald-300">-{{ number_format($paymentSummary['discount'], 0, ',', '.') }}</p>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-4">
-                        <div class="flex flex-col items-center gap-1">
-                            <button type="button"
-                                class="inline-flex h-14 w-14 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm hover:bg-slate-50 dark:border-white/30 dark:bg-white/5 dark:text-white/80 dark:hover:bg-white/10"
-                                @click="$dispatch('close-modal', 'pos-checkout-review')"
-                                title="Cancel / Back">
-                                {{ svg('heroicon-o-x-mark', 'w-8 h-8') }}
-                            </button>
-                            <span class="rounded-xl border border-slate-200 bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-700 dark:border-white/30 dark:bg-white/5 dark:text-white/70">
-                                Esc
-                            </span>
-                        </div>
-
-                        <div class="flex flex-col items-center gap-1">
-                            <button type="button"
-                                class="inline-flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg shadow-emerald-500/40 hover:bg-emerald-400"
-                                title="Confirm charge">
-                                {{ svg('heroicon-o-check-badge', 'w-9 h-9') }}
-                            </button>
-                            <span class="rounded-xl border border-emerald-200/60 bg-emerald-300/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-900 dark:text-emerald-50">
-                                Enter
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-6 flex flex-1 flex-col gap-5 lg:flex-row">
-                <section class="flex-1 space-y-4">
-                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-slate-900/60">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-sm font-semibold uppercase tracking-[0.3em] text-slate-600 dark:text-white/60">Promos</h3>
-                            <span class="text-xs text-slate-500 dark:text-white/50">{{ count($checkoutPromos) }} applied</span>
-                        </div>
-                        <div class="mt-3 space-y-2">
-                            @foreach ($checkoutPromos as $promo)
-                                <div class="flex items-start justify-between rounded-xl bg-white px-3 py-2 dark:bg-white/5">
-                                    <div>
-                                        <p class="font-medium text-slate-900 dark:text-white">{{ $promo['label'] }}</p>
-                                        <p class="text-xs text-slate-500 dark:text-white/60">{{ $promo['description'] }}</p>
-                                    </div>
-                                    <p class="text-sm font-semibold text-emerald-600 tabular-nums dark:text-emerald-300">{{ number_format($promo['amount'], 0, ',', '.') }}</p>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-slate-900/60">
-                        <label class="text-sm font-semibold uppercase tracking-[0.3em] text-slate-600 dark:text-white/60" for="checkout-payment-method">Payment Method</label>
-                        <select id="checkout-payment-method" class="mt-3 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 focus:border-slate-400 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white/90 dark:focus:border-white/50">
-                            @foreach ($paymentMethods as $method)
-                                <option value="{{ $method['label'] }}">{{ $method['label'] }} @if($method['status'] === 'custom') (Custom) @endif</option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                </section>
-
-                <section class="flex w-full max-w-md flex-none flex-col rounded-3xl border border-slate-200 bg-slate-50 p-6 dark:border-white/10 dark:bg-slate-950/60">
-                    <div class="flex h-full flex-col">
-                        <div class="flex items-center justify-between gap-3">
-                            <div>
-                                <p class="text-xs uppercase tracking-[0.3em] text-slate-500 dark:text-white/60">Summary</p>
-                                <p class="text-base font-semibold text-slate-900 dark:text-white/90">Receipt #{!! rand(3020, 3099) !!}</p>
-                            </div>
-                            <button type="button" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:bg-white/10 dark:text-white/80 dark:hover:bg-white/20">
-                                <svg class="h-4 w-4 text-slate-600 dark:text-white/80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                    <path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" />
-                                    <path d="M8 7V5h8v2" />
-                                    <path d="M8 13h8" />
-                                    <path d="M8 17h4" />
-                                </svg>
-                                <span>Print</span>
-                            </button>
-                        </div>
-                        <div class="mt-4 flex-1 space-y-2 overflow-y-auto pr-1 text-sm max-h-[calc(100vh-450px)]">
-                            @foreach ($cartItems as $item)
-                                <div class="flex justify-between text-slate-700 dark:text-white/80">
-                                    <span>{{ $item['qty'] }}× {{ Str::limit($item['name'], 30) }}</span>
-                                    <span class="tabular-nums">{{ number_format($item['total'], 0, ',', '.') }}</span>
-                                </div>
-                            @endforeach
-                        </div>
-                        <div class="mt-4 border-t border-slate-200 pt-4 text-sm dark:border-white/10">
-                            <div class="flex justify-between text-slate-700 dark:text-white/70">
-                                <span>Subtotal</span>
-                                <span class="tabular-nums">{{ number_format($paymentSummary['subtotal'], 0, ',', '.') }}</span>
-                            </div>
-                            <div class="flex justify-between text-emerald-600 dark:text-emerald-200">
-                                <span>Discount</span>
-                                <span class="tabular-nums">−{{ number_format($paymentSummary['discount'], 0, ',', '.') }}</span>
-                            </div>
-                            <div class="flex justify-between text-slate-700 dark:text-white/70">
-                                <span>Tax</span>
-                                <span class="tabular-nums">{{ number_format($paymentSummary['tax'], 0, ',', '.') }}</span>
-                            </div>
-                            <div class="mt-2 flex items-center justify-between text-lg font-semibold text-slate-900 dark:text-white">
-                                <span>Total</span>
-                                <span class="tabular-nums">Rp {{ number_format($paymentSummary['total'], 0, ',', '.') }}</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-        </div>
-    </x-modal>
+    @include('livewire.pos.partials.checkout-review-modal')
 </div>
