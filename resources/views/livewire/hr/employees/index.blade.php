@@ -67,23 +67,25 @@
                     select-all-action="selectAllOnPage" deselect-action="clearSelection" />
                 <div class="flex items-center gap-3 ml-auto">
                     <x-table.search wire:model.debounce.300ms="search" placeholder="Search people" />
-                    <x-table.filter-dropdown label="Status" :options="[
-                        'all' => 'All',
-                        'active' => 'Active',
-                        'on_leave' => 'On leave',
-                        'probation' => 'Probation',
-                    ]" :selected="$statusFilter"
-                        on-select="setStatusFilter" />
+
+                    <x-table.employee-filter-dropdown
+                        :status-filter="$statusFilter"
+                        :department-filter="$departmentFilter"
+                        :position-filter="$positionFilter"
+                        :departments="$departments"
+                        :positions="$positions"
+                    />
+
                     <x-table.column-dropdown :column-visibility="$columnVisibility" reset-action="resetColumns" />
 
                     {{-- View Type Toggle --}}
                     <button type="button" wire:click="toggleViewType"
-                        class="inline-flex h-7 w-7 items-center justify-center text-slate-500 transition hover:text-slate-800 dark:text-white/70 dark:hover:text-white"
+                        class="inline-flex h-11 w-11 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
                         aria-label="Toggle view">
                         @if ($viewType === 'grid')
-                            @svg('heroicon-s-list-bullet', 'h-8 w-8')
+                            @svg('heroicon-s-list-bullet', 'h-5 w-5')
                         @else
-                            @svg('heroicon-s-squares-2x2', 'h-8 w-8')
+                            @svg('heroicon-s-squares-2x2', 'h-5 w-5')
                         @endif
                     </button>
                 </div>

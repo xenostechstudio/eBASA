@@ -20,6 +20,8 @@ class Index extends Component
 
     public string $search = '';
     public string $statusFilter = 'all';
+    public string $departmentFilter = 'all';
+    public string $positionFilter = 'all';
     public string $sortField = 'full_name';
     public string $sortDirection = 'asc';
     public int $formStep = 1;
@@ -76,7 +78,7 @@ class Index extends Component
 
     public function updated(string $property, $value): void
     {
-        if (in_array($property, ['search', 'statusFilter'], true)) {
+        if (in_array($property, ['search', 'statusFilter', 'departmentFilter', 'positionFilter'], true)) {
             $this->resetPageState();
         }
     }
@@ -106,6 +108,16 @@ class Index extends Component
     public function setStatusFilter(string $status): void
     {
         $this->statusFilter = $status;
+    }
+
+    public function setDepartmentFilter(string $department): void
+    {
+        $this->departmentFilter = $department;
+    }
+
+    public function setPositionFilter(string $position): void
+    {
+        $this->positionFilter = $position;
     }
 
     public function updatedColumnVisibility($value, string $key): void
@@ -206,6 +218,15 @@ class Index extends Component
         $this->resetSelection();
     }
 
+    public function resetFilters(): void
+    {
+        $this->statusFilter = 'all';
+        $this->departmentFilter = 'all';
+        $this->positionFilter = 'all';
+
+        $this->resetPageState();
+    }
+
     protected function scopedEmployees(?int $branchId = null): Builder
     {
         return Employee::query()->when($branchId, function (Builder $query) use ($branchId) {
@@ -230,6 +251,14 @@ class Index extends Component
 
         if ($this->statusFilter !== 'all') {
             $employeesQuery->where('status', $this->statusFilter);
+        }
+
+        if ($this->departmentFilter !== 'all') {
+            $employeesQuery->where('department_id', (int) $this->departmentFilter);
+        }
+
+        if ($this->positionFilter !== 'all') {
+            $employeesQuery->where('position_id', (int) $this->positionFilter);
         }
 
         $allowedSorts = ['full_name', 'start_date', 'status', 'code', 'department', 'position'];

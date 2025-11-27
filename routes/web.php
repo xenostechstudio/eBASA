@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Livewire\GeneralSetup\Portal as GeneralSetupPortal;
+use App\Livewire\GeneralSetup\RetailProducts\Index as RetailProductIndex;
 use App\Livewire\HumanResource\Departments\Create as HrDepartmentCreate;
 use App\Livewire\HumanResource\Departments\Index as HrDepartmentIndex;
 use App\Livewire\HumanResource\Employees\Create as HrEmployeeCreate;
@@ -16,6 +17,12 @@ use App\Livewire\Inventory\Branches\Create as InventoryBranchCreate;
 use App\Livewire\Inventory\Branches\Index as InventoryBranchIndex;
 use App\Livewire\Inventory\Portal as InventoryPortal;
 use App\Livewire\Pos\Screen as PosScreen;
+use App\Livewire\Transaction\CashCounts as TransactionCashCounts;
+use App\Livewire\Transaction\Index as TransactionIndex;
+use App\Livewire\Transaction\Refunds as TransactionRefunds;
+use App\Livewire\Transaction\Reports as TransactionReports;
+use App\Livewire\Transaction\Settlements as TransactionSettlements;
+use App\Livewire\Transaction\Shifts as TransactionShifts;
 use App\Models\Branch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -37,13 +44,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 
     Route::get('/pos', PosScreen::class)->name('pos');
-    Route::get('/transactions', function () {
-        return view('transactions.index');
-    })->name('transactions');
+    Route::get('/transactions', TransactionIndex::class)->name('transactions.index');
+    Route::get('/transactions/reports', TransactionReports::class)->name('transactions.reports');
+    Route::get('/transactions/settlements', TransactionSettlements::class)->name('transactions.settlements');
+    Route::get('/transactions/refunds', TransactionRefunds::class)->name('transactions.refunds');
+    Route::get('/transactions/shifts', TransactionShifts::class)->name('transactions.shifts');
+    Route::get('/transactions/cash-counts', TransactionCashCounts::class)->name('transactions.cash-counts');
     Route::get('/inventory', InventoryPortal::class)->name('inventory.portal');
     Route::get('/inventory/branches', InventoryBranchIndex::class)->name('inventory.branches.index');
     Route::get('/inventory/branches/create', InventoryBranchCreate::class)->name('inventory.branches.create');
     Route::get('/general-setup', GeneralSetupPortal::class)->name('general-setup.portal');
+    Route::get('/general-setup/retail-products', RetailProductIndex::class)->name('general-setup.retail-products.index');
+    Route::get('/general-setup/retail-products/create', RetailProductIndex::class)->name('general-setup.retail-products.create');
+    Route::get('/general-setup/retail-products/{product}/edit', RetailProductIndex::class)->name('general-setup.retail-products.edit');
     Route::get('/hr', HrPortal::class)->name('hr.portal');
     Route::get('/hr/employees', HrEmployeeIndex::class)->name('hr.employees');
     Route::get('/hr/employees/create', HrEmployeeCreate::class)->name('hr.employees.create');

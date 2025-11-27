@@ -7,10 +7,10 @@
     <button
         type="button"
         @click="open = !open"
-        class="mt-1 inline-flex items-center justify-center text-slate-500 transition hover:text-slate-700 dark:text-white/70 dark:hover:text-white"
+        class="inline-flex h-11 w-11 items-center justify-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-700 dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
         aria-label="Toggle columns"
     >
-        @svg('heroicon-s-view-columns', 'h-7 w-7')
+        @svg('heroicon-s-view-columns', 'h-5 w-5')
     </button>
     <div
         x-cloak
