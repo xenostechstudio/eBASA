@@ -4,39 +4,62 @@ namespace App\Support;
 
 class GeneralSetupNavigation
 {
-    public static function links(string $activeSection = 'overview', ?string $activeChild = null): array
+    public static function links(string $activeSection = 'overview'): array
     {
         return [
             [
-                'label' => 'Overview',
-                'href' => route('general-setup.portal'),
-                'active' => $activeSection === 'overview',
-            ],
-            [
                 'label' => 'Master Data',
-                'href' => '#',
-                'active' => $activeSection === 'master',
                 'children' => [
+                    [
+                        'label' => 'Users',
+                        'href' => route('general-setup.users.index'),
+                        'active' => $activeSection === 'users',
+                    ],
                     [
                         'label' => 'Retail Products',
                         'href' => route('general-setup.retail-products.index'),
-                        'active' => $activeChild === 'retail-products',
+                        'active' => $activeSection === 'retail-products',
                     ],
                     [
                         'label' => 'Product Categories',
-                        'href' => '#product-categories',
-                        'active' => $activeChild === 'product-categories',
+                        'href' => route('general-setup.product-categories.index'),
+                        'active' => $activeSection === 'product-categories',
+                    ],
+                    [
+                        'label' => 'Payment Methods',
+                        'href' => route('general-setup.payment-methods.index'),
+                        'active' => $activeSection === 'payment-methods',
+                    ],
+                ],
+            ],
+            [
+                'label' => 'Access Control',
+                'children' => [
+                    [
+                        'label' => 'Roles',
+                        'href' => route('general-setup.roles.index'),
+                        'active' => $activeSection === 'roles',
+                    ],
+                    [
+                        'label' => 'Permissions',
+                        'href' => route('general-setup.permissions.index'),
+                        'active' => $activeSection === 'permissions',
                     ],
                 ],
             ],
             [
                 'label' => 'System',
-                'href' => '#',
-                'active' => $activeSection === 'system',
                 'children' => [
-                    ['label' => 'Users', 'href' => '#users'],
-                    ['label' => 'Roles & Permissions', 'href' => '#roles'],
-                    ['label' => 'Settings', 'href' => '#settings'],
+                    [
+                        'label' => 'Settings',
+                        'href' => route('general-setup.settings.index'),
+                        'active' => $activeSection === 'settings',
+                    ],
+                    [
+                        'label' => 'Activity Logs',
+                        'href' => route('general-setup.activity-logs.index'),
+                        'active' => $activeSection === 'activity-logs',
+                    ],
                 ],
             ],
         ];

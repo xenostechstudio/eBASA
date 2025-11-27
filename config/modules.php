@@ -60,7 +60,7 @@ return [
         [
             'key' => 'general-setup',
             'name' => 'General Setup',
-            'description' => 'Configure branches, locations, and shared master data.',
+            'description' => 'Users, products, roles, and system configuration.',
             'icon' => '⚙️',
             'url' => '/general-setup',
             'status' => 'live',

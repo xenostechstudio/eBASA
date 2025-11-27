@@ -1,8 +1,15 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Livewire\GeneralSetup\ActivityLogs\Index as GeneralSetupActivityLogs;
+use App\Livewire\GeneralSetup\PaymentMethods\Index as GeneralSetupPaymentMethods;
+use App\Livewire\GeneralSetup\Permissions\Index as GeneralSetupPermissions;
 use App\Livewire\GeneralSetup\Portal as GeneralSetupPortal;
+use App\Livewire\GeneralSetup\ProductCategories\Index as GeneralSetupProductCategories;
 use App\Livewire\GeneralSetup\RetailProducts\Index as RetailProductIndex;
+use App\Livewire\GeneralSetup\Roles\Index as GeneralSetupRoles;
+use App\Livewire\GeneralSetup\Settings\Index as GeneralSetupSettings;
+use App\Livewire\GeneralSetup\Users\Index as GeneralSetupUsers;
 use App\Livewire\HumanResource\Departments\Create as HrDepartmentCreate;
 use App\Livewire\HumanResource\Departments\Index as HrDepartmentIndex;
 use App\Livewire\HumanResource\Employees\Create as HrEmployeeCreate;
@@ -54,9 +61,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/inventory/branches', InventoryBranchIndex::class)->name('inventory.branches.index');
     Route::get('/inventory/branches/create', InventoryBranchCreate::class)->name('inventory.branches.create');
     Route::get('/general-setup', GeneralSetupPortal::class)->name('general-setup.portal');
+    Route::get('/general-setup/users', GeneralSetupUsers::class)->name('general-setup.users.index');
     Route::get('/general-setup/retail-products', RetailProductIndex::class)->name('general-setup.retail-products.index');
     Route::get('/general-setup/retail-products/create', RetailProductIndex::class)->name('general-setup.retail-products.create');
     Route::get('/general-setup/retail-products/{product}/edit', RetailProductIndex::class)->name('general-setup.retail-products.edit');
+    Route::get('/general-setup/product-categories', GeneralSetupProductCategories::class)->name('general-setup.product-categories.index');
+    Route::get('/general-setup/payment-methods', GeneralSetupPaymentMethods::class)->name('general-setup.payment-methods.index');
+    Route::get('/general-setup/roles', GeneralSetupRoles::class)->name('general-setup.roles.index');
+    Route::get('/general-setup/permissions', GeneralSetupPermissions::class)->name('general-setup.permissions.index');
+    Route::get('/general-setup/settings', GeneralSetupSettings::class)->name('general-setup.settings.index');
+    Route::get('/general-setup/activity-logs', GeneralSetupActivityLogs::class)->name('general-setup.activity-logs.index');
     Route::get('/hr', HrPortal::class)->name('hr.portal');
     Route::get('/hr/employees', HrEmployeeIndex::class)->name('hr.employees');
     Route::get('/hr/employees/create', HrEmployeeCreate::class)->name('hr.employees.create');

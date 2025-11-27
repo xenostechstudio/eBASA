@@ -149,24 +149,24 @@
                     <div class="mt-4 grid grid-cols-3 gap-3">
                         {{-- Total --}}
                         <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 dark:border-emerald-400/30 dark:bg-emerald-500/10">
-                            <p class="text-xs text-emerald-700 dark:text-emerald-300">Total</p>
-                            <p class="mt-1 text-xl font-bold tabular-nums text-emerald-900 dark:text-white">Rp {{ number_format($paymentSummary['total'], 0, ',', '.') }}</p>
+                            <p class="text-md font-semibold text-emerald-800 dark:text-emerald-200">Total</p>
+                            <p class="mt-1 text-3xl font-bold tabular-nums text-emerald-900 dark:text-white">Rp {{ number_format($paymentSummary['total'], 0, ',', '.') }}</p>
                         </div>
                         {{-- Jumlah Bayar --}}
                         <div class="rounded-xl border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/5">
                             <div class="flex items-center justify-between">
-                                <p class="text-xs text-slate-500 dark:text-white/50">Jumlah Bayar</p>
+                                <p class="text-md font-semibold text-slate-600 dark:text-white/70">Jumlah Bayar</p>
                                 <span class="rounded-lg border border-slate-200 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-500 dark:border-white/20 dark:bg-white/5 dark:text-white/60">F3</span>
                             </div>
                             <div class="mt-1 flex items-baseline gap-1">
-                                <span class="text-sm text-slate-400 dark:text-white/40">Rp</span>
-                                <input type="text" x-model="paymentAmount" placeholder="0" x-ref="paymentAmountInput" class="w-full border-none bg-transparent p-0 text-xl font-bold tabular-nums text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-0 dark:text-white dark:placeholder:text-white/30">
+                                <span class="text-base text-slate-400 dark:text-white/40">Rp</span>
+                                <input type="text" x-model="paymentAmount" placeholder="0" x-ref="paymentAmountInput" class="w-full border-none bg-transparent p-0 text-3xl font-bold tabular-nums text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-0 dark:text-white dark:placeholder:text-white/30">
                             </div>
                         </div>
                         {{-- Kembalian --}}
                         <div class="rounded-xl border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/5">
-                            <p class="text-xs text-slate-500 dark:text-white/50">Kembalian</p>
-                            <p class="mt-1 text-xl font-bold tabular-nums"
+                            <p class="text-md font-semibold text-slate-600 dark:text-white/70">Kembalian</p>
+                            <p class="mt-1 text-3xl font-bold tabular-nums"
                                 :class="(parseInt(paymentAmount.replace(/\D/g, '')) || 0) >= total ? 'text-emerald-600 dark:text-emerald-300' : 'text-red-500 dark:text-red-400'"
                                 x-text="(() => { const paid = parseInt(paymentAmount.replace(/\D/g, '')) || 0; const change = paid - total; return 'Rp ' + (change >= 0 ? change.toLocaleString('id-ID') : '(' + Math.abs(change).toLocaleString('id-ID') + ')'); })()">
                             </p>

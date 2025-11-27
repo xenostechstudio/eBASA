@@ -40,11 +40,10 @@
         {{-- Module Icons --}}
         <nav class="flex flex-1 flex-col items-center gap-1">
             @foreach ($modules as $module)
-                <button
-                    type="button"
+                <a
+                    href="{{ $module['url'] }}"
                     @click="setModule('{{ $module['key'] }}')"
-                    class="group relative flex h-16 w-[72px] flex-col items-center justify-center rounded-xl transition"
-                    :class="activeModule === '{{ $module['key'] }}' ? 'bg-slate-100 text-slate-900 dark:bg-white/10 dark:text-white' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600 dark:text-white/40 dark:hover:bg-white/5 dark:hover:text-white/70'"
+                    class="group relative flex h-16 w-[72px] flex-col items-center justify-center rounded-xl transition {{ $activeModule === $module['key'] ? 'bg-slate-100 text-slate-900 dark:bg-white/10 dark:text-white' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600 dark:text-white/40 dark:hover:bg-white/5 dark:hover:text-white/70' }}"
                     aria-label="{{ $module['name'] }}"
                 >
                     @if (isset($moduleIcons[$module['key']]))
@@ -52,10 +51,10 @@
                     @else
                         <span class="text-2xl">{{ $module['icon'] }}</span>
                     @endif
-                    <span class="mt-1 text-[10px] font-medium leading-tight text-center" :class="activeModule === '{{ $module['key'] }}' ? 'text-slate-700 dark:text-white/80' : 'text-slate-400 dark:text-white/40'">
+                    <span class="mt-1 text-[10px] font-medium leading-tight text-center {{ $activeModule === $module['key'] ? 'text-slate-700 dark:text-white/80' : 'text-slate-400 dark:text-white/40' }}">
                         {{ $moduleShortNames[$module['key']] ?? Str::limit($module['name'], 8, '') }}
                     </span>
-                </button>
+                </a>
             @endforeach
         </nav>
 

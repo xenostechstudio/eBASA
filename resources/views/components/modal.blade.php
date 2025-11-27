@@ -73,6 +73,7 @@ $maxWidth = [
 
     <div
         x-show="show"
+        x-on:click.stop
         class="mx-auto flex w-full max-h-[calc(100vh-3rem)] min-h-[calc(100vh-3rem)] items-stretch justify-center rounded-3xl overflow-visible transform transition-all sm:w-full {{ $maxWidth }}"
         x-transition:enter="ease-out duration-300"
         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"

@@ -76,34 +76,6 @@
                     </div>
 
                     <div class="flex items-center gap-3">
-                        {{-- Theme Toggle --}}
-                        <div class="flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 p-1 dark:border-white/10 dark:bg-white/5">
-                            <button
-                                type="button"
-                                data-theme-choice="light"
-                                class="rounded-full p-1.5 transition"
-                                data-active="false"
-                            >
-                                @svg('heroicon-o-sun', 'h-4 w-4')
-                            </button>
-                            <button
-                                type="button"
-                                data-theme-choice="system"
-                                class="rounded-full p-1.5 transition"
-                                data-active="false"
-                            >
-                                @svg('heroicon-o-computer-desktop', 'h-4 w-4')
-                            </button>
-                            <button
-                                type="button"
-                                data-theme-choice="dark"
-                                class="rounded-full p-1.5 transition"
-                                data-active="false"
-                            >
-                                @svg('heroicon-o-moon', 'h-4 w-4')
-                            </button>
-                        </div>
-
                         {{ $headerActions ?? '' }}
                     </div>
                 </header>
@@ -115,66 +87,9 @@
             </main>
         </div>
 
-        <x-floating-branch-switcher :branch-shortcuts="$branchShortcuts" :active-branch-id="$activeBranchId" />
-
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                // Theme toggle
-                const themeButtons = Array.from(document.querySelectorAll('[data-theme-choice]'));
-                const storageKey = 'ebasa-theme';
-                const mediaQuery = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-
-                const getStoredTheme = () => {
-                    try {
-                        return localStorage.getItem(storageKey) || 'system';
-                    } catch (error) {
-                        return 'system';
-                    }
-                };
-
-                const setStoredTheme = (mode) => {
-                    try {
-                        localStorage.setItem(storageKey, mode);
-                    } catch (error) {
-                        // ignore storage errors
-                    }
-                };
-
-                const prefersDark = () => (mediaQuery ? mediaQuery.matches : false);
-
-                const applyThemeState = (mode) => {
-                    const effectiveMode = mode || getStoredTheme();
-                    const isDark = effectiveMode === 'dark' || (effectiveMode === 'system' && prefersDark());
-                    document.documentElement.classList.toggle('dark', isDark);
-                    themeButtons.forEach((button) => {
-                        const isActive = button.dataset.themeChoice === effectiveMode;
-                        button.dataset.active = isActive ? 'true' : 'false';
-                        button.classList.toggle('bg-white', isActive);
-                        button.classList.toggle('shadow-sm', isActive);
-                        button.classList.toggle('text-slate-900', isActive);
-                        button.classList.toggle('dark:bg-white/20', isActive);
-                        button.classList.toggle('dark:text-white', isActive);
-                    });
-                };
-
-                const initialTheme = getStoredTheme();
-                applyThemeState(initialTheme);
-
-                themeButtons.forEach((button) => {
-                    button.addEventListener('click', () => {
-                        const choice = button.dataset.themeChoice || 'system';
-                        setStoredTheme(choice);
-                        applyThemeState(choice);
-                    });
-                });
-
-                mediaQuery?.addEventListener('change', () => {
-                    if (getStoredTheme() === 'system') {
-                        applyThemeState('system');
-                    }
-                });
-            });
-        </script>
+        @if (($activeModule ?? null) !== 'general-setup')
+            <x-floating-branch-switcher :branch-shortcuts="$branchShortcuts" :active-branch-id="$activeBranchId" />
+        @endif
 
         @livewireScripts
     </body>
