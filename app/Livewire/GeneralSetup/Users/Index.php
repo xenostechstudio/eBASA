@@ -33,6 +33,12 @@ class Index extends Component
 
     public ?int $editingUserId = null;
 
+    public ?int $deletingUserId = null;
+
+    public string $deletingUserName = '';
+
+    public bool $showDeleteConfirm = false;
+
     // Form fields
     public ?int $employee_id = null;
 
@@ -161,14 +167,72 @@ class Index extends Component
         ]);
     }
 
-    public function deleteUser(int $userId): void
+    public function confirmDelete(int $userId): void
     {
-        User::destroy($userId);
+        $user = User::find($userId);
+
+        if (! $user) {
+            return;
+        }
+
+        $this->deletingUserId = $userId;
+        $this->deletingUserName = $user->name;
+        $this->showDeleteConfirm = true;
+    }
+
+    public function cancelDelete(): void
+    {
+        $this->showDeleteConfirm = false;
+        $this->deletingUserId = null;
+        $this->deletingUserName = '';
+    }
+
+    public function deleteUser(): void
+    {
+        if (! $this->deletingUserId) {
+            return;
+        }
+
+        User::destroy($this->deletingUserId);
+
+        $this->cancelDelete();
 
         session()->flash('flash', [
             'type' => 'success',
             'title' => 'User deleted',
             'message' => 'User deleted successfully.',
+        ]);
+    }
+
+    public function restore(int $userId): void
+    {
+        $user = User::withTrashed()->find($userId);
+
+        if (! $user) {
+            return;
+        }
+
+        $user->restore();
+
+        session()->flash('flash', [
+            'type' => 'success',
+            'title' => 'User restored',
+            'message' => 'User restored successfully.',
+        ]);
+    }
+
+    public function export(string $format): void
+    {
+        if (! in_array($format, ['excel', 'pdf'], true)) {
+            return;
+        }
+
+        $label = strtoupper($format);
+
+        session()->flash('flash', [
+            'type' => 'info',
+            'title' => $label . ' export',
+            'message' => 'Export functionality is not implemented yet.',
         ]);
     }
 
@@ -180,6 +244,15 @@ class Index extends Component
                     $q->where('name', 'like', '%' . $this->search . '%')
                         ->orWhere('email', 'like', '%' . $this->search . '%');
                 });
+            })
+            ->when($this->statusFilter === 'verified', function ($query) {
+                $query->whereNotNull('email_verified_at');
+            })
+            ->when($this->statusFilter === 'pending', function ($query) {
+                $query->whereNull('email_verified_at');
+            })
+            ->when($this->statusFilter === 'trashed', function ($query) {
+                $query->onlyTrashed();
             })
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate(15);
@@ -193,10 +266,17 @@ class Index extends Component
         $employees = Employee::orderBy('full_name')
             ->get(['id', 'full_name', 'email', 'code']);
 
+        $editingUser = null;
+
+        if ($this->editingUserId) {
+            $editingUser = User::with(['createdBy', 'updatedBy'])->find($this->editingUserId);
+        }
+
         return view('livewire.general-setup.users.index', [
             'users' => $users,
             'stats' => $stats,
             'employees' => $employees,
+            'editingUser' => $editingUser,
         ])->layoutData([
             'pageTitle' => 'Users',
             'pageTagline' => 'General Setup',
