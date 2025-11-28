@@ -2,10 +2,11 @@
 
 namespace App\Livewire\HumanResource;
 
+use App\Support\HumanResourceNavigation;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('layouts.portal')]
+#[Layout('layouts.portal-sidebar')]
 class Portal extends Component
 {
     public string $activeSection = 'overview';
@@ -141,51 +142,12 @@ class Portal extends Component
             'employeeDirectoryRoute' => route('hr.employees'),
         ])->layoutData([
             'pageTitle' => 'Human Resource',
-            'showBrand' => false,
-            'navLinks' => [
-                ['label' => 'Overview', 'href' => route('hr.portal'), 'active' => $this->activeSection === 'overview'],
-                [
-                    'label' => 'People',
-                    'href' => '#',
-                    'active' => $this->activeSection === 'people',
-                    'children' => [
-                        ['label' => 'Employees', 'href' => route('hr.employees')],
-                        ['label' => 'Employments', 'href' => route('hr.employments')],
-                        ['label' => 'Departments', 'href' => '#departments'],
-                        ['label' => 'Positions', 'href' => '#positions'],
-                    ],
-                ],
-                [
-                    'label' => 'Attendance',
-                    'href' => '#',
-                    'active' => $this->activeSection === 'attendance',
-                    'children' => [
-                        ['label' => 'Timesheets', 'href' => '#timesheets'],
-                        ['label' => 'Exceptions', 'href' => '#exceptions'],
-                        ['label' => 'Compliance', 'href' => '#compliance'],
-                    ],
-                ],
-                [
-                    'label' => 'Payroll',
-                    'href' => '#',
-                    'active' => $this->activeSection === 'payroll',
-                    'children' => [
-                        ['label' => 'Payroll Runs', 'href' => '#runs'],
-                        ['label' => 'Adjustments', 'href' => '#adjustments'],
-                        ['label' => 'Payouts', 'href' => '#payouts'],
-                    ],
-                ],
-                [
-                    'label' => 'Leave Management',
-                    'href' => '#',
-                    'active' => $this->activeSection === 'leave',
-                    'children' => [
-                        ['label' => 'Leave Requests', 'href' => '#leave-requests'],
-                        ['label' => 'Leave Types', 'href' => '#leave-types'],
-                        ['label' => 'Policies & Approvals', 'href' => '#leave-policies'],
-                    ],
-                ],
-            ],
+            'pageTagline' => 'People operations',
+            'activeModule' => 'hr',
+            'navLinks' => HumanResourceNavigation::links(
+                $this->activeSection,
+                $this->activeSection === 'people' ? $this->activePeopleTab : null,
+            ),
         ]);
     }
 }

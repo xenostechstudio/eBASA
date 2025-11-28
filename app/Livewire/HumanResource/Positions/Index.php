@@ -11,7 +11,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.portal')]
+#[Layout('layouts.portal-sidebar')]
 class Index extends Component
 {
     use WithPagination;
@@ -55,18 +55,21 @@ class Index extends Component
     public function updatedSearch(): void
     {
         $this->resetPage();
+        $this->resetSelection();
     }
 
     public function setBranchFilter(string $branchId): void
     {
         $this->branchFilter = $branchId;
         $this->resetPage();
+        $this->resetSelection();
     }
 
     public function setDepartmentFilter(string $departmentId): void
     {
         $this->departmentFilter = $departmentId;
         $this->resetPage();
+        $this->resetSelection();
     }
 
     public function resetColumns(): void
@@ -116,11 +119,66 @@ class Index extends Component
         $this->selectedPositions = [];
     }
 
+    public function selectPage(): void
+    {
+        $this->selectedPositions = array_map('strval', $this->pagePositionIds);
+        $this->selectPage = $this->pageHasAllSelected();
+    }
+
+    public function selectAllPositions(): void
+    {
+        $query = Position::query();
+
+        if ($this->search !== '') {
+            $query->where(function ($q) {
+                $q->where('title', 'like', '%'.$this->search.'%')
+                    ->orWhere('code', 'like', '%'.$this->search.'%');
+            });
+        }
+
+        if ($this->branchFilter !== 'all') {
+            $query->where('branch_id', (int) $this->branchFilter);
+        }
+
+        if ($this->departmentFilter !== 'all') {
+            $query->where('department_id', (int) $this->departmentFilter);
+        }
+
+        $allIds = $query->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $this->selectedPositions = array_map('strval', $allIds);
+        $this->selectPage = $this->pageHasAllSelected();
+    }
+
+    public function deselectAll(): void
+    {
+        $this->resetSelection();
+    }
+
+    public function deleteSelected(): void
+    {
+        if (empty($this->selectedPositions)) {
+            return;
+        }
+
+        Position::query()
+            ->whereIn('id', array_map('intval', $this->selectedPositions))
+            ->delete();
+
+        $this->resetSelection();
+        $this->dispatch('notify', message: 'Selected positions deleted');
+    }
+
     public function updatedSelectedPositions(): void
     {
         $normalized = array_values(array_unique(array_map('intval', $this->selectedPositions)));
         $this->selectedPositions = array_map('strval', $normalized);
         $this->selectPage = $this->pageHasAllSelected($normalized);
+    }
+
+    protected function resetSelection(): void
+    {
+        $this->selectedPositions = [];
+        $this->selectPage = false;
     }
 
     protected function pageHasAllSelected(?array $selectedIds = null): bool
@@ -176,16 +234,10 @@ class Index extends Component
             'branches' => Branch::orderBy('name')->get(['id', 'name']),
             'departments' => Department::orderBy('name')->get(['id', 'name']),
             'stats' => $stats,
-            'columnVisibility' => $this->columnVisibility,
-            'selectedPositions' => $this->selectedPositions,
-            'selectPage' => $this->selectPage,
-            'sortField' => $this->sortField,
-            'sortDirection' => $this->sortDirection,
-            'branchFilter' => $this->branchFilter,
-            'departmentFilter' => $this->departmentFilter,
         ])->layoutData([
-            'pageTitle' => 'Human Resource',
-            'showBrand' => false,
+            'pageTitle' => 'Positions',
+            'pageTagline' => 'HR · People',
+            'activeModule' => 'hr',
             'navLinks' => HumanResourceNavigation::links('people', 'positions'),
         ]);
     }

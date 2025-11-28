@@ -2,51 +2,23 @@
 
 namespace App\Livewire\Inventory;
 
+use App\Models\Product;
+use App\Models\Warehouse;
 use App\Support\InventoryNavigation;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-/**
- * @method $this layoutData(array $data)
- */
 #[Layout('layouts.portal-sidebar')]
 class Portal extends Component
 {
-    public array $sections = [
-        'overview' => 'Overview',
-        'branches' => 'Branches',
-        'stock' => 'Stock Visibility',
-        'catalog' => 'Catalog',
-        'procurement' => 'Procurement',
-    ];
-
-    public string $activeSection = 'overview';
-
-    public function setSection(string $section): void
-    {
-        if (array_key_exists($section, $this->sections)) {
-            $this->activeSection = $section;
-        }
-    }
-
     public function render()
     {
-        $summaryCards = [
-            [
-                'label' => 'Branches Monitored',
-                'value' => '12',
-                'trend' => '3 new this quarter',
-            ],
-            [
-                'label' => 'SKUs in Catalog',
-                'value' => '4,583',
-                'trend' => '+215 vs last month',
-            ],
-            [
-                'label' => 'Stock Health',
-                'value' => '89%',
-                'trend' => 'Ideal range 88-92%',
-            ],
+        $stats = [
+            'totalProducts' => Product::count(),
+            'warehouses' => Warehouse::count(),
+            'inStock' => Product::where('stock_quantity', '>', 0)->count(),
+            'lowStock' => Product::whereColumn('stock_quantity', '<=', 'min_stock_level')
+                ->where('stock_quantity', '>', 0)->count(),
         ];
 
         $recentActivities = [
@@ -55,18 +27,26 @@ class Portal extends Component
             ['title' => 'Transfer Pemalang → Tegal', 'timestamp' => 'Today, 10:15', 'type' => 'Transfer'],
         ];
 
-        $branchHealth = [
-            ['name' => 'Tegal', 'status' => 'stable', 'fill' => 92],
-            ['name' => 'Pemalang', 'status' => 'watch', 'fill' => 78],
-            ['name' => 'Pekalongan', 'status' => 'stable', 'fill' => 88],
+        $warehouseHealth = Warehouse::with('branch')->get()->map(fn ($w) => [
+            'name' => $w->name,
+            'branch' => $w->branch?->name ?? 'N/A',
+            'fill' => rand(70, 95),
+        ])->take(5)->toArray();
+
+        $quickLinks = [
+            ['label' => 'Stock Levels', 'href' => route('inventory.stock.levels'), 'icon' => 'heroicon-o-chart-bar', 'description' => 'View current stock'],
+            ['label' => 'Adjustments', 'href' => route('inventory.stock.adjustments'), 'icon' => 'heroicon-o-adjustments-horizontal', 'description' => 'Manage adjustments'],
+            ['label' => 'Transfers', 'href' => route('inventory.stock.transfers'), 'icon' => 'heroicon-o-arrows-right-left', 'description' => 'Inter-warehouse transfers'],
+            ['label' => 'Products', 'href' => route('inventory.catalog.products'), 'icon' => 'heroicon-o-shopping-bag', 'description' => 'Product catalog'],
+            ['label' => 'Bundles', 'href' => route('inventory.catalog.bundles'), 'icon' => 'heroicon-o-squares-2x2', 'description' => 'Product bundles'],
+            ['label' => 'Price Lists', 'href' => route('inventory.catalog.price-lists'), 'icon' => 'heroicon-o-currency-dollar', 'description' => 'Pricing management'],
         ];
 
-        /** @noinspection PhpUndefinedMethodInspection */
         return view('livewire.inventory.portal', [
-            'summaryCards' => $summaryCards,
+            'stats' => $stats,
             'recentActivities' => $recentActivities,
-            'branchHealth' => $branchHealth,
-            'sections' => $this->sections,
+            'warehouseHealth' => $warehouseHealth,
+            'quickLinks' => $quickLinks,
         ])->layoutData([
             'pageTitle' => 'Inventory',
             'pageTagline' => 'Stock & Operations',

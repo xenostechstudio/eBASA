@@ -1,180 +1,170 @@
-<div class="space-y-10">
-    <x-module.heading
-        tagline="HR · People"
-        title="Employment Records"
-        description="Track employment classes, contract stages, and recent lifecycle updates across the organization."
-    >
-        <x-slot:actions>
-            <x-ui.button as="a" href="{{ route('hr.employments.create') }}">Add employment</x-ui.button>
-        </x-slot:actions>
-    </x-module.heading>
+<div class="space-y-6">
+    {{-- Stats Cards --}}
+    <div class="grid gap-4 md:grid-cols-3">
+        <x-stat.card label="Permanent" :value="number_format($stats['permanent'])" description="Active permanent contracts" tone="success">
+            <x-slot:icon>
+                @svg('heroicon-o-check-badge', 'h-5 w-5 text-emerald-500')
+            </x-slot:icon>
+        </x-stat.card>
 
-    <section class="grid gap-4 md:grid-cols-3">
-        <div class="rounded-3xl border border-white/10 bg-white/5 p-4">
-            <p class="text-xs uppercase tracking-[0.35em] text-white/40">Permanent</p>
-            <p class="mt-2 text-3xl font-semibold text-white">{{ $stats['permanent'] }}</p>
-            <p class="text-xs text-white/60">Active permanent contracts</p>
-        </div>
-        <div class="rounded-3xl border border-white/10 bg-white/5 p-4">
-            <p class="text-xs uppercase tracking-[0.35em] text-amber-300/80">Probation</p>
-            <p class="mt-2 text-3xl font-semibold text-white">{{ $stats['probation'] }}</p>
-            <p class="text-xs text-white/60">Under evaluation</p>
-        </div>
-        <div class="rounded-3xl border border-white/10 bg-white/5 p-4">
-            <p class="text-xs uppercase tracking-[0.35em] text-sky-300/80">Contract</p>
-            <p class="mt-2 text-3xl font-semibold text-white">{{ $stats['contract'] }}</p>
-            <p class="text-xs text-white/60">Fixed-term & part-time</p>
-        </div>
-    </section>
+        <x-stat.card label="Probation" :value="number_format($stats['probation'])" description="Under evaluation" tone="warning">
+            <x-slot:icon>
+                @svg('heroicon-o-clock', 'h-5 w-5 text-amber-500')
+            </x-slot:icon>
+        </x-stat.card>
 
-    <section class="rounded-[28px] border border-white/10 bg-white/5 overflow-hidden">
-        <div class="px-6 pt-4 pb-4 space-y-4">
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div class="flex items-center gap-3 ml-auto">
-                    <x-table.search wire:model.debounce.300ms="search" placeholder="Search code or name" />
-                    <x-table.filter-dropdown
-                        label="Status"
-                        :options="['all' => 'All', 'active' => 'Active', 'on_leave' => 'On leave', 'probation' => 'Probation']"
-                        :selected="$statusFilter"
-                        on-select="setStatusFilter"
-                    />
-                    <x-table.column-dropdown :column-visibility="$columnVisibility" reset-action="resetColumns" />
+        <x-stat.card label="Contract" :value="number_format($stats['contract'])" description="Fixed-term & part-time" tone="info">
+            <x-slot:icon>
+                @svg('heroicon-o-document-text', 'h-5 w-5 text-sky-500')
+            </x-slot:icon>
+        </x-stat.card>
+    </div>
+
+    {{-- Employments Table --}}
+    <div class="rounded-2xl border border-slate-300 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
+        <div class="border-b border-slate-100 px-5 py-4 dark:border-white/10">
+            <div class="flex flex-wrap items-center justify-end gap-3">
+                {{-- Selection Summary --}}
+                <x-table.selection-summary
+                    :count="count($selectedEmployments)"
+                    :total="$employments->total()"
+                    description="records selected"
+                    select-all-action="selectAllEmployments"
+                    select-page-action="selectPage"
+                    deselect-action="deselectAll"
+                    delete-action="deleteSelected"
+                />
+
+                {{-- Search --}}
+                <div class="relative">
+                    @svg('heroicon-o-magnifying-glass', 'pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400')
+                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search records..."
+                        class="h-10 w-64 rounded-xl border border-slate-300 bg-white pl-10 pr-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40">
                 </div>
+
+                {{-- Dynamic Filters --}}
+                <x-table.dynamic-filters :filters="[
+                    'status' => [
+                        'label' => 'Status',
+                        'options' => [
+                            'all' => 'All status',
+                            'active' => 'Active',
+                            'on_leave' => 'On Leave',
+                            'probation' => 'Probation',
+                        ],
+                        'selected' => $statusFilter,
+                        'default' => 'all',
+                        'onSelect' => 'setStatusFilter',
+                    ],
+                ]" />
+
+                <x-table.export-dropdown aria-label="Export employments" />
+
+                {{-- Add Employment --}}
+                <a href="{{ route('hr.employments.create') }}"
+                    class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90">
+                    @svg('heroicon-o-plus', 'h-4 w-4')
+                    <span>Add Employment</span>
+                </a>
             </div>
         </div>
 
-        <div class="-mx-6 -mb-6 overflow-hidden border-t border-white/10 bg-slate-900/40 pb-6">
-            <div class="overflow-x-auto px-6 pb-4">
-                <table class="min-w-full text-sm">
+        @if ($employments->count() > 0)
+            <div class="overflow-x-auto">
+                <table class="w-full">
                     <thead>
-                        <tr class="text-left text-white/70 text-xs uppercase tracking-[0.3em] bg-white/5">
-                            <th class="px-4 py-4 w-16 text-center">
-                                <label class="inline-flex items-center justify-center">
-                                    <input
-                                        type="checkbox"
-                                        wire:click="toggleSelectPage"
-                                        class="sr-only"
-                                        @checked($selectPage)
-                                        aria-label="Select page"
-                                    >
-                                    <span @class([
-                                        'flex h-5 w-5 items-center justify-center rounded border transition',
-                                        'border-white/40 bg-white text-slate-900' => $selectPage,
-                                        'border-white/40 bg-white/5 text-transparent' => ! $selectPage,
-                                    ])>
-                                        @svg('heroicon-s-check', 'h-3 w-3')
-                                    </span>
+                        <tr class="border-b border-slate-100 bg-slate-50 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-white/60">
+                            <th class="w-12 px-5 py-3">
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" wire:click="toggleSelectPage" @checked($selectPage)
+                                        class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500 dark:border-white/30 dark:bg-white/10 dark:checked:bg-white dark:checked:text-slate-900">
                                 </label>
                             </th>
-                            @if ($columnVisibility['employee'])
-                                <th class="px-4 py-4 cursor-pointer" wire:click="setSort('full_name')">
-                                    <span class="inline-flex items-center gap-2 font-semibold text-white">
-                                        Employee
-                                        <svg class="h-3 w-3 {{ $sortField === 'full_name' ? 'opacity-100 text-white' : 'opacity-0 text-white/60' }} {{ $sortField === 'full_name' && $sortDirection === 'asc' ? '' : 'rotate-180' }}" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M1 1.5L5 4.5L9 1.5" />
-                                        </svg>
-                                    </span>
-                                </th>
-                            @endif
-                            @if ($columnVisibility['branch'])
-                                <th class="px-4 py-4">Branch</th>
-                            @endif
-                            @if ($columnVisibility['department'])
-                                <th class="px-4 py-4">Department</th>
-                            @endif
-                            @if ($columnVisibility['position'])
-                                <th class="px-4 py-4">Position</th>
-                            @endif
-                            @if ($columnVisibility['class'])
-                                <th class="px-4 py-4">Class</th>
-                            @endif
-                            @if ($columnVisibility['start'])
-                                <th class="px-4 py-4 cursor-pointer" wire:click="setSort('start_date')">
-                                    <span class="inline-flex items-center gap-2 font-semibold text-white/80">
-                                        Start
-                                        <svg class="h-3 w-3 {{ $sortField === 'start_date' ? 'opacity-100 text-white' : 'opacity-0 text-white/60' }} {{ $sortField === 'start_date' && $sortDirection === 'asc' ? '' : 'rotate-180' }}" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M1 1.5L5 4.5L9 1.5" />
-                                        </svg>
-                                    </span>
-                                </th>
-                            @endif
-                            @if ($columnVisibility['status'])
-                                <th class="px-4 py-4">Status</th>
-                            @endif
+                            <th class="px-5 py-3">
+                                <button wire:click="setSort('full_name')" class="flex items-center gap-1 hover:text-slate-700 dark:hover:text-white">
+                                    EMPLOYEE
+                                    @if ($sortField === 'full_name')
+                                        @svg($sortDirection === 'asc' ? 'heroicon-s-chevron-up' : 'heroicon-s-chevron-down', 'h-3 w-3')
+                                    @endif
+                                </button>
+                            </th>
+                            <th class="px-5 py-3">BRANCH</th>
+                            <th class="px-5 py-3">DEPARTMENT</th>
+                            <th class="px-5 py-3">POSITION</th>
+                            <th class="px-5 py-3">CLASS</th>
+                            <th class="px-5 py-3">
+                                <button wire:click="setSort('start_date')" class="flex items-center gap-1 hover:text-slate-700 dark:hover:text-white">
+                                    START
+                                    @if ($sortField === 'start_date')
+                                        @svg($sortDirection === 'asc' ? 'heroicon-s-chevron-up' : 'heroicon-s-chevron-down', 'h-3 w-3')
+                                    @endif
+                                </button>
+                            </th>
+                            <th class="px-5 py-3">STATUS</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-white/10">
-                        @forelse ($employments as $employment)
-                            <tr class="hover:bg-white/5">
-                                <td class="px-4 py-4 w-16 text-center">
-                                    @php $rowSelected = in_array((string) $employment->id, $selectedEmployments, true); @endphp
-                                    <label class="inline-flex items-center justify-center">
-                                        <input
-                                            type="checkbox"
-                                            wire:model.live="selectedEmployments"
-                                            value="{{ $employment->id }}"
-                                            class="sr-only"
-                                            @checked($rowSelected)
-                                            aria-label="Select {{ $employment->full_name }}"
-                                        >
-                                        <span @class([
-                                            'flex h-5 w-5 items-center justify-center rounded border transition',
-                                            'border-white/40 bg-white text-slate-900' => $rowSelected,
-                                            'border-white/40 bg-white/5 text-transparent' => ! $rowSelected,
-                                        ])>
-                                            @svg('heroicon-s-check', 'h-3 w-3')
-                                        </span>
+                    <tbody class="divide-y divide-slate-100 dark:divide-white/10">
+                        @foreach ($employments as $employment)
+                            @php $isSelected = in_array($employment->id, $selectedEmployments); @endphp
+                            <tr class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5 {{ $isSelected ? 'bg-slate-50 dark:bg-white/5' : '' }}">
+                                <td class="whitespace-nowrap px-5 py-4" wire:click.stop>
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" wire:model.live="selectedEmployments" value="{{ $employment->id }}"
+                                            class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500 dark:border-white/30 dark:bg-white/10 dark:checked:bg-white dark:checked:text-slate-900">
                                     </label>
                                 </td>
-                                @if ($columnVisibility['employee'])
-                                    <td class="px-4 py-4">
-                                        <p class="font-semibold text-white">{{ $employment->full_name }}</p>
-                                        <p class="text-xs text-white/50">{{ $employment->code }}</p>
-                                    </td>
-                                @endif
-                                @if ($columnVisibility['branch'])
-                                    <td class="px-4 py-4 text-white/70">{{ $employment->branch?->name ?? '—' }}</td>
-                                @endif
-                                @if ($columnVisibility['department'])
-                                    <td class="px-4 py-4 text-white/70">{{ $employment->department?->name ?? '—' }}</td>
-                                @endif
-                                @if ($columnVisibility['position'])
-                                    <td class="px-4 py-4 text-white/70">{{ $employment->position?->title ?? '—' }}</td>
-                                @endif
-                                @if ($columnVisibility['class'])
-                                    <td class="px-4 py-4">
-                                        <span class="rounded-full bg-white/10 px-3 py-1 text-xs text-white/70">{{ str($employment->employment_class ?: 'N/A')->headline() }}</span>
-                                    </td>
-                                @endif
-                                @if ($columnVisibility['start'])
-                                    <td class="px-4 py-4 text-white/70">{{ optional($employment->start_date)->format('M d, Y') ?? '—' }}</td>
-                                @endif
-                                @if ($columnVisibility['status'])
-                                    <td class="px-4 py-4">
-                                        @php
-                                            $statusMap = [
-                                                'active' => 'bg-emerald-300/15 text-emerald-200',
-                                                'on_leave' => 'bg-amber-300/15 text-amber-200',
-                                                'probation' => 'bg-sky-300/15 text-sky-200',
-                                            ];
-                                        @endphp
-                                        <span class="rounded-full px-3 py-1 text-xs {{ $statusMap[$employment->status] ?? 'bg-white/10 text-white/60' }}">
-                                            {{ str($employment->status)->headline() }}
-                                        </span>
-                                    </td>
-                                @endif
+                                <td class="whitespace-nowrap px-5 py-4">
+                                    <p class="font-medium text-slate-900 dark:text-white">{{ $employment->full_name }}</p>
+                                    <p class="text-xs text-slate-500 dark:text-white/50">{{ $employment->code }}</p>
+                                </td>
+                                <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-600 dark:text-white/70">
+                                    {{ $employment->branch?->name ?? '—' }}
+                                </td>
+                                <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-600 dark:text-white/70">
+                                    {{ $employment->department?->name ?? '—' }}
+                                </td>
+                                <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-600 dark:text-white/70">
+                                    {{ $employment->position?->title ?? '—' }}
+                                </td>
+                                <td class="whitespace-nowrap px-5 py-4">
+                                    <span class="inline-flex items-center rounded-lg bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 dark:bg-white/10 dark:text-white/70">
+                                        {{ str($employment->employment_class ?: 'N/A')->headline() }}
+                                    </span>
+                                </td>
+                                <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500 dark:text-white/60">
+                                    {{ optional($employment->start_date)->format('M d, Y') ?? '—' }}
+                                </td>
+                                <td class="whitespace-nowrap px-5 py-4">
+                                    @php
+                                        $statusColors = [
+                                            'active' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400',
+                                            'on_leave' => 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400',
+                                            'probation' => 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-400',
+                                        ];
+                                    @endphp
+                                    <span class="inline-flex items-center rounded-lg px-2 py-1 text-xs font-medium {{ $statusColors[$employment->status] ?? 'bg-slate-100 text-slate-600' }}">
+                                        {{ str($employment->status)->headline() }}
+                                    </span>
+                                </td>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="{{ collect($columnVisibility)->filter()->count() + 1 }}" class="px-4 py-10 text-center text-sm text-white/60">No employment records found.</td>
-                            </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
             </div>
-            <div class="px-6">
-                <x-table.pagination :paginator="$employments" />
+
+            <x-table.pagination :paginator="$employments" :per-page-options="[10, 25, 50, 100]" />
+        @else
+            <div class="flex flex-col items-center justify-center py-16 text-center">
+                @svg('heroicon-o-document-text', 'h-12 w-12 text-slate-300 dark:text-white/20')
+                <p class="mt-4 text-sm font-medium text-slate-500 dark:text-white/60">No employment records found</p>
+                <p class="mt-1 text-xs text-slate-400 dark:text-white/40">
+                    @if ($search || $statusFilter !== 'all')
+                        Try adjusting your search or filters
+                    @else
+                        Get started by adding your first employment record
+                    @endif
+                </p>
             </div>
-        </div>
-    </section>
+        @endif
+    </div>
 </div>

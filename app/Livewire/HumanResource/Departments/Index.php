@@ -10,7 +10,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.portal')]
+#[Layout('layouts.portal-sidebar')]
 class Index extends Component
 {
     use WithPagination;
@@ -52,12 +52,14 @@ class Index extends Component
     public function updatedSearch(): void
     {
         $this->resetPage();
+        $this->resetSelection();
     }
 
     public function setBranchFilter(string $branchId): void
     {
         $this->branchFilter = $branchId;
         $this->resetPage();
+        $this->resetSelection();
     }
 
     public function resetColumns(): void
@@ -106,11 +108,62 @@ class Index extends Component
         $this->selectedDepartments = [];
     }
 
+    public function selectPage(): void
+    {
+        $this->selectedDepartments = array_map('strval', $this->pageDepartmentIds);
+        $this->selectPage = $this->pageHasAllSelected();
+    }
+
+    public function selectAllDepartments(): void
+    {
+        $query = Department::query();
+
+        if ($this->search !== '') {
+            $query->where(function ($q) {
+                $q->where('name', 'like', '%'.$this->search.'%')
+                    ->orWhere('code', 'like', '%'.$this->search.'%');
+            });
+        }
+
+        if ($this->branchFilter !== 'all') {
+            $query->where('branch_id', (int) $this->branchFilter);
+        }
+
+        $allIds = $query->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $this->selectedDepartments = array_map('strval', $allIds);
+        $this->selectPage = $this->pageHasAllSelected();
+    }
+
+    public function deselectAll(): void
+    {
+        $this->resetSelection();
+    }
+
+    public function deleteSelected(): void
+    {
+        if (empty($this->selectedDepartments)) {
+            return;
+        }
+
+        Department::query()
+            ->whereIn('id', array_map('intval', $this->selectedDepartments))
+            ->delete();
+
+        $this->resetSelection();
+        $this->dispatch('notify', message: 'Selected departments deleted');
+    }
+
     public function updatedSelectedDepartments(): void
     {
         $normalized = array_values(array_unique(array_map('intval', $this->selectedDepartments)));
         $this->selectedDepartments = array_map('strval', $normalized);
         $this->selectPage = $this->pageHasAllSelected($normalized);
+    }
+
+    protected function resetSelection(): void
+    {
+        $this->selectedDepartments = [];
+        $this->selectPage = false;
     }
 
     protected function pageHasAllSelected(?array $selectedIds = null): bool
@@ -161,15 +214,10 @@ class Index extends Component
             'departments' => $departments,
             'branches' => Branch::orderBy('name')->get(['id', 'name']),
             'stats' => $stats,
-            'columnVisibility' => $this->columnVisibility,
-            'selectedDepartments' => $this->selectedDepartments,
-            'selectPage' => $this->selectPage,
-            'sortField' => $this->sortField,
-            'sortDirection' => $this->sortDirection,
-            'branchFilter' => $this->branchFilter,
         ])->layoutData([
-            'pageTitle' => 'Human Resource',
-            'showBrand' => false,
+            'pageTitle' => 'Departments',
+            'pageTagline' => 'HR · People',
+            'activeModule' => 'hr',
             'navLinks' => HumanResourceNavigation::links('people', 'departments'),
         ]);
     }

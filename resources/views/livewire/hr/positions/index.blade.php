@@ -1,162 +1,159 @@
-<div class="space-y-10">
-    <x-module.heading
-        tagline="HR · People"
-        title="Positions"
-        description="Track roles, reporting structures, and people manager responsibilities."
-    >
-        <x-slot:actions>
-            <x-ui.button as="a" href="{{ route('hr.positions.create') }}">Add position</x-ui.button>
-        </x-slot:actions>
-    </x-module.heading>
+<div class="space-y-6">
+    {{-- Stats Cards --}}
+    <div class="grid gap-4 md:grid-cols-3">
+        <x-stat.card label="Total Positions" :value="number_format($stats['total'])" description="Job roles" tone="neutral">
+            <x-slot:icon>
+                @svg('heroicon-o-briefcase', 'h-5 w-5 text-slate-500')
+            </x-slot:icon>
+        </x-stat.card>
 
-    <section class="grid gap-4 md:grid-cols-3">
-        <div class="rounded-3xl border border-white/10 bg-white/5 p-4">
-            <p class="text-xs uppercase tracking-[0.35em] text-white/40">Total</p>
-            <p class="mt-2 text-3xl font-semibold text-white">{{ $stats['total'] }}</p>
-            <p class="text-xs text-white/60">Positions</p>
-        </div>
-        <div class="rounded-3xl border border-white/10 bg-white/5 p-4">
-            <p class="text-xs uppercase tracking-[0.35em] text-emerald-300/80">Managers</p>
-            <p class="mt-2 text-3xl font-semibold text-white">{{ $stats['peopleManagers'] }}</p>
-            <p class="text-xs text-white/60">People manager roles</p>
-        </div>
-        <div class="rounded-3xl border border-white/10 bg-white/5 p-4">
-            <p class="text-xs uppercase tracking-[0.35em] text-sky-300/80">ICs</p>
-            <p class="mt-2 text-3xl font-semibold text-white">{{ $stats['individualContributors'] }}</p>
-            <p class="text-xs text-white/60">Individual contributors</p>
-        </div>
-    </section>
+        <x-stat.card label="Managers" :value="number_format($stats['peopleManagers'])" description="People manager roles" tone="success">
+            <x-slot:icon>
+                @svg('heroicon-o-user-group', 'h-5 w-5 text-emerald-500')
+            </x-slot:icon>
+        </x-stat.card>
 
-    <section class="rounded-[28px] border border-white/10 bg-white/5 overflow-hidden">
-        <div class="px-6 pt-4 pb-4 space-y-4">
+        <x-stat.card label="ICs" :value="number_format($stats['individualContributors'])" description="Individual contributors" tone="info">
+            <x-slot:icon>
+                @svg('heroicon-o-user', 'h-5 w-5 text-sky-500')
+            </x-slot:icon>
+        </x-stat.card>
+    </div>
+
+    {{-- Positions Table --}}
+    <div class="rounded-2xl border border-slate-300 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
+        <div class="border-b border-slate-100 px-5 py-4 dark:border-white/10">
             <div class="flex flex-wrap items-center justify-end gap-3">
-                <x-table.search wire:model.debounce.300ms="search" placeholder="Search title or code" />
-                <x-table.filter-dropdown
-                    label="Branch"
-                    :options="array_merge(['all' => 'All branches'], $branches->pluck('name', 'id')->toArray())"
-                    :selected="$branchFilter"
-                    on-select="setBranchFilter"
+                {{-- Selection Summary --}}
+                <x-table.selection-summary
+                    :count="count($selectedPositions)"
+                    :total="$positions->total()"
+                    description="positions selected"
+                    select-all-action="selectAllPositions"
+                    select-page-action="selectPage"
+                    deselect-action="deselectAll"
+                    delete-action="deleteSelected"
                 />
-                <x-table.filter-dropdown
-                    label="Department"
-                    :options="array_merge(['all' => 'All departments'], $departments->pluck('name', 'id')->toArray())"
-                    :selected="$departmentFilter"
-                    on-select="setDepartmentFilter"
-                />
-                <x-table.column-dropdown :column-visibility="$columnVisibility" reset-action="resetColumns" />
+
+                {{-- Search --}}
+                <div class="relative">
+                    @svg('heroicon-o-magnifying-glass', 'pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400')
+                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search positions..."
+                        class="h-10 w-64 rounded-xl border border-slate-300 bg-white pl-10 pr-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40">
+                </div>
+
+                {{-- Dynamic Filters --}}
+                <x-table.dynamic-filters :filters="[
+                    'branch' => [
+                        'label' => 'Branch',
+                        'options' => array_merge(['all' => 'All branches'], $branches->pluck('name', 'id')->toArray()),
+                        'selected' => $branchFilter,
+                        'default' => 'all',
+                        'onSelect' => 'setBranchFilter',
+                    ],
+                    'department' => [
+                        'label' => 'Department',
+                        'options' => array_merge(['all' => 'All departments'], $departments->pluck('name', 'id')->toArray()),
+                        'selected' => $departmentFilter,
+                        'default' => 'all',
+                        'onSelect' => 'setDepartmentFilter',
+                    ],
+                ]" />
+
+                <x-table.export-dropdown aria-label="Export positions" />
+
+                {{-- Add Position --}}
+                <a href="{{ route('hr.positions.create') }}"
+                    class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90">
+                    @svg('heroicon-o-plus', 'h-4 w-4')
+                    <span>Add Position</span>
+                </a>
             </div>
         </div>
 
-        <div class="-mx-6 -mb-6 overflow-hidden border-t border-white/10 bg-slate-900/40 pb-6">
-            <div class="overflow-x-auto px-6 pb-4">
-                <table class="min-w-full text-sm">
+        @if ($positions->count() > 0)
+            <div class="overflow-x-auto">
+                <table class="w-full">
                     <thead>
-                        <tr class="text-left text-white/70 text-xs uppercase tracking-[0.3em] bg-white/5">
-                            <th class="px-4 py-4 w-16 text-center">
-                                <label class="inline-flex items-center justify-center">
-                                    <input type="checkbox" wire:click="toggleSelectPage" class="sr-only" @checked($selectPage)>
-                                    <span @class([
-                                        'flex h-5 w-5 items-center justify-center rounded border transition',
-                                        'border-white/40 bg-white text-slate-900' => $selectPage,
-                                        'border-white/40 bg-white/5 text-transparent' => ! $selectPage,
-                                    ])>
-                                        @svg('heroicon-s-check', 'h-3 w-3')
-                                    </span>
+                        <tr class="border-b border-slate-100 bg-slate-50 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-white/60">
+                            <th class="w-12 px-5 py-3">
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" wire:click="toggleSelectPage" @checked($selectPage)
+                                        class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500 dark:border-white/30 dark:bg-white/10 dark:checked:bg-white dark:checked:text-slate-900">
                                 </label>
                             </th>
-                            @if ($columnVisibility['position'])
-                                <th class="px-4 py-4 cursor-pointer" wire:click="setSort('title')">
-                                    <span class="inline-flex items-center gap-2 font-semibold text-white">
-                                        Position
-                                        <svg class="h-3 w-3 {{ $sortField === 'title' ? 'opacity-100 text-white' : 'opacity-0 text-white/60' }} {{ $sortField === 'title' && $sortDirection === 'asc' ? '' : 'rotate-180' }}" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M1 1.5L5 4.5L9 1.5" />
-                                        </svg>
-                                    </span>
-                                </th>
-                            @endif
-                            @if ($columnVisibility['department'])
-                                <th class="px-4 py-4">Department</th>
-                            @endif
-                            @if ($columnVisibility['branch'])
-                                <th class="px-4 py-4">Branch</th>
-                            @endif
-                            @if ($columnVisibility['level'])
-                                <th class="px-4 py-4">Level</th>
-                            @endif
-                            @if ($columnVisibility['job_family'])
-                                <th class="px-4 py-4">Job family</th>
-                            @endif
-                            @if ($columnVisibility['people_manager'])
-                                <th class="px-4 py-4">People manager</th>
-                            @endif
-                            @if ($columnVisibility['employees'])
-                                <th class="px-4 py-4 cursor-pointer" wire:click="setSort('employees_count')">
-                                    <span class="inline-flex items-center gap-2 font-semibold text-white/80">
-                                        Employees
-                                        <svg class="h-3 w-3 {{ $sortField === 'employees_count' ? 'opacity-100 text-white' : 'opacity-0 text-white/60' }} {{ $sortField === 'employees_count' && $sortDirection === 'asc' ? '' : 'rotate-180' }}" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M1 1.5L5 4.5L9 1.5" />
-                                        </svg>
-                                    </span>
-                                </th>
-                            @endif
+                            <th class="px-5 py-3">
+                                <button wire:click="setSort('title')" class="flex items-center gap-1 hover:text-slate-700 dark:hover:text-white">
+                                    POSITION
+                                    @if ($sortField === 'title')
+                                        @svg($sortDirection === 'asc' ? 'heroicon-s-chevron-up' : 'heroicon-s-chevron-down', 'h-3 w-3')
+                                    @endif
+                                </button>
+                            </th>
+                            <th class="px-5 py-3">DEPARTMENT</th>
+                            <th class="px-5 py-3">BRANCH</th>
+                            <th class="px-5 py-3">LEVEL</th>
+                            <th class="px-5 py-3">MANAGER</th>
+                            <th class="px-5 py-3">
+                                <button wire:click="setSort('employees_count')" class="flex items-center gap-1 hover:text-slate-700 dark:hover:text-white">
+                                    EMPLOYEES
+                                    @if ($sortField === 'employees_count')
+                                        @svg($sortDirection === 'asc' ? 'heroicon-s-chevron-up' : 'heroicon-s-chevron-down', 'h-3 w-3')
+                                    @endif
+                                </button>
+                            </th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-white/10">
-                        @forelse ($positions as $position)
-                            <tr class="hover:bg-white/5">
-                                <td class="px-4 py-4 w-16 text-center">
-                                    @php $rowSelected = in_array((string) $position->id, $selectedPositions, true); @endphp
-                                    <label class="inline-flex items-center justify-center">
-                                        <input type="checkbox" wire:model.live="selectedPositions" value="{{ $position->id }}" class="sr-only" @checked($rowSelected)>
-                                        <span @class([
-                                            'flex h-5 w-5 items-center justify-center rounded border transition',
-                                            'border-white/40 bg-white text-slate-900' => $rowSelected,
-                                            'border-white/40 bg-white/5 text-transparent' => ! $rowSelected,
-                                        ])>
-                                            @svg('heroicon-s-check', 'h-3 w-3')
-                                        </span>
+                    <tbody class="divide-y divide-slate-100 dark:divide-white/10">
+                        @foreach ($positions as $position)
+                            @php $isSelected = in_array($position->id, $selectedPositions); @endphp
+                            <tr class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5 {{ $isSelected ? 'bg-slate-50 dark:bg-white/5' : '' }}">
+                                <td class="whitespace-nowrap px-5 py-4" wire:click.stop>
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" wire:model.live="selectedPositions" value="{{ $position->id }}"
+                                            class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500 dark:border-white/30 dark:bg-white/10 dark:checked:bg-white dark:checked:text-slate-900">
                                     </label>
                                 </td>
-                                @if ($columnVisibility['position'])
-                                    <td class="px-4 py-4">
-                                        <p class="font-semibold text-white">{{ $position->title }}</p>
-                                        <p class="text-xs text-white/50">{{ $position->code }}</p>
-                                    </td>
-                                @endif
-                                @if ($columnVisibility['department'])
-                                    <td class="px-4 py-4 text-white/70">{{ $position->department?->name ?? '—' }}</td>
-                                @endif
-                                @if ($columnVisibility['branch'])
-                                    <td class="px-4 py-4 text-white/70">{{ $position->branch?->name ?? '—' }}</td>
-                                @endif
-                                @if ($columnVisibility['level'])
-                                    <td class="px-4 py-4 text-white/70">{{ $position->level ?: '—' }}</td>
-                                @endif
-                                @if ($columnVisibility['job_family'])
-                                    <td class="px-4 py-4 text-white/70">{{ $position->job_family ?: '—' }}</td>
-                                @endif
-                                @if ($columnVisibility['people_manager'])
-                                    <td class="px-4 py-4">
-                                        <span class="rounded-full px-3 py-1 text-xs {{ $position->is_people_manager ? 'bg-emerald-300/15 text-emerald-200' : 'bg-white/10 text-white/60' }}">
-                                            {{ $position->is_people_manager ? 'Yes' : 'No' }}
-                                        </span>
-                                    </td>
-                                @endif
-                                @if ($columnVisibility['employees'])
-                                    <td class="px-4 py-4 text-white/70">{{ $position->employees_count }}</td>
-                                @endif
+                                <td class="whitespace-nowrap px-5 py-4">
+                                    <p class="font-medium text-slate-900 dark:text-white">{{ $position->title }}</p>
+                                    <p class="text-xs text-slate-500 dark:text-white/50">{{ $position->code }}</p>
+                                </td>
+                                <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-600 dark:text-white/70">
+                                    {{ $position->department?->name ?? '—' }}
+                                </td>
+                                <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-600 dark:text-white/70">
+                                    {{ $position->branch?->name ?? '—' }}
+                                </td>
+                                <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-600 dark:text-white/70">
+                                    {{ $position->level ?: '—' }}
+                                </td>
+                                <td class="whitespace-nowrap px-5 py-4">
+                                    <span class="inline-flex items-center rounded-lg px-2 py-1 text-xs font-medium {{ $position->is_people_manager ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-white/60' }}">
+                                        {{ $position->is_people_manager ? 'Yes' : 'No' }}
+                                    </span>
+                                </td>
+                                <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-600 dark:text-white/70">
+                                    {{ $position->employees_count }}
+                                </td>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="{{ collect($columnVisibility)->filter()->count() + 1 }}" class="px-4 py-10 text-center text-sm text-white/60">No positions found.</td>
-                            </tr>
-                        @endforelse
+                        @endforeach
                     </tbody>
                 </table>
             </div>
-            <div class="px-6">
-                <x-table.pagination :paginator="$positions" />
+
+            <x-table.pagination :paginator="$positions" :per-page-options="[10, 25, 50, 100]" />
+        @else
+            <div class="flex flex-col items-center justify-center py-16 text-center">
+                @svg('heroicon-o-briefcase', 'h-12 w-12 text-slate-300 dark:text-white/20')
+                <p class="mt-4 text-sm font-medium text-slate-500 dark:text-white/60">No positions found</p>
+                <p class="mt-1 text-xs text-slate-400 dark:text-white/40">
+                    @if ($search || $branchFilter !== 'all' || $departmentFilter !== 'all')
+                        Try adjusting your search or filters
+                    @else
+                        Get started by adding your first position
+                    @endif
+                </p>
             </div>
-        </div>
-    </section>
+        @endif
+    </div>
 </div>

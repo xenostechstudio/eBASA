@@ -47,7 +47,7 @@ class Create extends Component
 
         session()->flash('status', 'Branch created successfully.');
 
-        $this->redirectRoute('inventory.branches.index', navigate: true);
+        $this->redirectRoute('general-setup.branches.index', navigate: true);
     }
 
     public function render(): View

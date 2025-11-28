@@ -11,7 +11,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('layouts.portal')]
+#[Layout('layouts.portal-sidebar')]
 class Edit extends Component
 {
     public Employee $employee;
@@ -149,8 +149,9 @@ class Edit extends Component
             'workModes' => $this->workModes,
             'statuses' => $this->statuses,
         ])->layoutData([
-            'pageTitle' => 'Human Resource',
-            'showBrand' => false,
+            'pageTitle' => 'Edit Employee',
+            'pageTagline' => 'HR · Employees',
+            'activeModule' => 'hr',
             'navLinks' => HumanResourceNavigation::links('people', 'employees'),
         ]);
     }

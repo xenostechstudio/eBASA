@@ -9,7 +9,7 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('layouts.portal')]
+#[Layout('layouts.portal-sidebar')]
 class Create extends Component
 {
     /**
@@ -181,8 +181,9 @@ class Create extends Component
             'tabs' => $this->tabs,
             'activeTab' => $this->activeTab,
         ])->layoutData([
-            'pageTitle' => 'Human Resource',
-            'showBrand' => false,
+            'pageTitle' => 'New Employee',
+            'pageTagline' => 'HR · Employees',
+            'activeModule' => 'hr',
             'navLinks' => HumanResourceNavigation::links('people', 'employees'),
         ]);
     }

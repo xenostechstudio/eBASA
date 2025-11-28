@@ -13,7 +13,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.portal')]
+#[Layout('layouts.portal-sidebar')]
 class Index extends Component
 {
     use WithPagination;
@@ -213,6 +213,43 @@ class Index extends Component
         $this->selectPage = $this->pageHasAllSelected();
     }
 
+    public function selectPage(): void
+    {
+        $this->selectAllOnPage();
+    }
+
+    public function selectAllEmployees(): void
+    {
+        $activeBranchId = (int) session('active_branch_id', 0);
+        $activeBranchId = $activeBranchId > 0 ? $activeBranchId : null;
+
+        $allIds = $this->scopedEmployees($activeBranchId)
+            ->when($this->search !== '', fn ($q) => $q->where(function ($query) {
+                $query->where('full_name', 'like', '%'.$this->search.'%')
+                    ->orWhere('email', 'like', '%'.$this->search.'%')
+                    ->orWhere('code', 'like', '%'.$this->search.'%');
+            }))
+            ->when($this->statusFilter !== 'all', fn ($q) => $q->where('status', $this->statusFilter))
+            ->when($this->departmentFilter !== 'all', fn ($q) => $q->where('department_id', (int) $this->departmentFilter))
+            ->when($this->positionFilter !== 'all', fn ($q) => $q->where('position_id', (int) $this->positionFilter))
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        $this->selectedEmployees = $this->stringifyIds($allIds);
+        $this->selectPage = $this->pageHasAllSelected();
+    }
+
+    public function deselectAll(): void
+    {
+        $this->resetSelection();
+    }
+
+    public function deleteSelected(): void
+    {
+        $this->bulkDelete();
+    }
+
     public function clearSelection(): void
     {
         $this->resetSelection();
@@ -317,8 +354,9 @@ class Index extends Component
             'stats' => $stats,
             'activeBranchId' => $activeBranchId,
         ])->layoutData([
-            'pageTitle' => 'Human Resource',
-            'showBrand' => false,
+            'pageTitle' => 'Employees',
+            'pageTagline' => 'HR · People',
+            'activeModule' => 'hr',
             'navLinks' => HumanResourceNavigation::links('people', 'employees'),
         ]);
     }

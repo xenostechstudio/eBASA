@@ -3,6 +3,7 @@
     'model',
     'placeholder' => 'Select option',
     'colSpan' => 6,
+    'required' => false,
 ])
 
 @php
@@ -23,20 +24,25 @@
     ];
 
     $columnClass = trim('col-span-12 '.($spanClasses[$span] ?? 'md:col-span-12'));
-    $selectClasses = 'mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/40';
+    $selectClasses = 'mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-slate-950/40 dark:text-white dark:focus:ring-2 dark:focus:ring-white/40';
 @endphp
 
 <div {{ $attributes->merge(['class' => $columnClass]) }}>
     @if ($label)
-        <label class="block text-xs uppercase tracking-[0.3em] text-white/50">{{ $label }}</label>
+        <label class="block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-white/50">
+            {{ $label }}
+            @if ($required)
+                <span class="text-rose-500">*</span>
+            @endif
+        </label>
     @endif
 
-    <select wire:model.defer="{{ $model }}" class="{{ $selectClasses }}">
-        <option value="" class="bg-slate-900 text-white/70">{{ $placeholder }}</option>
+    <select wire:model.defer="{{ $model }}" class="{{ $selectClasses }}" @if ($required) required @endif>
+        <option value="" class="bg-white text-slate-400 dark:bg-slate-900 dark:text-white/70">{{ $placeholder }}</option>
         {{ $slot }}
     </select>
 
     @error($model)
-        <p class="mt-1 text-xs text-rose-300">{{ $message }}</p>
+        <p class="mt-1 text-xs text-rose-500 dark:text-rose-300">{{ $message }}</p>
     @enderror
 </div>

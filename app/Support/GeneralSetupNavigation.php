@@ -19,7 +19,7 @@ class GeneralSetupNavigation
                     [
                         'label' => 'Branches',
                         'icon' => 'heroicon-o-building-office',
-                        'href' => route('inventory.branches.index'),
+                        'href' => route('general-setup.branches.index'),
                         'active' => $activeSection === 'branches',
                     ],
                     [

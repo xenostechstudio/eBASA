@@ -2,10 +2,7 @@
 
 namespace App\Livewire\HumanResource\Employments;
 
-use App\Models\Branch;
-use App\Models\Department;
 use App\Models\Employee;
-use App\Models\Position;
 use App\Support\HumanResourceNavigation;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,7 +10,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.portal')]
+#[Layout('layouts.portal-sidebar')]
 class Index extends Component
 {
     use WithPagination;
@@ -59,12 +56,14 @@ class Index extends Component
     public function updatedSearch(): void
     {
         $this->resetPage();
+        $this->resetSelection();
     }
 
     public function setStatusFilter(string $status): void
     {
         $this->statusFilter = $status;
         $this->resetPage();
+        $this->resetSelection();
     }
 
     public function resetColumns(): void
@@ -114,11 +113,64 @@ class Index extends Component
         $this->selectedEmployments = [];
     }
 
+    public function selectPage(): void
+    {
+        $this->selectedEmployments = array_map('strval', $this->pageEmploymentIds);
+        $this->selectPage = $this->pageHasAllSelected();
+    }
+
+    public function selectAllEmployments(): void
+    {
+        $activeBranchId = (int) session('active_branch_id', 0) ?: null;
+
+        $query = $this->scopedEmployees($activeBranchId);
+
+        if ($this->search !== '') {
+            $query->where(function ($q) {
+                $q->where('full_name', 'like', '%'.$this->search.'%')
+                    ->orWhere('code', 'like', '%'.$this->search.'%');
+            });
+        }
+
+        if ($this->statusFilter !== 'all') {
+            $query->where('status', $this->statusFilter);
+        }
+
+        $allIds = $query->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $this->selectedEmployments = array_map('strval', $allIds);
+        $this->selectPage = $this->pageHasAllSelected();
+    }
+
+    public function deselectAll(): void
+    {
+        $this->resetSelection();
+    }
+
+    public function deleteSelected(): void
+    {
+        if (empty($this->selectedEmployments)) {
+            return;
+        }
+
+        Employee::query()
+            ->whereIn('id', array_map('intval', $this->selectedEmployments))
+            ->delete();
+
+        $this->resetSelection();
+        $this->dispatch('notify', message: 'Selected records deleted');
+    }
+
     public function updatedSelectedEmployments(): void
     {
         $normalized = array_values(array_unique(array_map('intval', $this->selectedEmployments)));
         $this->selectedEmployments = array_map('strval', $normalized);
         $this->selectPage = $this->pageHasAllSelected($normalized);
+    }
+
+    protected function resetSelection(): void
+    {
+        $this->selectedEmployments = [];
+        $this->selectPage = false;
     }
 
     protected function pageHasAllSelected(?array $selectedIds = null): bool
@@ -176,14 +228,10 @@ class Index extends Component
         return view('livewire.hr.employments.index', [
             'employments' => $employments,
             'stats' => $stats,
-            'columnVisibility' => $this->columnVisibility,
-            'selectedEmployments' => $this->selectedEmployments,
-            'selectPage' => $this->selectPage,
-            'sortField' => $this->sortField,
-            'sortDirection' => $this->sortDirection,
         ])->layoutData([
-            'pageTitle' => 'Human Resource',
-            'showBrand' => false,
+            'pageTitle' => 'Employment Records',
+            'pageTagline' => 'HR · People',
+            'activeModule' => 'hr',
             'navLinks' => HumanResourceNavigation::links('people', 'employments'),
         ]);
     }
