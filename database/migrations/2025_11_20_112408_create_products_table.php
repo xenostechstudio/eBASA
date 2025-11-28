@@ -8,13 +8,13 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('retail_products', function (Blueprint $table) {
+        Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->string('sku')->unique();
             $table->string('name');
             $table->string('barcode')->nullable()->index();
             $table->text('description')->nullable();
-            $table->foreignId('category_id')->nullable()->constrained('retail_product_categories')->nullOnDelete();
+            $table->foreignId('category_id')->nullable()->constrained('product_categories')->nullOnDelete();
             $table->decimal('cost_price', 15, 2)->default(0);
             $table->decimal('selling_price', 15, 2)->default(0);
             $table->string('unit')->default('pcs');
@@ -23,6 +23,9 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->boolean('track_inventory')->default(true);
             $table->string('image_path')->nullable();
+            $table->foreignId('created_by')->nullable()->constrained('users');
+            $table->foreignId('updated_by')->nullable()->constrained('users');
+            $table->foreignId('deleted_by')->nullable()->constrained('users');
             $table->timestamps();
             $table->softDeletes();
 
@@ -32,6 +35,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('retail_products');
+        Schema::dropIfExists('products');
     }
 };

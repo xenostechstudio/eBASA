@@ -13,7 +13,7 @@
                 <select
                     id="employee_id"
                     wire:model="employee_id"
-                    class="mt-1 block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                    class="mt-1 block w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white"
                 >
                     <option value="">— Not linked to employee —</option>
                     @foreach ($employees as $employee)
@@ -44,7 +44,7 @@
                     wire:model="name"
                     autocomplete="name"
                     @if($this->employee_id) disabled @endif
-                    class="mt-1 block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40 disabled:cursor-not-allowed disabled:bg-slate-100/80 dark:disabled:bg-white/10"
+                    class="mt-1 block w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40 disabled:cursor-not-allowed disabled:bg-slate-100/80 dark:disabled:bg-white/10"
                     placeholder="e.g. John Doe"
                 >
                 @error('name') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
@@ -60,7 +60,7 @@
                     wire:model="email"
                     autocomplete="email"
                     @if($this->employee_id) disabled @endif
-                    class="mt-1 block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40 disabled:cursor-not-allowed disabled:bg-slate-100/80 dark:disabled:bg-white/10"
+                    class="mt-1 block w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40 disabled:cursor-not-allowed disabled:bg-slate-100/80 dark:disabled:bg-white/10"
                     placeholder="name@example.com"
                 >
                 @error('email') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
@@ -85,7 +85,7 @@
                     id="password"
                     wire:model="password"
                     autocomplete="new-password"
-                    class="mt-1 block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
+                    class="mt-1 block w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
                     placeholder="Minimum 8 characters"
                 >
                 @error('password') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
@@ -103,7 +103,7 @@
                     id="password_confirmation"
                     wire:model="password_confirmation"
                     autocomplete="new-password"
-                    class="mt-1 block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
+                    class="mt-1 block w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
                     placeholder="Re-type password"
                 >
                 <p class="mt-1 text-[11px] text-slate-400 dark:text-white/40">

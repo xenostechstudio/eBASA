@@ -12,7 +12,7 @@ class TransactionItem extends Model
 
     protected $fillable = [
         'transaction_id',
-        'retail_product_id',
+        'product_id',
         'product_name',
         'product_sku',
         'unit_price',
@@ -33,8 +33,8 @@ class TransactionItem extends Model
         return $this->belongsTo(Transaction::class);
     }
 
-    public function retailProduct(): BelongsTo
+    public function product(): BelongsTo
     {
-        return $this->belongsTo(RetailProduct::class);
+        return $this->belongsTo(Product::class);
     }
 }

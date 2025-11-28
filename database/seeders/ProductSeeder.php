@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\RetailProduct;
-use App\Models\RetailProductCategory;
+use App\Models\Product;
+use App\Models\ProductCategory;
 use Illuminate\Database\Seeder;
 
 class RetailProductSeeder extends Seeder
@@ -19,7 +19,7 @@ class RetailProductSeeder extends Seeder
         ];
 
         foreach ($categories as $category) {
-            RetailProductCategory::create($category);
+            ProductCategory::create($category);
         }
 
         // Create products
@@ -55,9 +55,9 @@ class RetailProductSeeder extends Seeder
         ];
 
         foreach ($products as $product) {
-            $category = RetailProductCategory::where('slug', $product['category'])->first();
+            $category = ProductCategory::where('slug', $product['category'])->first();
 
-            RetailProduct::create([
+            Product::create([
                 'sku' => $product['sku'],
                 'name' => $product['name'],
                 'barcode' => fake()->ean13(),

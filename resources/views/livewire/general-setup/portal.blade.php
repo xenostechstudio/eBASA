@@ -9,13 +9,13 @@
             <p class="mt-3 text-3xl font-bold text-slate-900 dark:text-white">{{ number_format($stats['users']) }}</p>
             <p class="mt-1 text-xs text-slate-500 dark:text-white/60">Registered accounts</p>
         </a>
-        <a href="{{ route('general-setup.retail-products.index') }}" class="group rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-slate-300 hover:shadow-sm dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+        <a href="{{ route('general-setup.products.index') }}" class="group rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-slate-300 hover:shadow-sm dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
             <div class="flex items-center gap-3">
                 @svg('heroicon-o-cube', 'h-5 w-5 text-emerald-500')
                 <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/40">Products</p>
             </div>
             <p class="mt-3 text-3xl font-bold text-slate-900 dark:text-white">{{ number_format($stats['products']) }}</p>
-            <p class="mt-1 text-xs text-slate-500 dark:text-white/60">Retail products</p>
+            <p class="mt-1 text-xs text-slate-500 dark:text-white/60">Products</p>
         </a>
         <a href="{{ route('general-setup.product-categories.index') }}" class="group rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-slate-300 hover:shadow-sm dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
             <div class="flex items-center gap-3">
@@ -45,14 +45,14 @@
                 </div>
             </a>
 
-            <a href="{{ route('general-setup.retail-products.index') }}" class="group rounded-xl border border-slate-200 p-4 transition hover:border-emerald-300 hover:shadow-sm dark:border-white/10 dark:hover:border-emerald-500/30">
+            <a href="{{ route('general-setup.products.index') }}" class="group rounded-xl border border-slate-200 p-4 transition hover:border-emerald-300 hover:shadow-sm dark:border-white/10 dark:hover:border-emerald-500/30">
                 <div class="flex items-start gap-4">
                     <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 transition group-hover:scale-105 dark:bg-emerald-500/20 dark:text-emerald-400">
                         @svg('heroicon-o-cube', 'h-5 w-5')
                     </div>
                     <div class="flex-1">
                         <h3 class="font-medium text-slate-900 dark:text-white">Products</h3>
-                        <p class="mt-1 text-xs text-slate-500 dark:text-white/60">Retail product catalog</p>
+                        <p class="mt-1 text-xs text-slate-500 dark:text-white/60">Product catalog</p>
                     </div>
                 </div>
             </a>

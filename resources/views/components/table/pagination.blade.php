@@ -11,7 +11,7 @@
     $pageName = $paginator->getPageName();
 @endphp
 
-<div class="flex flex-col gap-3 border-t border-slate-200 dark:border-white/10 px-6 py-4 text-sm text-slate-600 dark:text-white/70 md:flex-row md:items-center">
+<div class="flex flex-col gap-3 border-t border-slate-200 dark:border-white/10 px-6 py-4 text-sm text-slate-700 dark:text-white/70 md:flex-row md:items-center">
     <div class="md:w-1/3">
         @if ($paginator->total())
             <p>Showing {{ $paginator->firstItem() }}–{{ $paginator->lastItem() }} of {{ $paginator->total() }} results</p>
@@ -22,7 +22,7 @@
 
     <div class="md:w-1/3 flex justify-start md:justify-center">
         <div class="relative">
-            <div class="flex divide-x divide-slate-200 dark:divide-white/10 overflow-hidden rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-950/40 text-center text-slate-500 dark:text-white/60">
+            <div class="flex divide-x divide-slate-300 dark:divide-white/10 overflow-hidden rounded-lg border border-slate-300 dark:border-white/10 bg-white dark:bg-slate-950/40 text-center text-slate-600 dark:text-white/60">
                 <div class="flex min-w-[64px] items-center justify-center px-4 py-1 text-[11px] uppercase tracking-[0.35em]">Rows</div>
                 <div class="relative flex min-w-[64px] items-center justify-center px-2 py-1">
                     <select
@@ -43,7 +43,7 @@
     </div>
 
     <div class="md:w-1/3 flex justify-end">
-        <div class="flex divide-x divide-slate-200 dark:divide-white/10 overflow-hidden rounded-xl border border-slate-200 dark:border-white/15 bg-white dark:bg-slate-950/30 text-slate-700 dark:text-white">
+        <div class="flex divide-x divide-slate-300 dark:divide-white/10 overflow-hidden rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-slate-950/30 text-slate-700 dark:text-white">
             <button
                 type="button"
                 wire:click="previousPage('{{ $pageName }}')"
@@ -53,12 +53,12 @@
                 @svg('heroicon-s-chevron-left', 'h-4 w-4')
             </button>
 
-            <div class="flex divide-x divide-slate-200 dark:divide-white/10">
+            <div class="flex divide-x divide-slate-300 dark:divide-white/10">
                 @foreach (range($startPage, $endPage) as $page)
                     <button
                         type="button"
                         wire:click="gotoPage({{ $page }}, '{{ $pageName }}')"
-                        class="flex h-10 w-10 items-center justify-center text-sm font-semibold {{ $page === $currentPage ? 'bg-slate-900 text-white dark:bg-white/90 dark:text-slate-900 border border-slate-900 dark:border-white/40' : 'text-slate-600 hover:bg-slate-100 dark:text-white/70 dark:hover:bg-white/15 dark:hover:text-white' }}"
+                        class="flex h-10 w-10 items-center justify-center text-sm font-semibold {{ $page === $currentPage ? 'bg-slate-900 text-white shadow-sm dark:bg-white dark:text-slate-900' : 'text-slate-500 hover:bg-slate-100 dark:text-white/70 dark:hover:bg-white/15 dark:hover:text-white' }}"
                     >
                         {{ $page }}
                     </button>

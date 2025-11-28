@@ -31,7 +31,7 @@
 
 <aside class="fixed inset-y-0 left-0 z-30 flex">
     {{-- Icon Rail --}}
-    <div class="flex h-full w-[88px] flex-col items-center border-r border-slate-200 bg-white py-4 dark:border-white/10 dark:bg-slate-950">
+    <div class="flex h-full w-[88px] flex-col items-center border-r border-slate-300 bg-white py-4 dark:border-white/10 dark:bg-slate-950">
         {{-- Logo --}}
         <a href="{{ route('home') }}" class="mb-6 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 text-white shadow-lg dark:from-white dark:to-slate-200 dark:text-slate-900">
             <span class="text-sm font-bold">B</span>
@@ -42,8 +42,9 @@
             @foreach ($modules as $module)
                 <a
                     href="{{ $module['url'] }}"
+                    wire:navigate
                     @click="setModule('{{ $module['key'] }}')"
-                    class="group relative flex h-16 w-[72px] flex-col items-center justify-center rounded-xl transition {{ $activeModule === $module['key'] ? 'bg-slate-100 text-slate-900 dark:bg-white/10 dark:text-white' : 'text-slate-400 hover:bg-slate-50 hover:text-slate-600 dark:text-white/40 dark:hover:bg-white/5 dark:hover:text-white/70' }}"
+                    class="group relative flex h-16 w-[72px] flex-col items-center justify-center rounded-xl transition {{ $activeModule === $module['key'] ? 'bg-slate-900 text-white shadow-sm dark:bg-white dark:text-slate-900' : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-white/40 dark:hover:bg-white/5 dark:hover:text-white/80' }}"
                     aria-label="{{ $module['name'] }}"
                 >
                     @if (isset($moduleIcons[$module['key']]))
@@ -51,7 +52,7 @@
                     @else
                         <span class="text-2xl">{{ $module['icon'] }}</span>
                     @endif
-                    <span class="mt-1 text-[10px] font-medium leading-tight text-center {{ $activeModule === $module['key'] ? 'text-slate-700 dark:text-white/80' : 'text-slate-400 dark:text-white/40' }}">
+                    <span class="mt-1 text-[10px] font-medium leading-tight text-center {{ $activeModule === $module['key'] ? 'text-slate-100 dark:text-slate-900' : 'text-slate-400 dark:text-white/40' }}">
                         {{ $moduleShortNames[$module['key']] ?? Str::limit($module['name'], 8, '') }}
                     </span>
                 </a>
@@ -81,7 +82,7 @@
                     x-transition:leave-start="opacity-100 scale-100"
                     x-transition:leave-end="opacity-0 scale-95"
                     @click.away="open = false"
-                    class="absolute bottom-0 left-full z-50 ml-3 w-64 origin-bottom-left rounded-2xl border border-slate-200 bg-white p-2 shadow-xl dark:border-white/10 dark:bg-slate-900"
+                    class="absolute bottom-0 left-full z-50 ml-3 w-64 origin-bottom-left rounded-2xl border border-slate-300 bg-white p-2 shadow-xl dark:border-white/10 dark:bg-slate-900"
                 >
                     {{-- User Info Header --}}
                     <div class="mb-2 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 p-3 dark:from-white/5 dark:to-white/10">
@@ -205,7 +206,7 @@
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="translate-x-0 opacity-100"
         x-transition:leave-end="-translate-x-full opacity-0"
-        class="h-full w-56 border-r border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-slate-900/80"
+        class="h-full w-64 border-r border-slate-300 bg-white dark:border-white/10 dark:bg-slate-900/80"
     >
         <div class="flex h-full flex-col p-4">
             {{-- Module Title --}}
@@ -230,8 +231,12 @@
                                 @foreach ($link['children'] as $child)
                                     <a
                                         href="{{ $child['href'] ?? '#' }}"
-                                        class="flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition {{ ($child['active'] ?? false) ? 'bg-white text-slate-900 shadow-sm dark:bg-white/10 dark:text-white' : 'text-slate-600 hover:bg-white hover:text-slate-900 dark:text-white/70 dark:hover:bg-white/5 dark:hover:text-white' }}"
+                                        wire:navigate
+                                        class="flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition {{ ($child['active'] ?? false) ? 'bg-slate-900 text-white shadow-sm dark:bg-white/10 dark:text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-white/70 dark:hover:bg-white/5 dark:hover:text-white' }}"
                                     >
+                                        @if (! empty($child['icon'] ?? null))
+                                            @svg($child['icon'], 'h-4 w-4')
+                                        @endif
                                         <span>{{ $child['label'] }}</span>
                                     </a>
                                 @endforeach
@@ -239,8 +244,12 @@
                         @else
                             <a
                                 href="{{ $link['href'] ?? '#' }}"
-                                class="flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition {{ ($link['active'] ?? false) ? 'bg-white text-slate-900 shadow-sm dark:bg-white/10 dark:text-white' : 'text-slate-600 hover:bg-white hover:text-slate-900 dark:text-white/70 dark:hover:bg-white/5 dark:hover:text-white' }}"
+                                wire:navigate
+                                class="flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition {{ ($link['active'] ?? false) ? 'bg-slate-900 text-white shadow-sm dark:bg-white/10 dark:text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-white/70 dark:hover:bg-white/5 dark:hover:text-white' }}"
                             >
+                                @if (! empty($link['icon'] ?? null))
+                                    @svg($link['icon'], 'h-4 w-4')
+                                @endif
                                 <span>{{ $link['label'] }}</span>
                             </a>
                         @endif
@@ -254,7 +263,7 @@
             <button
                 type="button"
                 @click="expanded = false"
-                class="mt-4 flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:bg-white/10"
+                class="mt-4 flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-600 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:bg-white/10"
             >
                 @svg('heroicon-o-chevron-left', 'h-4 w-4')
                 <span>Collapse</span>

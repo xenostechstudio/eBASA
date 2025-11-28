@@ -6,7 +6,7 @@ use App\Livewire\GeneralSetup\PaymentMethods\Index as GeneralSetupPaymentMethods
 use App\Livewire\GeneralSetup\Permissions\Index as GeneralSetupPermissions;
 use App\Livewire\GeneralSetup\Portal as GeneralSetupPortal;
 use App\Livewire\GeneralSetup\ProductCategories\Index as GeneralSetupProductCategories;
-use App\Livewire\GeneralSetup\RetailProducts\Index as RetailProductIndex;
+use App\Livewire\GeneralSetup\Products\Index as GeneralSetupProducts;
 use App\Livewire\GeneralSetup\Roles\Index as GeneralSetupRoles;
 use App\Livewire\GeneralSetup\Settings\Index as GeneralSetupSettings;
 use App\Livewire\GeneralSetup\Users\Index as GeneralSetupUsers;
@@ -62,9 +62,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/inventory/branches/create', InventoryBranchCreate::class)->name('inventory.branches.create');
     Route::get('/general-setup', GeneralSetupPortal::class)->name('general-setup.portal');
     Route::get('/general-setup/users', GeneralSetupUsers::class)->name('general-setup.users.index');
-    Route::get('/general-setup/retail-products', RetailProductIndex::class)->name('general-setup.retail-products.index');
-    Route::get('/general-setup/retail-products/create', RetailProductIndex::class)->name('general-setup.retail-products.create');
-    Route::get('/general-setup/retail-products/{product}/edit', RetailProductIndex::class)->name('general-setup.retail-products.edit');
+    Route::get('/general-setup/products', GeneralSetupProducts::class)->name('general-setup.products.index');
+    Route::get('/general-setup/products/create', GeneralSetupProducts::class)->name('general-setup.products.create');
+    Route::get('/general-setup/products/{product}/edit', GeneralSetupProducts::class)->name('general-setup.products.edit');
     Route::get('/general-setup/product-categories', GeneralSetupProductCategories::class)->name('general-setup.product-categories.index');
     Route::get('/general-setup/payment-methods', GeneralSetupPaymentMethods::class)->name('general-setup.payment-methods.index');
     Route::get('/general-setup/roles', GeneralSetupRoles::class)->name('general-setup.roles.index');

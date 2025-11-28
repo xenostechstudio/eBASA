@@ -26,6 +26,10 @@ class Index extends Component
 
     public string $sortDirection = 'asc';
 
+    public int $perPage = 15;
+
+    public array $perPageOptions = [15, 30, 50];
+
     // Modal state
     public bool $showCreateModal = false;
 
@@ -255,7 +259,7 @@ class Index extends Component
                 $query->onlyTrashed();
             })
             ->orderBy($this->sortField, $this->sortDirection)
-            ->paginate(15);
+            ->paginate($this->perPage);
 
         $stats = [
             'total' => User::count(),
@@ -277,6 +281,7 @@ class Index extends Component
             'stats' => $stats,
             'employees' => $employees,
             'editingUser' => $editingUser,
+            'perPageOptions' => $this->perPageOptions,
         ])->layoutData([
             'pageTitle' => 'Users',
             'pageTagline' => 'General Setup',

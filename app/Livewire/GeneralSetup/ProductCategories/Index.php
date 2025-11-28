@@ -2,7 +2,7 @@
 
 namespace App\Livewire\GeneralSetup\ProductCategories;
 
-use App\Models\RetailProductCategory;
+use App\Models\ProductCategory;
 use App\Support\GeneralSetupNavigation;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -39,7 +39,7 @@ class Index extends Component
 
     public function openEditModal(int $categoryId): void
     {
-        $category = RetailProductCategory::find($categoryId);
+        $category = ProductCategory::find($categoryId);
         if ($category) {
             $this->editingCategoryId = $categoryId;
             $this->name = $category->name;
@@ -70,7 +70,7 @@ class Index extends Component
         $isEditing = ! is_null($this->editingCategoryId);
 
         $rules = [
-            'name' => 'required|string|max:255|unique:retail_product_categories,name' . ($isEditing ? ',' . $this->editingCategoryId : ''),
+            'name' => 'required|string|max:255|unique:product_categories,name' . ($isEditing ? ',' . $this->editingCategoryId : ''),
             'description' => 'nullable|string|max:500',
             'sort_order' => 'integer|min:0',
         ];
@@ -78,7 +78,7 @@ class Index extends Component
         $this->validate($rules);
 
         if ($isEditing) {
-            $category = RetailProductCategory::find($this->editingCategoryId);
+            $category = ProductCategory::find($this->editingCategoryId);
             if ($category) {
                 $category->update([
                     'name' => $this->name,
@@ -90,7 +90,7 @@ class Index extends Component
             $flashMessage = 'Category updated successfully.';
             $flashTitle = 'Category updated';
         } else {
-            RetailProductCategory::create([
+            ProductCategory::create([
                 'name' => $this->name,
                 'description' => $this->description,
                 'sort_order' => $this->sort_order,
@@ -111,7 +111,7 @@ class Index extends Component
 
     public function deleteCategory(int $categoryId): void
     {
-        RetailProductCategory::destroy($categoryId);
+        ProductCategory::destroy($categoryId);
 
         session()->flash('flash', [
             'type' => 'success',
@@ -122,7 +122,7 @@ class Index extends Component
 
     public function render()
     {
-        $categories = RetailProductCategory::query()
+        $categories = ProductCategory::query()
             ->withCount('products')
             ->when($this->search, function ($query) {
                 $query->where('name', 'like', '%' . $this->search . '%');
@@ -132,9 +132,9 @@ class Index extends Component
             ->paginate(15);
 
         $stats = [
-            'total' => RetailProductCategory::count(),
-            'withProducts' => RetailProductCategory::has('products')->count(),
-            'empty' => RetailProductCategory::doesntHave('products')->count(),
+            'total' => ProductCategory::count(),
+            'withProducts' => ProductCategory::has('products')->count(),
+            'empty' => ProductCategory::doesntHave('products')->count(),
         ];
 
         return view('livewire.general-setup.product-categories.index', [

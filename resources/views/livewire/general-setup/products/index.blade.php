@@ -6,47 +6,52 @@
             {{ $flash['message'] ?? '' }}
         </x-alert>
     @endif
-    {{-- Header --}}
-    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-            <h1 class="text-2xl font-semibold text-slate-900 dark:text-white">Retail Products</h1>
-            <p class="mt-1 text-sm text-slate-500 dark:text-white/60">Manage products for POS system</p>
-        </div>
-        <button
-            type="button"
-            wire:click="openCreateModal"
-            class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90"
-        >
-            @svg('heroicon-o-plus', 'h-4 w-4')
-            <span>Add Product</span>
-        </button>
-    </div>
 
     {{-- Stats Cards --}}
     <div class="grid gap-4 md:grid-cols-3">
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-white/5">
-            <p class="text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-400 dark:text-white/40">Total Products</p>
-            <p class="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">{{ number_format($this->stats['total']) }}</p>
-        </div>
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-white/5">
-            <p class="text-[10px] font-semibold uppercase tracking-[0.3em] text-emerald-600 dark:text-emerald-400">Active</p>
-            <p class="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">{{ number_format($this->stats['active']) }}</p>
-        </div>
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-white/5">
-            <p class="text-[10px] font-semibold uppercase tracking-[0.3em] text-amber-600 dark:text-amber-400">Low Stock</p>
-            <p class="mt-2 text-2xl font-semibold text-slate-900 dark:text-white">{{ number_format($this->stats['low_stock']) }}</p>
-        </div>
+        <x-stat.card
+            label="Total Products"
+            :value="number_format($this->stats['total'])"
+            description="Products in catalog"
+            tone="neutral"
+        >
+            <x-slot:icon>
+                @svg('heroicon-o-cube', 'h-5 w-5 text-sky-500')
+            </x-slot:icon>
+        </x-stat.card>
+
+        <x-stat.card
+            label="Active"
+            :value="number_format($this->stats['active'])"
+            description="Sellable products"
+            tone="success"
+        >
+            <x-slot:icon>
+                @svg('heroicon-o-check-badge', 'h-5 w-5 text-emerald-500')
+            </x-slot:icon>
+        </x-stat.card>
+
+        <x-stat.card
+            label="Low Stock"
+            :value="number_format($this->stats['low_stock'])"
+            description="Need restock soon"
+            tone="warning"
+        >
+            <x-slot:icon>
+                @svg('heroicon-o-exclamation-triangle', 'h-5 w-5 text-amber-500')
+            </x-slot:icon>
+        </x-stat.card>
     </div>
 
     {{-- Products Table --}}
-    <div class="rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-white/5">
+    <div class="rounded-2xl border border-slate-300 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
         <div class="border-b border-slate-100 px-5 py-4 dark:border-white/10">
             <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h2 class="text-lg font-semibold text-slate-900 dark:text-white">All Products</h2>
                     <p class="text-xs text-slate-500 dark:text-white/60">Manage your product catalog</p>
                 </div>
-                <div class="flex flex-wrap items-center gap-2">
+                <div class="flex flex-wrap items-center gap-3">
                     {{-- Search --}}
                     <div class="relative">
                         @svg('heroicon-o-magnifying-glass', 'pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400')
@@ -54,39 +59,157 @@
                             type="text"
                             wire:model.live.debounce.300ms="search"
                             placeholder="Search products..."
-                            class="h-10 w-64 rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
+                            class="h-10 w-64 rounded-xl border border-slate-300 bg-white pl-10 pr-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
                         >
                     </div>
 
-                    {{-- Category Filter --}}
-                    <select
-                        wire:model.live="categoryFilter"
-                        class="h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                    >
-                        <option value="">All Categories</option>
-                        @foreach ($this->categories as $category)
-                            <option value="{{ $category->id }}">{{ $category->name }}</option>
-                        @endforeach
-                    </select>
+                    {{-- Dynamic Filters --}}
+                    <x-table.dynamic-filters :filters="[
+                        'status' => [
+                            'label' => 'Status',
+                            'options' => [
+                                '' => 'All status',
+                                'active' => 'Active',
+                                'inactive' => 'Inactive',
+                            ],
+                            'selected' => $statusFilter,
+                            'default' => '',
+                            'onSelect' => 'setStatusFilter',
+                        ],
+                        'category' => [
+                            'label' => 'Category',
+                            'options' => array_merge(
+                                ['' => 'All categories'],
+                                $this->categories->pluck('name', 'id')->toArray()
+                            ),
+                            'selected' => (string) $categoryFilter,
+                            'default' => '',
+                            'onSelect' => 'setCategoryFilter',
+                        ],
+                    ]" />
 
-                    {{-- Status Filter --}}
-                    <select
-                        wire:model.live="statusFilter"
-                        class="h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                    {{-- Export dropdown --}}
+                    <div x-data="{ open: false }" class="relative">
+                        <button
+                            type="button"
+                            @click="open = !open"
+                            class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-800 dark:border-white/10 dark:bg-white/5 dark:text-white/70 dark:hover:bg-white/10"
+                            aria-label="Export products"
+                        >
+                            @svg('heroicon-o-arrow-down-tray', 'h-4 w-4')
+                        </button>
+
+                        <div
+                            x-cloak
+                            x-show="open"
+                            x-transition:enter="transition ease-out duration-100"
+                            x-transition:enter-start="opacity-0 translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-75"
+                            x-transition:leave-start="opacity-100 translate-y-0"
+                            x-transition:leave-end="opacity-0 translate-y-1"
+                            @click.away="open = false"
+                            class="absolute right-0 z-20 mt-2 min-w-[14rem] rounded-xl border border-slate-300 bg-white py-1 px-1 text-sm shadow-lg dark:border-white/10 dark:bg-slate-900"
+                        >
+                            <button
+                                type="button"
+                                wire:click="export('excel')"
+                                class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-600 hover:bg-slate-50 dark:text-white/70 dark:hover:bg-white/5"
+                            >
+                                <span>Export to Excel</span>
+                            </button>
+                            <button
+                                type="button"
+                                wire:click="export('pdf')"
+                                class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-600 hover:bg-slate-50 dark:text-white/70 dark:hover:bg-white/5"
+                            >
+                                <span>Export to PDF</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Add Product --}}
+                    <x-button.primary
+                        type="button"
+                        wire:click="openCreateModal"
+                        class="h-10 rounded-xl"
                     >
-                        <option value="">All Status</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
+                        @svg('heroicon-o-plus', 'h-4 w-4')
+                        <span>Add Product</span>
+                    </x-button.primary>
                 </div>
             </div>
         </div>
+
+        @php
+            $statusLabel = null;
+            $statusClasses = '';
+
+            if ($statusFilter === 'active') {
+                $statusLabel = 'Status: Active';
+                $statusClasses = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300';
+            } elseif ($statusFilter === 'inactive') {
+                $statusLabel = 'Status: Inactive';
+                $statusClasses = 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-white/80';
+            }
+
+            $categoryLabel = null;
+            $categoryClasses = '';
+
+            if ($categoryFilter) {
+                $category = $this->categories->firstWhere('id', $categoryFilter);
+
+                if ($category) {
+                    $categoryLabel = 'Category: ' . $category->name;
+                    $categoryClasses = 'bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300';
+                }
+            }
+
+            $productsCount = $this->products->total();
+        @endphp
+
+        @if ($statusLabel || $categoryLabel)
+            <div
+                class="border-b border-slate-100 bg-slate-50/70 px-5 py-2 text-xs text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-white/70">
+                <div class="flex flex-wrap items-center gap-2">
+                    @if ($statusLabel)
+                        <div
+                            class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-medium {{ $statusClasses }}">
+                            <span>{{ $statusLabel }} ({{ $productsCount }})</span>
+                            <button
+                                type="button"
+                                wire:click="setStatusFilter('')"
+                                class="inline-flex h-4 w-4 items-center justify-center rounded-full hover:bg-white/50 dark:hover:bg-white/20"
+                                aria-label="Reset status filter"
+                            >
+                                @svg('heroicon-o-x-mark', 'h-3 w-3')
+                            </button>
+                        </div>
+                    @endif
+
+                    @if ($categoryLabel)
+                        <div
+                            class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-medium {{ $categoryClasses }}">
+                            <span>{{ $categoryLabel }} ({{ $productsCount }})</span>
+                            <button
+                                type="button"
+                                wire:click="setCategoryFilter('')"
+                                class="inline-flex h-4 w-4 items-center justify-center rounded-full hover:bg-white/50 dark:hover:bg-white/20"
+                                aria-label="Reset category filter"
+                            >
+                                @svg('heroicon-o-x-mark', 'h-3 w-3')
+                            </button>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        @endif
 
         @if ($this->products->count() > 0)
             <div class="overflow-x-auto">
                 <table class="w-full">
                     <thead>
-                        <tr class="border-b border-slate-100 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:border-white/10 dark:text-white/60">
+                        <tr class="border-b border-slate-100 bg-slate-100 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-white/60">
                             <th class="px-5 py-3">
                                 <button wire:click="sortBy('sku')" class="flex items-center gap-1 hover:text-slate-700 dark:hover:text-white">
                                     SKU
@@ -121,12 +244,14 @@
                                 </button>
                             </th>
                             <th class="px-5 py-3">STATUS</th>
-                            <th class="px-5 py-3 w-20"></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-white/10">
                         @foreach ($this->products as $product)
-                            <tr class="transition hover:bg-slate-50 dark:hover:bg-white/5">
+                            <tr
+                                class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5"
+                                wire:click="openEditModal({{ $product->id }})"
+                            >
                                 <td class="whitespace-nowrap px-5 py-4">
                                     <span class="font-mono text-sm text-slate-600 dark:text-white/70">{{ $product->sku }}</span>
                                 </td>
@@ -180,21 +305,6 @@
                                         </span>
                                     @endif
                                 </td>
-                                <td class="whitespace-nowrap px-5 py-4">
-                                    <div class="flex items-center gap-1">
-                                        <button
-                                            type="button"
-                                            wire:click="openEditModal({{ $product->id }})"
-                                            class="rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-white/10 dark:hover:text-white"
-                                        >
-                                            @svg('heroicon-o-pencil-square', 'h-4 w-4')
-                                        </button>
-                                        <button wire:click="confirmDelete({{ $product->id }})"
-                                            class="rounded-lg p-1.5 text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400">
-                                            @svg('heroicon-o-trash', 'h-4 w-4')
-                                        </button>
-                                    </div>
-                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -203,7 +313,7 @@
 
             {{-- Pagination --}}
             <div class="border-t border-slate-100 px-5 py-4 dark:border-white/10">
-                {{ $this->products->links() }}
+                <x-table.pagination :paginator="$this->products" :per-page-options="$perPageOptions" />
             </div>
         @else
             <div class="flex flex-col items-center justify-center py-16 text-center">
@@ -255,17 +365,20 @@
             <div wire:click="closeModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity dark:bg-slate-950/70"></div>
 
             {{-- Modal panel --}}
-            <div class="relative z-10 my-6 w-full max-w-2xl max-h-[calc(100vh-6rem)] flex flex-col overflow-hidden rounded-3xl bg-white text-slate-900 shadow-2xl dark:bg-slate-900 dark:text-white">
+            <div class="relative z-10 w-full max-w-4xl max-h-[calc(100vh-4rem)] flex flex-col overflow-hidden rounded-3xl bg-white text-slate-900 shadow-2xl dark:bg-slate-900 dark:text-white">
                 <div class="border-b border-slate-200 px-6 py-4 dark:border-white/10">
                     <h3 class="text-lg font-semibold text-slate-900 dark:text-white">
                         {{ $isEditing ? 'Edit Product' : 'Add New Product' }}
                     </h3>
                     <p class="text-xs text-slate-500 dark:text-white/60">
-                        {{ $isEditing ? 'Update product information' : 'Create a new retail product' }}
+                        {{ $isEditing ? 'Update product information' : 'Create a new product' }}
                     </p>
                 </div>
 
-                @include('livewire.general-setup.retail-products._form', ['isEditing' => $isEditing])
+                @include('livewire.general-setup.products._form', [
+                    'isEditing' => $isEditing,
+                    'editingProduct' => $editingProduct ?? null,
+                ])
             </div>
         </div>
     @endif

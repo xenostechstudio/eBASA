@@ -2,13 +2,13 @@
 
 namespace Database\Factories;
 
-use App\Models\RetailProductCategory;
+use App\Models\ProductCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
-class RetailProductCategoryFactory extends Factory
+class ProductCategoryFactory extends Factory
 {
-    protected $model = RetailProductCategory::class;
+    protected $model = ProductCategory::class;
 
     protected array $categories = [
         ['name' => 'Food', 'color' => '#f59e0b'],

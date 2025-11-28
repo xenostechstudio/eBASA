@@ -31,7 +31,7 @@
             })();
         </script>
     </head>
-    <body class="font-sans antialiased min-h-screen m-0 bg-slate-100 text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-white">
+    <body class="font-sans antialiased min-h-screen m-0 bg-slate-200 text-slate-800 transition-colors duration-300 dark:bg-slate-950 dark:text-white">
         @php
             $branchShortcuts = \App\Models\Branch::query()->orderBy('name')->get();
             $activeBranchId = (int) session('active_branch_id');
@@ -61,10 +61,10 @@
             {{-- Main Content Area --}}
             <main
                 class="flex-1 min-w-0 transition-all duration-200"
-                :style="'margin-left: ' + (expanded ? '312px' : '88px')"
+                :style="'margin-left: ' + (expanded ? '344px' : '88px')"
             >
                 {{-- Page Header --}}
-                <header class="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/80 px-6 py-4 backdrop-blur dark:border-white/10 dark:bg-slate-900/80">
+                <header class="sticky top-0 z-10 flex items-center justify-between border-b border-slate-300 bg-white/90 px-6 py-4 shadow-sm backdrop-blur dark:border-white/10 dark:bg-slate-900/80">
                     <div>
                         @if (! empty($pageTagline ?? ''))
                             <p class="text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-400 dark:text-white/40">{{ $pageTagline }}</p>
@@ -78,7 +78,7 @@
                 </header>
 
                 {{-- Page Content --}}
-                <div class="p-6">
+                <div class="p-6 bg-slate-100 dark:bg-transparent">
                     {{ $slot }}
                 </div>
             </main>

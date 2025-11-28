@@ -2,8 +2,8 @@
 
 namespace App\Livewire\GeneralSetup;
 
-use App\Models\RetailProduct;
-use App\Models\RetailProductCategory;
+use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\User;
 use App\Support\GeneralSetupNavigation;
 use Livewire\Attributes\Layout;
@@ -16,8 +16,8 @@ class Portal extends Component
     {
         $stats = [
             'users' => User::count(),
-            'products' => RetailProduct::count(),
-            'categories' => RetailProductCategory::count(),
+            'products' => Product::count(),
+            'categories' => ProductCategory::count(),
         ];
 
         return view('livewire.general-setup.portal', [

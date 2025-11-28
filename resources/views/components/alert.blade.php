@@ -6,10 +6,10 @@
 
 @php
     $styles = [
-        'success' => 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100',
-        'error' => 'border-red-200 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100',
-        'warning' => 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100',
-        'info' => 'border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-100',
+        'success' => 'border-emerald-400 bg-emerald-100 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-100',
+        'error' => 'border-red-400 bg-red-100 text-red-900 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-100',
+        'warning' => 'border-amber-400 bg-amber-100 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100',
+        'info' => 'border-sky-400 bg-sky-100 text-sky-900 dark:border-sky-500/30 dark:bg-sky-500/10 dark:text-sky-100',
     ];
 
     $icons = [

@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Branch;
 use App\Models\CashierShift;
-use App\Models\RetailProduct;
+use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
 use App\Models\User;
@@ -16,7 +16,7 @@ class TransactionSeeder extends Seeder
     {
         $branches = Branch::all();
         $users = User::all();
-        $products = RetailProduct::all();
+        $products = Product::all();
 
         if ($branches->isEmpty() || $users->isEmpty()) {
             return;
@@ -85,7 +85,7 @@ class TransactionSeeder extends Seeder
 
                 TransactionItem::create([
                     'transaction_id' => $transaction->id,
-                    'retail_product_id' => $product?->id,
+                    'product_id' => $product?->id,
                     'product_name' => $product?->name ?? 'Custom Item',
                     'product_sku' => $product?->sku,
                     'unit_price' => $unitPrice,

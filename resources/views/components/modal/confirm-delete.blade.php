@@ -13,7 +13,7 @@
     <div class="fixed inset-0 z-40 flex items-center justify-center overflow-y-auto p-4" aria-labelledby="confirm-delete-title" role="dialog" aria-modal="true">
         <div wire:click="{{ $cancelAction }}" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity dark:bg-slate-950/70"></div>
 
-        <div class="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-xl dark:border-white/10 dark:bg-slate-900 dark:text-white">
+        <div class="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-slate-300 bg-white text-slate-900 shadow-xl dark:border-white/10 dark:bg-slate-900 dark:text-white">
             <div class="border-b border-slate-200 px-6 py-4 dark:border-white/10">
                 <h3 id="confirm-delete-title" class="text-base font-semibold text-slate-900 dark:text-white">
                     {{ $title }}
