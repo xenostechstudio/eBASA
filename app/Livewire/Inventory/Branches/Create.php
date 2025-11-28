@@ -3,7 +3,7 @@
 namespace App\Livewire\Inventory\Branches;
 
 use App\Models\Branch;
-use App\Support\InventoryNavigation;
+use App\Support\GeneralSetupNavigation;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
@@ -12,7 +12,7 @@ use Livewire\Component;
 /**
  * @method $this layoutData(array $data)
  */
-#[Layout('layouts.portal')]
+#[Layout('layouts.portal-sidebar')]
 class Create extends Component
 {
     public string $code = '';
@@ -54,9 +54,10 @@ class Create extends Component
     {
         /** @noinspection PhpUndefinedMethodInspection */
         return view('livewire.inventory.branches.create')->layoutData([
-            'pageTitle' => 'Inventory · New Branch',
-            'showBrand' => false,
-            'navLinks' => InventoryNavigation::links('branches', 'branches.create'),
+            'pageTitle' => 'New Branch',
+            'pageTagline' => 'General Setup',
+            'activeModule' => 'general-setup',
+            'navLinks' => GeneralSetupNavigation::links('branches'),
         ]);
     }
 }

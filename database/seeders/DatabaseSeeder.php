@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
             DepartmentSeeder::class,
             PositionSeeder::class,
             EmployeeSeeder::class,
-            RetailProductSeeder::class,
+            ProductSeeder::class,
             UserSeeder::class,
             TransactionSeeder::class,
         ]);

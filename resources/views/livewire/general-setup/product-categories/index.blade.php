@@ -8,41 +8,49 @@
     @endif
     {{-- Stats Cards --}}
     <div class="grid gap-4 md:grid-cols-3">
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-white/5">
-            <div class="flex items-center gap-3">
+        <x-stat.card
+            label="Total Categories"
+            :value="number_format($stats['total'])"
+            description="Product categories"
+            tone="neutral"
+        >
+            <x-slot:icon>
                 @svg('heroicon-o-tag', 'h-5 w-5 text-amber-500')
-                <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/40">Total Categories</p>
-            </div>
-            <p class="mt-3 text-3xl font-bold text-slate-900 dark:text-white">{{ number_format($stats['total']) }}</p>
-            <p class="mt-1 text-xs text-slate-500 dark:text-white/60">Product categories</p>
-        </div>
-        <div class="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-6 dark:border-emerald-500/20 dark:bg-emerald-500/10">
-            <div class="flex items-center gap-3">
+            </x-slot:icon>
+        </x-stat.card>
+
+        <x-stat.card
+            label="With Products"
+            :value="number_format($stats['withProducts'])"
+            description="Categories in use"
+            tone="success"
+        >
+            <x-slot:icon>
                 @svg('heroicon-o-cube', 'h-5 w-5 text-emerald-500')
-                <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">With Products</p>
-            </div>
-            <p class="mt-3 text-3xl font-bold text-slate-900 dark:text-white">{{ number_format($stats['withProducts']) }}</p>
-            <p class="mt-1 text-xs text-slate-500 dark:text-white/60">Categories in use</p>
-        </div>
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-white/5">
-            <div class="flex items-center gap-3">
+            </x-slot:icon>
+        </x-stat.card>
+
+        <x-stat.card
+            label="Empty"
+            :value="number_format($stats['empty'])"
+            description="No products assigned"
+            tone="warning"
+        >
+            <x-slot:icon>
                 @svg('heroicon-o-archive-box', 'h-5 w-5 text-slate-400')
-                <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/40">Empty</p>
-            </div>
-            <p class="mt-3 text-3xl font-bold text-slate-900 dark:text-white">{{ number_format($stats['empty']) }}</p>
-            <p class="mt-1 text-xs text-slate-500 dark:text-white/60">No products assigned</p>
-        </div>
+            </x-slot:icon>
+        </x-stat.card>
     </div>
 
     {{-- Categories Table --}}
-    <div class="rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-white/5">
+    <div class="rounded-2xl border border-slate-300 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
         <div class="border-b border-slate-100 px-5 py-4 dark:border-white/10">
             <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Product Categories</h2>
                     <p class="text-xs text-slate-500 dark:text-white/60">Organize your product catalog</p>
                 </div>
-                <div class="flex items-center gap-3">
+                <div class="flex flex-wrap items-center gap-3">
                     <div class="relative">
                         @svg('heroicon-o-magnifying-glass', 'pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400')
                         <input
@@ -52,6 +60,24 @@
                             class="h-10 w-64 rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
                         >
                     </div>
+
+                    {{-- Status Filter --}}
+                    <x-table.dynamic-filters :filters="[
+                        'status' => [
+                            'label' => 'Status',
+                            'options' => [
+                                '' => 'All status',
+                                'active' => 'Active',
+                                'inactive' => 'Inactive',
+                            ],
+                            'selected' => $statusFilter,
+                            'default' => '',
+                            'onSelect' => 'setStatusFilter',
+                        ],
+                    ]" />
+
+                    <x-table.export-dropdown aria-label="Export categories" />
+
                     <button
                         type="button"
                         wire:click="openCreateModal"
@@ -64,6 +90,41 @@
             </div>
         </div>
 
+        @php
+            $statusLabel = null;
+            $statusClasses = '';
+
+            if ($statusFilter === 'active') {
+                $statusLabel = 'Status: Active';
+                $statusClasses = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300';
+            } elseif ($statusFilter === 'inactive') {
+                $statusLabel = 'Status: Inactive';
+                $statusClasses = 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-white/80';
+            }
+
+            $categoriesCount = $categories->total();
+        @endphp
+
+        @if ($statusLabel)
+            <div
+                class="border-b border-slate-100 bg-slate-50/70 px-5 py-2 text-xs text-slate-600 dark:border-white/10 dark:bg-white/5 dark:text-white/70">
+                <div class="flex flex-wrap items-center gap-2">
+                    <div
+                        class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-medium {{ $statusClasses }}">
+                        <span>{{ $statusLabel }} ({{ $categoriesCount }})</span>
+                        <button
+                            type="button"
+                            wire:click="setStatusFilter('')"
+                            class="inline-flex h-4 w-4 items-center justify-center rounded-full hover:bg-white/50 dark:hover:bg-white/20"
+                            aria-label="Reset status filter"
+                        >
+                            @svg('heroicon-o-x-mark', 'h-3 w-3')
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         @if ($categories->count() > 0)
             <div class="overflow-x-auto">
                 <table class="w-full">
@@ -72,12 +133,15 @@
                             <th class="px-5 py-3">NAME</th>
                             <th class="px-5 py-3">DESCRIPTION</th>
                             <th class="px-5 py-3 text-center">PRODUCTS</th>
-                            <th class="px-5 py-3"></th>
+                            <th class="px-5 py-3 text-center">STATUS</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-white/10">
                         @foreach ($categories as $category)
-                            <tr class="transition hover:bg-slate-50 dark:hover:bg-white/5">
+                            <tr
+                                class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5"
+                                wire:click="openEditModal({{ $category->id }})"
+                            >
                                 <td class="whitespace-nowrap px-5 py-4">
                                     <div class="flex items-center gap-3">
                                         <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">
@@ -94,20 +158,16 @@
                                         {{ $category->products_count }}
                                     </span>
                                 </td>
-                                <td class="whitespace-nowrap px-5 py-4">
-                                    <div class="flex items-center justify-end gap-1">
-                                        <button
-                                            type="button"
-                                            wire:click="openEditModal({{ $category->id }})"
-                                            class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-white/10 dark:hover:text-white"
-                                            title="Edit"
-                                        >
-                                            @svg('heroicon-o-pencil', 'h-4 w-4')
-                                        </button>
-                                        <button wire:click="deleteCategory({{ $category->id }})" wire:confirm="Are you sure you want to delete this category?" class="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400" title="Delete">
-                                            @svg('heroicon-o-trash', 'h-4 w-4')
-                                        </button>
-                                    </div>
+                                <td class="whitespace-nowrap px-5 py-4 text-center">
+                                    @if ($category->is_active)
+                                        <span class="inline-flex items-center rounded-lg bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
+                                            Active
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center rounded-lg bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600 dark:bg-white/10 dark:text-white/60">
+                                            Inactive
+                                        </span>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach
@@ -115,9 +175,7 @@
                 </table>
             </div>
 
-            <div class="border-t border-slate-100 px-5 py-4 dark:border-white/10">
-                {{ $categories->links() }}
-            </div>
+            <x-table.pagination :paginator="$categories" />
         @else
             <div class="flex flex-col items-center justify-center py-16 text-center">
                 @svg('heroicon-o-tag', 'h-12 w-12 text-slate-300 dark:text-white/20')
@@ -145,7 +203,10 @@
                     </p>
                 </div>
 
-                @include('livewire.general-setup.product-categories._form', ['isEditing' => $isEditing])
+                @include('livewire.general-setup.product-categories._form', [
+                    'isEditing' => $isEditing,
+                    'editingCategory' => $editingCategory ?? null,
+                ])
             </div>
         </div>
     @endif

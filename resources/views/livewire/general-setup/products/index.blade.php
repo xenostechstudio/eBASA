@@ -88,45 +88,7 @@
                         ],
                     ]" />
 
-                    {{-- Export dropdown --}}
-                    <div x-data="{ open: false }" class="relative">
-                        <button
-                            type="button"
-                            @click="open = !open"
-                            class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-800 dark:border-white/10 dark:bg-white/5 dark:text-white/70 dark:hover:bg-white/10"
-                            aria-label="Export products"
-                        >
-                            @svg('heroicon-o-arrow-down-tray', 'h-4 w-4')
-                        </button>
-
-                        <div
-                            x-cloak
-                            x-show="open"
-                            x-transition:enter="transition ease-out duration-100"
-                            x-transition:enter-start="opacity-0 translate-y-1"
-                            x-transition:enter-end="opacity-100 translate-y-0"
-                            x-transition:leave="transition ease-in duration-75"
-                            x-transition:leave-start="opacity-100 translate-y-0"
-                            x-transition:leave-end="opacity-0 translate-y-1"
-                            @click.away="open = false"
-                            class="absolute right-0 z-20 mt-2 min-w-[14rem] rounded-xl border border-slate-300 bg-white py-1 px-1 text-sm shadow-lg dark:border-white/10 dark:bg-slate-900"
-                        >
-                            <button
-                                type="button"
-                                wire:click="export('excel')"
-                                class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-600 hover:bg-slate-50 dark:text-white/70 dark:hover:bg-white/5"
-                            >
-                                <span>Export to Excel</span>
-                            </button>
-                            <button
-                                type="button"
-                                wire:click="export('pdf')"
-                                class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-600 hover:bg-slate-50 dark:text-white/70 dark:hover:bg-white/5"
-                            >
-                                <span>Export to PDF</span>
-                            </button>
-                        </div>
-                    </div>
+                    <x-table.export-dropdown aria-label="Export products" />
 
                     {{-- Add Product --}}
                     <x-button.primary
@@ -312,9 +274,7 @@
             </div>
 
             {{-- Pagination --}}
-            <div class="border-t border-slate-100 px-5 py-4 dark:border-white/10">
-                <x-table.pagination :paginator="$this->products" :per-page-options="$perPageOptions" />
-            </div>
+            <x-table.pagination :paginator="$this->products" :per-page-options="$perPageOptions" />
         @else
             <div class="flex flex-col items-center justify-center py-16 text-center">
                 @svg('heroicon-o-cube', 'h-12 w-12 text-slate-300 dark:text-white/20')

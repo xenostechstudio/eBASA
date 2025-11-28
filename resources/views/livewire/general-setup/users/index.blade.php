@@ -48,79 +48,22 @@
                     </div>
 
                     {{-- Status filter --}}
-                    <div x-data="{ open: false }" class="relative">
-                        <button type="button" @click="open = !open"
-                            class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-800 dark:border-white/10 dark:bg-white/5 dark:text-white/70 dark:hover:bg-white/10"
-                            aria-label="Filter status">
-                            @svg('heroicon-o-funnel', 'h-4 w-4')
-                        </button>
+                    <x-table.dynamic-filters :filters="[
+                        'status' => [
+                            'label' => 'Status',
+                            'options' => [
+                                '' => 'All active',
+                                'verified' => 'Verified',
+                                'pending' => 'Pending',
+                                'trashed' => 'Trashed',
+                            ],
+                            'selected' => $statusFilter,
+                            'default' => '',
+                            'onSelect' => 'setStatusFilter',
+                        ],
+                    ]" />
 
-                        <div x-cloak x-show="open" x-transition:enter="transition ease-out duration-100"
-                            x-transition:enter-start="opacity-0 translate-y-1"
-                            x-transition:enter-end="opacity-100 translate-y-0"
-                            x-transition:leave="transition ease-in duration-75"
-                            x-transition:leave-start="opacity-100 translate-y-0"
-                            x-transition:leave-end="opacity-0 translate-y-1" @click.away="open = false"
-                            class="absolute right-0 z-20 mt-2 min-w-[14rem] rounded-xl border border-slate-300 bg-white py-1 px-1 text-sm shadow-lg dark:border-white/10 dark:bg-slate-900">
-                            <button type="button" wire:click="$set('statusFilter', '')"
-                                class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm {{ $statusFilter === '' ? 'bg-slate-100 font-medium text-slate-900 dark:bg-white/10 dark:text-white' : 'text-slate-600 hover:bg-slate-50 dark:text-white/70 dark:hover:bg-white/5' }}">
-                                <span>All active</span>
-                                @if ($statusFilter === '')
-                                    @svg('heroicon-o-check', 'h-4 w-4 text-emerald-500')
-                                @endif
-                            </button>
-
-                            <button type="button" wire:click="$set('statusFilter', 'verified')"
-                                class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm {{ $statusFilter === 'verified' ? 'bg-slate-100 font-medium text-slate-900 dark:bg-white/10 dark:text-white' : 'text-slate-600 hover:bg-slate-50 dark:text-white/70 dark:hover:bg-white/5' }}">
-                                <span>Verified</span>
-                                @if ($statusFilter === 'verified')
-                                    @svg('heroicon-o-check', 'h-4 w-4 text-emerald-500')
-                                @endif
-                            </button>
-
-                            <button type="button" wire:click="$set('statusFilter', 'pending')"
-                                class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm {{ $statusFilter === 'pending' ? 'bg-slate-100 font-medium text-slate-900 dark:bg-white/10 dark:text-white' : 'text-slate-600 hover:bg-slate-50 dark:text-white/70 dark:hover:bg-white/5' }}">
-                                <span>Pending</span>
-                                @if ($statusFilter === 'pending')
-                                    @svg('heroicon-o-check', 'h-4 w-4 text-emerald-500')
-                                @endif
-                            </button>
-
-                            <button type="button" wire:click="$set('statusFilter', 'trashed')"
-                                class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm {{ $statusFilter === 'trashed' ? 'bg-slate-100 font-medium text-slate-900 dark:bg-white/10 dark:text-white' : 'text-slate-600 hover:bg-slate-50 dark:text-white/70 dark:hover:bg-white/5' }}">
-                                <span>Trashed</span>
-                                @if ($statusFilter === 'trashed')
-                                    @svg('heroicon-o-check', 'h-4 w-4 text-emerald-500')
-                                @endif
-                            </button>
-                        </div>
-                    </div>
-
-                    {{-- Export dropdown --}}
-                    <div x-data="{ open: false }" class="relative">
-                        <button type="button" @click="open = !open"
-                            class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-slate-800 dark:border-white/10 dark:bg-white/5 dark:text-white/70 dark:hover:bg-white/10"
-                            aria-label="Export data">
-                            @svg('heroicon-o-arrow-down-tray', 'h-4 w-4')
-                        </button>
-
-                        <div x-cloak x-show="open" x-transition:enter="transition ease-out duration-100"
-                            x-transition:enter-start="opacity-0 translate-y-1"
-                            x-transition:enter-end="opacity-100 translate-y-0"
-                            x-transition:leave="transition ease-in duration-75"
-                            x-transition:leave-start="opacity-100 translate-y-0"
-                            x-transition:leave-end="opacity-0 translate-y-1" @click.away="open = false"
-                            class="absolute right-0 z-20 mt-2 min-w-[14rem] rounded-xl border border-slate-300 bg-white py-1 px-1 text-sm shadow-lg dark:border-white/10 dark:bg-slate-900">
-                            <button type="button" wire:click="export('excel')"
-                                class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-600 hover:bg-slate-50 dark:text-white/70 dark:hover:bg-white/5">
-                                <span>Export to Excel</span>
-                            </button>
-                            <button type="button" wire:click="export('pdf')"
-                                class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-600 hover:bg-slate-50 dark:text-white/70 dark:hover:bg-white/5">
-                                <span>Export to PDF</span>
-                            </button>
-                        </div>
-                    </div>
+                    <x-table.export-dropdown aria-label="Export users" />
 
                     {{-- Add User --}}
                     <x-button.primary type="button" wire:click="openCreateModal" class="h-10 rounded-xl">

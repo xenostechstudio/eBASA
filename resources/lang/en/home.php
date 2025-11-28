@@ -39,6 +39,10 @@ return [
                 'name' => 'General Setup',
                 'description' => 'Configure branches, locations, and shared master data.',
             ],
+            'procurement' => [
+                'name' => 'Procurement',
+                'description' => 'Purchase requests, suppliers, and approvals.',
+            ],
         ],
     ],
     'footer' => [

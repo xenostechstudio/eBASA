@@ -39,6 +39,10 @@ return [
                 'name' => 'Pengaturan Umum',
                 'description' => 'Konfigurasi cabang, lokasi, dan master data bersama.',
             ],
+            'procurement' => [
+                'name' => 'Pengadaan',
+                'description' => 'Permintaan pembelian, pemasok, dan persetujuan.',
+            ],
         ],
     ],
     'footer' => [

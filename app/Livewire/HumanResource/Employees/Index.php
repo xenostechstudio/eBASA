@@ -227,6 +227,21 @@ class Index extends Component
         $this->resetPageState();
     }
 
+    public function export(string $format): void
+    {
+        if (! in_array($format, ['excel', 'pdf'], true)) {
+            return;
+        }
+
+        $label = strtoupper($format);
+
+        session()->flash('flash', [
+            'type' => 'info',
+            'title' => $label . ' export',
+            'message' => 'Export functionality is not implemented yet.',
+        ]);
+    }
+
     protected function scopedEmployees(?int $branchId = null): Builder
     {
         return Employee::query()->when($branchId, function (Builder $query) use ($branchId) {

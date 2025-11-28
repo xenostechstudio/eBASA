@@ -6,6 +6,20 @@
 @php
     $modules = collect(config('modules.list', []));
 
+    $modules = $modules->sortBy(function ($module) {
+        $order = [
+            'pos' => 10,
+            'transactions' => 20,
+            'inventory' => 30,
+            'procurement' => 35,
+            'hr' => 40,
+            'reports' => 50,
+            'general-setup' => 60,
+        ];
+
+        return $order[$module['key']] ?? 999;
+    })->values();
+
     $moduleIcons = [
         'pos' => 'heroicon-o-shopping-cart',
         'transactions' => 'heroicon-o-credit-card',
@@ -13,6 +27,7 @@
         'hr' => 'heroicon-o-users',
         'reports' => 'heroicon-o-chart-bar',
         'general-setup' => 'heroicon-o-cog-6-tooth',
+        'procurement' => 'heroicon-o-truck',
     ];
 
     $moduleShortNames = [
@@ -22,6 +37,7 @@
         'hr' => 'HR',
         'reports' => 'Reports',
         'general-setup' => 'Setup',
+        'procurement' => 'Procure',
     ];
 
     $locales = collect(config('locale.available'));

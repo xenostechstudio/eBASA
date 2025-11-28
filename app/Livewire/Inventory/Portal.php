@@ -9,7 +9,7 @@ use Livewire\Component;
 /**
  * @method $this layoutData(array $data)
  */
-#[Layout('layouts.portal')]
+#[Layout('layouts.portal-sidebar')]
 class Portal extends Component
 {
     public array $sections = [
@@ -69,7 +69,8 @@ class Portal extends Component
             'sections' => $this->sections,
         ])->layoutData([
             'pageTitle' => 'Inventory',
-            'showBrand' => false,
+            'pageTagline' => 'Stock & Operations',
+            'activeModule' => 'inventory',
             'navLinks' => InventoryNavigation::links('overview'),
         ]);
     }

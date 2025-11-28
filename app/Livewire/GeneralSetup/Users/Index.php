@@ -171,6 +171,12 @@ class Index extends Component
         ]);
     }
 
+    public function setStatusFilter(string $value): void
+    {
+        $this->statusFilter = $value;
+        $this->resetPage();
+    }
+
     public function confirmDelete(int $userId): void
     {
         $user = User::find($userId);

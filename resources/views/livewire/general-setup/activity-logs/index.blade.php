@@ -8,32 +8,11 @@
                     <p class="text-xs text-slate-500 dark:text-white/60">Recent system activity and changes</p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <div class="relative" x-data="{ open: false }">
-                        <button
-                            @click="open = !open"
-                            class="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
-                        >
-                            @svg('heroicon-o-arrow-down-tray', 'h-4 w-4')
-                            <span>Export</span>
-                            @svg('heroicon-s-chevron-down', 'h-4 w-4 text-slate-400')
-                        </button>
-                        <div
-                            x-cloak
-                            x-show="open"
-                            @click.away="open = false"
-                            x-transition
-                            class="absolute right-0 z-10 mt-2 w-44 origin-top-right rounded-xl border border-slate-200 bg-white p-1 shadow-lg dark:border-white/10 dark:bg-slate-900"
-                        >
-                            <button class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-white/80 dark:hover:bg-white/5">
-                                @svg('heroicon-o-document-text', 'h-5 w-5 text-red-500')
-                                <span>Export as PDF</span>
-                            </button>
-                            <button class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-white/80 dark:hover:bg-white/5">
-                                @svg('heroicon-o-table-cells', 'h-5 w-5 text-emerald-500')
-                                <span>Export as CSV</span>
-                            </button>
-                        </div>
-                    </div>
+                    <x-table.export-dropdown
+                        aria-label="Export activity logs"
+                        pdf-label="Export as PDF"
+                        excel-label="Export as CSV"
+                    />
                 </div>
             </div>
         </div>

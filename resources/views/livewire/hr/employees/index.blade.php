@@ -3,27 +3,7 @@
         description="Browse all people across branches with sorting, filtering, and creation wizard.">
         <x-slot:actions>
             <div class="flex items-center gap-2">
-                <div class="relative" data-dropdown>
-                    <button type="button" data-dropdown-trigger
-                        class="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 dark:border-white/20 dark:bg-white/5 dark:text-white/80 dark:hover:border-white/40 dark:hover:bg-white/10 dark:hover:text-white">
-                        @svg('heroicon-o-arrow-down-tray', 'h-4 w-4')
-                        <span>Export</span>
-                        @svg('heroicon-o-chevron-down', 'h-4 w-4 text-slate-400 dark:text-white/60')
-                    </button>
-                    <div data-dropdown-panel
-                        class="absolute right-0 z-40 mt-2 hidden min-w-[11rem] rounded-xl border border-slate-200 bg-white p-1 text-xs text-slate-700 shadow-xl dark:border-white/10 dark:bg-slate-900/95 dark:text-white">
-                        <button type="button" wire:click="export('pdf')"
-                            class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left hover:bg-slate-100 dark:hover:bg-white/10">
-                            @svg('heroicon-o-document-text', 'h-4 w-4')
-                            <span>Export as PDF</span>
-                        </button>
-                        <button type="button" wire:click="export('excel')"
-                            class="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left hover:bg-slate-100 dark:hover:bg-white/10">
-                            @svg('heroicon-o-table-cells', 'h-4 w-4')
-                            <span>Export as Excel</span>
-                        </button>
-                    </div>
-                </div>
+                <x-table.export-dropdown aria-label="Export employees" />
                 <x-ui.button as="a" href="{{ route('hr.employees.create') }}">New employee</x-ui.button>
             </div>
         </x-slot:actions>

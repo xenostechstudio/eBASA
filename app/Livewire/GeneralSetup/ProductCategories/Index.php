@@ -17,6 +17,9 @@ class Index extends Component
     #[Url]
     public string $search = '';
 
+    #[Url]
+    public string $statusFilter = '';
+
     // Modal state
     public bool $showCreateModal = false;
 
@@ -30,6 +33,10 @@ class Index extends Component
     public string $description = '';
 
     public int $sort_order = 0;
+
+    public string $color = '';
+
+    public bool $is_active = true;
 
     public function openCreateModal(): void
     {
@@ -45,6 +52,8 @@ class Index extends Component
             $this->name = $category->name;
             $this->description = $category->description ?? '';
             $this->sort_order = $category->sort_order ?? 0;
+            $this->color = $category->color ?? '';
+            $this->is_active = (bool) ($category->is_active ?? true);
             $this->showEditModal = true;
         }
     }
@@ -62,6 +71,8 @@ class Index extends Component
         $this->name = '';
         $this->description = '';
         $this->sort_order = 0;
+        $this->color = '';
+        $this->is_active = true;
         $this->resetValidation();
     }
 
@@ -73,6 +84,8 @@ class Index extends Component
             'name' => 'required|string|max:255|unique:product_categories,name' . ($isEditing ? ',' . $this->editingCategoryId : ''),
             'description' => 'nullable|string|max:500',
             'sort_order' => 'integer|min:0',
+            'color' => 'nullable|string|max:7',
+            'is_active' => 'boolean',
         ];
 
         $this->validate($rules);
@@ -84,6 +97,8 @@ class Index extends Component
                     'name' => $this->name,
                     'description' => $this->description,
                     'sort_order' => $this->sort_order,
+                    'color' => $this->color ?: null,
+                    'is_active' => $this->is_active,
                 ]);
             }
 
@@ -94,6 +109,8 @@ class Index extends Component
                 'name' => $this->name,
                 'description' => $this->description,
                 'sort_order' => $this->sort_order,
+                'color' => $this->color ?: null,
+                'is_active' => $this->is_active,
             ]);
 
             $flashMessage = 'Category created successfully.';
@@ -109,6 +126,12 @@ class Index extends Component
         ]);
     }
 
+    public function setStatusFilter(string $value): void
+    {
+        $this->statusFilter = $value;
+        $this->resetPage();
+    }
+
     public function deleteCategory(int $categoryId): void
     {
         ProductCategory::destroy($categoryId);
@@ -120,12 +143,30 @@ class Index extends Component
         ]);
     }
 
+    public function export(string $format): void
+    {
+        if (! in_array($format, ['excel', 'pdf'], true)) {
+            return;
+        }
+
+        $label = strtoupper($format);
+
+        session()->flash('flash', [
+            'type' => 'info',
+            'title' => $label . ' export',
+            'message' => 'Export functionality is not implemented yet.',
+        ]);
+    }
+
     public function render()
     {
         $categories = ProductCategory::query()
             ->withCount('products')
             ->when($this->search, function ($query) {
                 $query->where('name', 'like', '%' . $this->search . '%');
+            })
+            ->when($this->statusFilter !== '', function ($query) {
+                $query->where('is_active', $this->statusFilter === 'active');
             })
             ->orderBy('sort_order')
             ->orderBy('name')
@@ -137,9 +178,16 @@ class Index extends Component
             'empty' => ProductCategory::doesntHave('products')->count(),
         ];
 
+        $editingCategory = null;
+
+        if ($this->editingCategoryId) {
+            $editingCategory = ProductCategory::find($this->editingCategoryId);
+        }
+
         return view('livewire.general-setup.product-categories.index', [
             'categories' => $categories,
             'stats' => $stats,
+            'editingCategory' => $editingCategory,
         ])->layoutData([
             'pageTitle' => 'Product Categories',
             'pageTagline' => 'General Setup',

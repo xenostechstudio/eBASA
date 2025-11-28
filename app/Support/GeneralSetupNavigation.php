@@ -17,6 +17,18 @@ class GeneralSetupNavigation
                         'active' => $activeSection === 'users',
                     ],
                     [
+                        'label' => 'Branches',
+                        'icon' => 'heroicon-o-building-office',
+                        'href' => route('inventory.branches.index'),
+                        'active' => $activeSection === 'branches',
+                    ],
+                    [
+                        'label' => 'Warehouses',
+                        'icon' => 'heroicon-o-building-storefront',
+                        'href' => route('general-setup.warehouses.index'),
+                        'active' => $activeSection === 'warehouses',
+                    ],
+                    [
                         'label' => 'Products',
                         'icon' => 'heroicon-o-shopping-bag',
                         'href' => route('general-setup.products.index'),

@@ -17,6 +17,21 @@ class Index extends Component
         ['user' => 'System', 'action' => 'Backup completed successfully', 'module' => 'System', 'time' => '3 hours ago', 'type' => 'system'],
     ];
 
+    public function export(string $format): void
+    {
+        if (! in_array($format, ['excel', 'pdf'], true)) {
+            return;
+        }
+
+        $label = $format === 'excel' ? 'CSV' : strtoupper($format);
+
+        session()->flash('flash', [
+            'type' => 'info',
+            'title' => $label . ' export',
+            'message' => 'Export functionality is not implemented yet.',
+        ]);
+    }
+
     public function render()
     {
         return view('livewire.general-setup.activity-logs.index', [
