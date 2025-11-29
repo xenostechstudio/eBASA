@@ -31,7 +31,7 @@
             })();
         </script>
     </head>
-    <body class="font-sans antialiased min-h-screen m-0 bg-slate-200 text-slate-800 transition-colors duration-300 dark:bg-slate-950 dark:text-white">
+    <body class="font-sans antialiased min-h-screen m-0 bg-slate-100 text-slate-800 transition-colors duration-300 dark:bg-slate-950 dark:text-white">
         @php
             $branchShortcuts = \App\Models\Branch::query()->orderBy('name')->get();
             $activeBranchId = (int) session('active_branch_id');
@@ -78,7 +78,7 @@
                 </header>
 
                 {{-- Page Content --}}
-                <div class="p-6 bg-slate-100 dark:bg-transparent">
+                <div class="p-6">
                     {{ $slot }}
                 </div>
             </main>
@@ -87,6 +87,24 @@
         @if (($activeModule ?? null) !== 'general-setup')
             <x-floating-branch-switcher :branch-shortcuts="$branchShortcuts" :active-branch-id="$activeBranchId" />
         @endif
+
+        {{-- Global notifications for Livewire dispatch('notify', ...) events --}}
+        <div
+            x-data="{ notifications: [] }"
+            x-on:notify.window="
+                if (! $event.detail || ! $event.detail.message) return;
+                notifications.push({
+                    id: Date.now(),
+                    message: $event.detail.message,
+                });
+            "
+        >
+            <template x-for="notification in notifications" :key="notification.id">
+                <x-alert type="success">
+                    <span x-text="notification.message"></span>
+                </x-alert>
+            </template>
+        </div>
 
         @livewireScripts
     </body>

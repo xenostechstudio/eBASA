@@ -73,11 +73,11 @@
                 <x-table.export-dropdown aria-label="Export adjustments" />
 
                 {{-- Add Adjustment --}}
-                <button wire:click="openCreateModal"
+                <a href="{{ route('inventory.stock.adjustments.create') }}"
                     class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90">
                     @svg('heroicon-o-plus', 'h-4 w-4')
                     <span>New Adjustment</span>
-                </button>
+                </a>
             </div>
         </div>
 
@@ -93,18 +93,20 @@
                                 </label>
                             </th>
                             <th class="px-5 py-3">REFERENCE</th>
-                            <th class="px-5 py-3">PRODUCT</th>
                             <th class="px-5 py-3">WAREHOUSE</th>
                             <th class="px-5 py-3">TYPE</th>
                             <th class="px-5 py-3">QUANTITY</th>
                             <th class="px-5 py-3">REASON</th>
                             <th class="px-5 py-3">DATE</th>
+                            <th class="px-5 py-3">STATUS</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-white/10">
                         @foreach ($adjustments as $adjustment)
-                            @php $isSelected = in_array($adjustment->id, $selectedItems); @endphp
-                            <tr class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5 {{ $isSelected ? 'bg-slate-50 dark:bg-white/5' : '' }}">
+                            @php
+                                $isSelected = in_array($adjustment->id, $selectedItems);
+                            @endphp
+                            <tr wire:click="goToAdjustment({{ $adjustment->id }})" class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5 {{ $isSelected ? 'bg-slate-50 dark:bg-white/5' : '' }}">
                                 <td class="whitespace-nowrap px-5 py-4" wire:click.stop>
                                     <label class="inline-flex items-center">
                                         <input type="checkbox" wire:model.live="selectedItems" value="{{ $adjustment->id }}"
@@ -115,10 +117,7 @@
                                     <p class="font-medium text-slate-900 dark:text-white">{{ $adjustment->reference }}</p>
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-600 dark:text-white/70">
-                                    {{ $adjustment->product_name }}
-                                </td>
-                                <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-600 dark:text-white/70">
-                                    {{ $adjustment->warehouse }}
+                                    {{ $adjustment->warehouse?->name }}
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4">
                                     <span class="inline-flex items-center rounded-lg px-2 py-1 text-xs font-medium {{ $adjustment->type === 'addition' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' }}">
@@ -126,13 +125,35 @@
                                     </span>
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-sm font-medium {{ $adjustment->type === 'addition' ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400' }}">
-                                    {{ $adjustment->type === 'addition' ? '+' : '-' }}{{ number_format($adjustment->quantity) }}
+                                    {{ $adjustment->type === 'addition' ? '+' : '-' }}{{ number_format($adjustment->items->sum('quantity')) }}
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-600 dark:text-white/70">
                                     {{ $adjustment->reason }}
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500 dark:text-white/60">
                                     {{ $adjustment->created_at->format('M d, Y') }}
+                                </td>
+                                <td class="whitespace-nowrap px-5 py-4">
+                                    @php
+                                        $rawStatus = $adjustment->status;
+                                        $status = $rawStatus instanceof \App\Enums\StockAdjustmentStatus
+                                            ? $rawStatus->value
+                                            : (string) $rawStatus;
+
+                                        $statusLabel = $rawStatus instanceof \App\Enums\StockAdjustmentStatus
+                                            ? $rawStatus->label()
+                                            : (string) str($status)->headline();
+
+                                        $statusClasses = [
+                                            'draft' => 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-white/70',
+                                            'on_process' => 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300',
+                                            'completed' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
+                                            'cancelled' => 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300',
+                                        ][$status] ?? 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-white/70';
+                                    @endphp
+                                    <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium {{ $statusClasses }}">
+                                        {{ $statusLabel }}
+                                    </span>
                                 </td>
                             </tr>
                         @endforeach

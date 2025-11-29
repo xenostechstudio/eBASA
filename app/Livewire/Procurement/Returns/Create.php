@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Livewire\Procurement\Orders;
+namespace App\Livewire\Procurement\Returns;
 
-use App\Models\Warehouse;
 use App\Support\ProcurementNavigation;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -12,18 +11,21 @@ use Livewire\Component;
 class Create extends Component
 {
     public string $supplier_id = '';
+    public string $reason = '';
     public string $notes = '';
 
-    public ?string $delivery_warehouse_id = null;
-    public ?string $delivery_date = null;
-    public ?string $requested_by = null;
-    public ?string $payment_terms = '30_days';
-    public ?string $delivery_instructions = null;
+    /**
+     * @var array<int, array<string, mixed>>
+     */
     public array $items = [];
 
     public function addItem(): void
     {
-        $this->items[] = ['product_id' => '', 'quantity' => 1, 'price' => 0];
+        $this->items[] = [
+            'product_id' => '',
+            'quantity' => 1,
+            'reason' => '',
+        ];
     }
 
     public function removeItem(int $index): void
@@ -36,26 +38,21 @@ class Create extends Component
     {
         $this->validate([
             'supplier_id' => ['required', 'string'],
-            'delivery_warehouse_id' => ['nullable', 'string'],
-            'delivery_date' => ['nullable', 'date'],
-            'requested_by' => ['nullable', 'string', 'max:120'],
-            'payment_terms' => ['nullable', 'string', 'max:50'],
-            'delivery_instructions' => ['nullable', 'string'],
+            'reason' => ['required', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
             'items' => ['array', 'min:1'],
             'items.*.product_id' => ['required', 'integer'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
-            'items.*.price' => ['required', 'numeric', 'min:0'],
+            'items.*.reason' => ['nullable', 'string', 'max:255'],
         ]);
 
-        // Persist to database in real implementation
-        $this->dispatch('notify', message: 'Purchase order created successfully');
-        $this->redirect(route('procurement.orders'));
+        $this->dispatch('notify', message: 'Return created (demo only)');
+
+        $this->redirect(route('procurement.returns'), navigate: true);
     }
 
     public function render(): View
     {
-        // Mock data
         $suppliers = collect([
             (object) ['id' => 1, 'name' => 'PT Supplier Utama'],
             (object) ['id' => 2, 'name' => 'CV Mitra Jaya'],
@@ -68,19 +65,14 @@ class Create extends Component
             (object) ['id' => 3, 'name' => 'Product C', 'sku' => 'SKU-003'],
         ]);
 
-        $warehouses = Warehouse::with('branch')
-            ->orderBy('name')
-            ->get();
-
-        return view('livewire.procurement.orders.create', [
+        return view('livewire.procurement.returns.create', [
             'suppliers' => $suppliers,
             'products' => $products,
-            'warehouses' => $warehouses,
         ])->layoutData([
-            'pageTitle' => 'Create Purchase Order',
+            'pageTitle' => 'Create Return',
             'pageTagline' => 'Procurement',
             'activeModule' => 'procurement',
-            'navLinks' => ProcurementNavigation::links('orders', 'create'),
+            'navLinks' => ProcurementNavigation::links('returns'),
         ]);
     }
 }

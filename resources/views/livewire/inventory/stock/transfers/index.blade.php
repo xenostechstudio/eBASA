@@ -67,11 +67,11 @@
                 <x-table.export-dropdown aria-label="Export transfers" />
 
                 {{-- New Transfer --}}
-                <button wire:click="openCreateModal"
-                    class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90">
+                <a href="{{ route('inventory.stock.transfers.create') }}"
+                    class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg:white dark:text-slate-900 dark:hover:bg-white/90">
                     @svg('heroicon-o-plus', 'h-4 w-4')
                     <span>New Transfer</span>
-                </button>
+                </a>
             </div>
         </div>
 
@@ -104,7 +104,7 @@
                                     'completed' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400',
                                 ];
                             @endphp
-                            <tr class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5 {{ $isSelected ? 'bg-slate-50 dark:bg-white/5' : '' }}">
+                            <tr wire:click="goToTransfer({{ $transfer->id }})" class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5 {{ $isSelected ? 'bg-slate-50 dark:bg-white/5' : '' }}">
                                 <td class="whitespace-nowrap px-5 py-4" wire:click.stop>
                                     <label class="inline-flex items-center">
                                         <input type="checkbox" wire:model.live="selectedItems" value="{{ $transfer->id }}"

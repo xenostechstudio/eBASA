@@ -23,8 +23,6 @@ class Index extends Component
     public bool $selectPage = false;
     public array $pageItemIds = [];
 
-    public bool $showCreateModal = false;
-
     public function updatedSearch(): void
     {
         $this->resetPage();
@@ -88,14 +86,9 @@ class Index extends Component
         $this->selectPage = false;
     }
 
-    public function openCreateModal(): void
+    public function goToTransfer(int $transferId): void
     {
-        $this->showCreateModal = true;
-    }
-
-    public function closeCreateModal(): void
-    {
-        $this->showCreateModal = false;
+        $this->redirectRoute('inventory.stock.transfers.show', ['transfer' => $transferId], navigate: true);
     }
 
     public function render(): View

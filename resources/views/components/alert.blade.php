@@ -39,7 +39,6 @@
     x-init="setTimeout(() => { visible = true; setTimeout(() => visible = false, 7000) }, 50)"
     x-bind:class="visible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'"
     class="{{ $wrapperClasses }} transform transition-all duration-300"
-    hidden
     role="status"
     aria-live="polite"
 >

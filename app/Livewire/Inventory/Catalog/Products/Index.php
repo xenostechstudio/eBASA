@@ -97,6 +97,11 @@ class Index extends Component
         $this->selectPage = false;
     }
 
+    public function goToProduct(int $productId): void
+    {
+        $this->redirectRoute('general-setup.products.edit', ['product' => $productId], navigate: true);
+    }
+
     public function render(): View
     {
         $productsQuery = Product::query()->with(['category']);
@@ -116,7 +121,7 @@ class Index extends Component
             $productsQuery->where('is_active', $this->statusFilter === 'active');
         }
 
-        $allowedSorts = ['name', 'sku', 'price', 'stock_quantity'];
+        $allowedSorts = ['name', 'sku', 'selling_price', 'stock_quantity'];
         $sortField = in_array($this->sortField, $allowedSorts, true) ? $this->sortField : 'name';
 
         $products = $productsQuery

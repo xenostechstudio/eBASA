@@ -110,9 +110,9 @@
                             </th>
                             <th class="px-5 py-3">CATEGORY</th>
                             <th class="px-5 py-3">
-                                <button wire:click="setSort('price')" class="flex items-center gap-1 hover:text-slate-700 dark:hover:text-white">
+                                <button wire:click="setSort('selling_price')" class="flex items-center gap-1 hover:text-slate-700 dark:hover:text-white">
                                     PRICE
-                                    @if ($sortField === 'price')
+                                    @if ($sortField === 'selling_price')
                                         @svg($sortDirection === 'asc' ? 'heroicon-s-chevron-up' : 'heroicon-s-chevron-down', 'h-3 w-3')
                                     @endif
                                 </button>
@@ -131,7 +131,7 @@
                     <tbody class="divide-y divide-slate-100 dark:divide-white/10">
                         @foreach ($products as $product)
                             @php $isSelected = in_array($product->id, $selectedItems); @endphp
-                            <tr class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5 {{ $isSelected ? 'bg-slate-50 dark:bg-white/5' : '' }}">
+                            <tr wire:click="goToProduct({{ $product->id }})" class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5 {{ $isSelected ? 'bg-slate-50 dark:bg-white/5' : '' }}">
                                 <td class="whitespace-nowrap px-5 py-4" wire:click.stop>
                                     <label class="inline-flex items-center">
                                         <input type="checkbox" wire:model.live="selectedItems" value="{{ $product->id }}"
@@ -148,7 +148,7 @@
                                     {{ $product->category?->name ?? '—' }}
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-sm font-medium text-slate-900 dark:text-white">
-                                    Rp {{ number_format($product->price ?? 0, 0, ',', '.') }}
+                                    Rp {{ number_format($product->selling_price ?? 0, 0, ',', '.') }}
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-600 dark:text-white/70">
                                     {{ number_format($product->stock_quantity ?? 0) }}

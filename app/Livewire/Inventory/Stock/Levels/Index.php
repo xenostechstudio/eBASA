@@ -125,6 +125,11 @@ class Index extends Component
         return empty(array_diff($this->pageItemIds, $selectedIds));
     }
 
+    public function goToProduct(int $productId): void
+    {
+        $this->redirectRoute('general-setup.products.edit', ['product' => $productId], navigate: true);
+    }
+
     public function render(): View
     {
         $activeBranchId = (int) session('active_branch_id', 0) ?: null;
@@ -143,7 +148,7 @@ class Index extends Component
             $productsQuery->where('category_id', (int) $this->categoryFilter);
         }
 
-        $allowedSorts = ['name', 'sku', 'stock_quantity', 'reorder_level'];
+        $allowedSorts = ['name', 'sku', 'stock_quantity', 'min_stock_level'];
         $sortField = in_array($this->sortField, $allowedSorts, true) ? $this->sortField : 'name';
 
         $products = $productsQuery
@@ -156,7 +161,7 @@ class Index extends Component
         $stats = [
             'totalProducts' => Product::count(),
             'inStock' => Product::where('stock_quantity', '>', 0)->count(),
-            'lowStock' => Product::whereColumn('stock_quantity', '<=', 'reorder_level')
+            'lowStock' => Product::whereColumn('stock_quantity', '<=', 'min_stock_level')
                 ->where('stock_quantity', '>', 0)->count(),
             'outOfStock' => Product::where('stock_quantity', '<=', 0)->count(),
         ];

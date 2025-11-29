@@ -47,7 +47,13 @@
             }
         }">
         <div class="flex flex-none flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-            <p class="text-xs uppercase tracking-[0.4em] text-slate-500 dark:text-white/60">Shift Summary</p>
+            <div>
+                <p class="text-xs uppercase tracking-[0.4em] text-slate-500 dark:text-white/60">Shift Summary</p>
+                <p class="mt-1 text-xs text-slate-500 dark:text-white/60">
+                    Kasir: <span class="font-medium text-slate-900 dark:text-white">{{ $shiftSummary['cashier'] }}</span>
+                    · {{ $shiftSummary['since'] }}
+                </p>
+            </div>
             <div class="flex flex-wrap items-center gap-2">
                 <button type="button" class="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-white/10 dark:text-white/80 dark:hover:bg-white/10"
                     @click="printShiftSummary()">

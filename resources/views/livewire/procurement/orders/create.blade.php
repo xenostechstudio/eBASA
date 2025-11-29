@@ -24,25 +24,75 @@
         <div class="lg:col-span-2 space-y-6">
             <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5">
                 <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Order Details</h3>
-                <p class="mt-1 text-sm text-slate-500 dark:text-white/50">Select supplier and add items</p>
+                <p class="mt-1 text-sm text-slate-500 dark:text-white/50">Supplier, delivery, and reference details for this PO.</p>
 
-                <div class="mt-6 space-y-4">
-                    <div>
+                <div class="mt-6 grid gap-4 md:grid-cols-2">
+                    <div class="md:col-span-2">
                         <label class="block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-white/50">Supplier</label>
-                        <select wire:model="supplier_id"
-                            class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-slate-950/40 dark:text-white">
-                            <option value="">Select supplier</option>
-                            @foreach ($suppliers as $supplier)
-                                <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-                            @endforeach
-                        </select>
+                        <div class="mt-2">
+                            <x-form.searchable-select
+                                wire:model="supplier_id"
+                                name="supplier_id"
+                                placeholder="Search supplier..."
+                                :options="$suppliers"
+                                value-key="id"
+                                label-key="name"
+                            />
+                        </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-white/50">Notes</label>
+                        <label class="block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-white/50">Deliver to</label>
+                        <div class="mt-2">
+                            <x-form.searchable-select
+                                wire:model="delivery_warehouse_id"
+                                name="delivery_warehouse_id"
+                                placeholder="Search warehouse..."
+                                :options="$warehouses->map(fn($w) => (object)['id' => $w->id, 'name' => $w->name, 'branch' => $w->branch?->name])"
+                                value-key="id"
+                                label-key="name"
+                                sublabel-key="branch"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-white/50">Expected delivery date</label>
+                        <input type="date" wire:model="delivery_date"
+                            class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-slate-950/40 dark:text-white">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-white/50">Requested by</label>
+                        <input type="text" wire:model="requested_by"
+                            class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-slate-950/40 dark:text-white dark:placeholder:text-white/30"
+                            placeholder="Requester name or department">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-white/50">Payment terms</label>
+                        <select wire:model="payment_terms"
+                            class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-slate-950/40 dark:text-white">
+                            <option value="">Select terms</option>
+                            <option value="cod">COD</option>
+                            <option value="14_days">14 days</option>
+                            <option value="30_days">30 days</option>
+                            <option value="45_days">45 days</option>
+                        </select>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-white/50">Delivery instructions</label>
+                        <textarea wire:model="delivery_instructions" rows="2"
+                            class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-slate-950/40 dark:text-white dark:placeholder:text-white/30"
+                            placeholder="Gate, contact person, unload time window, etc."></textarea>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-white/50">Internal Notes</label>
                         <textarea wire:model="notes" rows="3"
                             class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-slate-950/40 dark:text-white dark:placeholder:text-white/30"
-                            placeholder="Additional notes..."></textarea>
+                            placeholder="Additional notes for your purchasing team..."></textarea>
                     </div>
                 </div>
             </div>
@@ -107,7 +157,7 @@
 
         {{-- Summary --}}
         <div class="lg:col-span-1">
-            <div class="sticky top-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5">
+            <div class="sticky top-24 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5">
                 <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Order Summary</h3>
 
                 <dl class="mt-6 space-y-4">

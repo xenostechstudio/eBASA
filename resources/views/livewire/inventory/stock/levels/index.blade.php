@@ -119,9 +119,10 @@
                         @foreach ($products as $product)
                             @php
                                 $isSelected = in_array($product->id, $selectedItems);
+                                $minLevel = $product->min_stock_level ?? 0;
                                 $stockStatus = match(true) {
                                     $product->stock_quantity <= 0 => 'out_of_stock',
-                                    $product->stock_quantity <= $product->reorder_level => 'low_stock',
+                                    $product->stock_quantity <= $minLevel => 'low_stock',
                                     default => 'in_stock',
                                 };
                                 $statusColors = [
@@ -135,7 +136,7 @@
                                     'out_of_stock' => 'Out of Stock',
                                 ];
                             @endphp
-                            <tr class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5 {{ $isSelected ? 'bg-slate-50 dark:bg-white/5' : '' }}">
+                            <tr wire:click="goToProduct({{ $product->id }})" class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5 {{ $isSelected ? 'bg-slate-50 dark:bg-white/5' : '' }}">
                                 <td class="whitespace-nowrap px-5 py-4" wire:click.stop>
                                     <label class="inline-flex items-center">
                                         <input type="checkbox" wire:model.live="selectedItems" value="{{ $product->id }}"
@@ -155,7 +156,7 @@
                                     {{ number_format($product->stock_quantity ?? 0) }}
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-600 dark:text-white/70">
-                                    {{ number_format($product->reorder_level ?? 0) }}
+                                    {{ number_format($product->min_stock_level ?? 0) }}
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4">
                                     <span class="inline-flex items-center rounded-lg px-2 py-1 text-xs font-medium {{ $statusColors[$stockStatus] }}">

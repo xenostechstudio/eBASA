@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Inventory\Stock\Adjustments;
 
+use App\Models\StockAdjustment;
 use App\Models\Warehouse;
 use App\Support\InventoryNavigation;
 use Illuminate\Contracts\View\View;
@@ -23,8 +24,6 @@ class Index extends Component
     public array $selectedItems = [];
     public bool $selectPage = false;
     public array $pageItemIds = [];
-
-    public bool $showCreateModal = false;
 
     public function updatedSearch(): void
     {
@@ -98,32 +97,47 @@ class Index extends Component
         $this->selectPage = false;
     }
 
-    public function openCreateModal(): void
+    public function goToAdjustment(int $adjustmentId): void
     {
-        $this->showCreateModal = true;
-    }
-
-    public function closeCreateModal(): void
-    {
-        $this->showCreateModal = false;
+        $this->redirectRoute('inventory.stock.adjustments.show', ['adjustment' => $adjustmentId], navigate: true);
     }
 
     public function render(): View
     {
-        // Mock data for adjustments
-        $adjustments = collect([
-            (object) ['id' => 1, 'reference' => 'ADJ-001', 'product_name' => 'Product A', 'warehouse' => 'Main Warehouse', 'type' => 'addition', 'quantity' => 50, 'reason' => 'Stock count correction', 'created_at' => now()->subDays(1)],
-            (object) ['id' => 2, 'reference' => 'ADJ-002', 'product_name' => 'Product B', 'warehouse' => 'Branch Warehouse', 'type' => 'reduction', 'quantity' => 10, 'reason' => 'Damaged goods', 'created_at' => now()->subDays(2)],
-            (object) ['id' => 3, 'reference' => 'ADJ-003', 'product_name' => 'Product C', 'warehouse' => 'Main Warehouse', 'type' => 'addition', 'quantity' => 100, 'reason' => 'Initial stock', 'created_at' => now()->subDays(3)],
-        ]);
+        $query = StockAdjustment::query()
+            ->with(['warehouse', 'items.product']);
+
+        if ($this->search !== '') {
+            $search = $this->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->where('reference', 'ilike', "%{$search}%")
+                    ->orWhere('reason', 'ilike', "%{$search}%");
+            });
+        }
+
+        if ($this->warehouseFilter !== 'all') {
+            $query->where('warehouse_id', $this->warehouseFilter);
+        }
+
+        if ($this->typeFilter !== 'all') {
+            $query->where('type', $this->typeFilter);
+        }
+
+        $adjustments = $query
+            ->orderBy($this->sortField, $this->sortDirection)
+            ->get();
 
         $this->pageItemIds = $adjustments->pluck('id')->toArray();
 
         $stats = [
-            'totalAdjustments' => 156,
-            'additions' => 89,
-            'reductions' => 67,
-            'thisMonth' => 23,
+            'totalAdjustments' => StockAdjustment::count(),
+            'additions' => StockAdjustment::where('type', 'addition')->count(),
+            'reductions' => StockAdjustment::where('type', 'reduction')->count(),
+            'thisMonth' => StockAdjustment::whereBetween('adjustment_date', [
+                now()->startOfMonth(),
+                now()->endOfMonth(),
+            ])->count(),
         ];
 
         return view('livewire.inventory.stock.adjustments.index', [

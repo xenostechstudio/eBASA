@@ -22,8 +22,6 @@ class Index extends Component
     public bool $selectPage = false;
     public array $pageItemIds = [];
 
-    public bool $showCreateModal = false;
-
     public function updatedSearch(): void
     {
         $this->resetPage();
@@ -76,9 +74,9 @@ class Index extends Component
         $this->selectPage = false;
     }
 
-    public function openCreateModal(): void
+    public function goToReturn(int $returnId): void
     {
-        $this->showCreateModal = true;
+        $this->redirectRoute('procurement.returns.edit', ['return' => $returnId], navigate: true);
     }
 
     public function render(): View

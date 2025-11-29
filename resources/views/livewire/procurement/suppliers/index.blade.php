@@ -66,11 +66,11 @@
                 <x-table.export-dropdown aria-label="Export suppliers" />
 
                 {{-- Add Supplier --}}
-                <button wire:click="openCreateModal"
+                <a href="{{ route('procurement.suppliers.create') }}"
                     class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90">
                     @svg('heroicon-o-plus', 'h-4 w-4')
                     <span>Add Supplier</span>
-                </button>
+                </a>
             </div>
         </div>
 
@@ -102,7 +102,7 @@
                     <tbody class="divide-y divide-slate-100 dark:divide-white/10">
                         @foreach ($suppliers as $supplier)
                             @php $isSelected = in_array($supplier->id, $selectedItems); @endphp
-                            <tr class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5 {{ $isSelected ? 'bg-slate-50 dark:bg-white/5' : '' }}">
+                            <tr wire:click="goToSupplier({{ $supplier->id }})" class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5 {{ $isSelected ? 'bg-slate-50 dark:bg-white/5' : '' }}">
                                 <td class="whitespace-nowrap px-5 py-4" wire:click.stop>
                                     <label class="inline-flex items-center">
                                         <input type="checkbox" wire:model.live="selectedItems" value="{{ $supplier->id }}"
