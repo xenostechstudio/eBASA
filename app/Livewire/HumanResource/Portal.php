@@ -2,6 +2,9 @@
 
 namespace App\Livewire\HumanResource;
 
+use App\Models\Department;
+use App\Models\Employee;
+use App\Models\Position;
 use App\Support\HumanResourceNavigation;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -101,40 +104,14 @@ class Portal extends Component
     public function render()
     {
         $stats = [
-            [
-                'label' => 'Active Employees',
-                'value' => 182,
-                'trend' => '+6 this month',
-            ],
-            [
-                'label' => 'Open Positions',
-                'value' => 12,
-                'trend' => '4 urgent',
-            ],
-            [
-                'label' => 'Attendance Compliance',
-                'value' => '97%',
-                'trend' => '+2% vs last month',
-            ],
+            'employees' => Employee::count(),
+            'departments' => Department::count(),
+            'positions' => Position::count(),
         ];
 
-        $upcomingReviews = [
-            ['name' => 'Aria Saputra', 'role' => 'Store Manager', 'date' => 'Nov 25'],
-            ['name' => 'Dwi Haryanto', 'role' => 'Senior Buyer', 'date' => 'Nov 28'],
-            ['name' => 'Maya Rahma', 'role' => 'HRBP Jakarta', 'date' => 'Dec 02'],
-        ];
-
-        $recentHires = [
-            ['name' => 'Gilang Pratama', 'role' => 'Warehouse Lead', 'branch' => 'Bandung'],
-            ['name' => 'Salsabila Putri', 'role' => 'Finance Analyst', 'branch' => 'HQ'],
-        ];
-
-        /** @noinspection PhpUndefinedMethodInspection */
         return view('livewire.hr.portal', [
             'sections' => $this->sections,
             'stats' => $stats,
-            'upcomingReviews' => $upcomingReviews,
-            'recentHires' => $recentHires,
             'peopleTabs' => $this->peopleTabs,
             'attendanceTabs' => $this->attendanceTabs,
             'payrollTabs' => $this->payrollTabs,

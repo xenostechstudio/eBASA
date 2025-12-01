@@ -1,0 +1,213 @@
+<div>
+    {{-- Flash Message --}}
+    @if (session()->has('flash'))
+        <x-alert :type="session('flash.type')">
+            {{ session('flash.message') }}
+        </x-alert>
+    @endif
+
+    <div class="space-y-6">
+        <x-form.section-header
+            title="Edit Payroll Run"
+            description="Update payroll run details and status."
+        />
+
+        @include('livewire.hr.payroll.payroll-runs._form', ['isEditing' => true])
+
+        {{-- Employees in Payroll Group --}}
+        <div class="w-full rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
+            <div class="border-b border-slate-200 px-6 py-4 dark:border-white/10">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Employees in Payroll Group</h3>
+                        <p class="text-xs text-slate-500 dark:text-white/60">{{ $groupEmployeeCount }} employees assigned to {{ $payrollRun->payrollGroup?->name }}</p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Employees Table --}}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="border-b border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/5">
+                        <tr>
+                            <th class="px-6 py-3 font-medium text-slate-500 dark:text-white/60">Employee</th>
+                            <th class="px-6 py-3 font-medium text-slate-500 dark:text-white/60">Position</th>
+                            <th class="px-6 py-3 font-medium text-slate-500 dark:text-white/60">Department</th>
+                            <th class="px-6 py-3 font-medium text-slate-500 dark:text-white/60">Base Salary</th>
+                            <th class="px-6 py-3 font-medium text-slate-500 dark:text-white/60">Payout Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 dark:divide-white/10">
+                        @forelse ($groupEmployees as $employee)
+                            <tr wire:key="group-emp-{{ $employee->id }}" class="transition hover:bg-slate-50 dark:hover:bg-white/5">
+                                <td class="px-6 py-4">
+                                    <div>
+                                        <p class="font-medium text-slate-900 dark:text-white">{{ $employee->full_name }}</p>
+                                        <p class="text-xs text-slate-500 dark:text-white/50">{{ $employee->code }}</p>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-slate-600 dark:text-white/70">{{ $employee->position?->name ?? '—' }}</td>
+                                <td class="px-6 py-4 text-slate-600 dark:text-white/70">{{ $employee->department?->name ?? '—' }}</td>
+                                <td class="px-6 py-4 font-medium text-slate-900 dark:text-white">
+                                    Rp {{ number_format($employee->base_salary ?? 0, 0, ',', '.') }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    @if (in_array($employee->id, $employeesWithPayouts))
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-400/20 dark:text-emerald-300">
+                                            @svg('heroicon-o-check-circle', 'h-3 w-3')
+                                            Generated
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-white/10 dark:text-white/60">
+                                            @svg('heroicon-o-clock', 'h-3 w-3')
+                                            Pending
+                                        </span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-6 py-8 text-center">
+                                    @svg('heroicon-o-user-group', 'mx-auto h-10 w-10 text-slate-300 dark:text-white/20')
+                                    <p class="mt-2 text-sm text-slate-500 dark:text-white/50">No employees in this payroll group</p>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- Employee Payouts Relation Manager --}}
+        <div class="w-full rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
+            <div class="border-b border-slate-200 px-6 py-4 dark:border-white/10">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Employee Payouts</h3>
+                        <p class="text-xs text-slate-500 dark:text-white/60">Payouts for this payroll run ({{ $payouts->count() }} of {{ $groupEmployeeCount }} employees)</p>
+                    </div>
+                    @if ($payrollRun->status === 'draft')
+                        <button
+                            type="button"
+                            wire:click="generatePayouts"
+                            wire:loading.attr="disabled"
+                            wire:target="generatePayouts"
+                            class="inline-flex h-9 items-center gap-2 rounded-lg bg-emerald-600 px-3 text-sm font-medium text-white transition hover:bg-emerald-700 disabled:opacity-50"
+                        >
+                            <span wire:loading.remove wire:target="generatePayouts">
+                                @svg('heroicon-o-calculator', 'h-4 w-4')
+                            </span>
+                            <span wire:loading wire:target="generatePayouts">
+                                @svg('heroicon-o-arrow-path', 'h-4 w-4 animate-spin')
+                            </span>
+                            <span>Generate Payouts</span>
+                        </button>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Summary Stats --}}
+            @if ($payouts->count() > 0)
+                <div class="grid grid-cols-3 gap-4 border-b border-slate-200 bg-slate-50 px-6 py-4 dark:border-white/10 dark:bg-white/5">
+                    <div class="text-center">
+                        <p class="text-lg font-bold text-emerald-600 dark:text-emerald-400">Rp {{ number_format($totalGross, 0, ',', '.') }}</p>
+                        <p class="text-xs text-slate-500 dark:text-white/50">Total Gross</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-lg font-bold text-rose-600 dark:text-rose-400">Rp {{ number_format($totalDeductions, 0, ',', '.') }}</p>
+                        <p class="text-xs text-slate-500 dark:text-white/50">Total Deductions</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-lg font-bold text-slate-900 dark:text-white">Rp {{ number_format($totalNet, 0, ',', '.') }}</p>
+                        <p class="text-xs text-slate-500 dark:text-white/50">Total Net Pay</p>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Search --}}
+            <div class="border-b border-slate-200 px-6 py-3 dark:border-white/10">
+                <div class="relative w-full md:max-w-xs">
+                    <input
+                        type="text"
+                        wire:model.live.debounce.300ms="employeeSearch"
+                        placeholder="Search employees..."
+                        class="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-white/40"
+                    >
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/40">
+                        @svg('heroicon-o-magnifying-glass', 'h-4 w-4')
+                    </span>
+                </div>
+            </div>
+
+            {{-- Payouts Table --}}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="border-b border-slate-200 bg-slate-50 dark:border-white/10 dark:bg-white/5">
+                        <tr>
+                            <th class="px-6 py-3 font-medium text-slate-500 dark:text-white/60">Employee</th>
+                            <th class="px-6 py-3 font-medium text-slate-500 dark:text-white/60">Gross</th>
+                            <th class="px-6 py-3 font-medium text-slate-500 dark:text-white/60">Deductions</th>
+                            <th class="px-6 py-3 font-medium text-slate-500 dark:text-white/60">Net Pay</th>
+                            <th class="px-6 py-3 font-medium text-slate-500 dark:text-white/60">Status</th>
+                            <th class="px-6 py-3 font-medium text-slate-500 dark:text-white/60"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 dark:divide-white/10">
+                        @forelse ($payouts as $payout)
+                            <tr wire:key="payout-{{ $payout->id }}" class="transition hover:bg-slate-50 dark:hover:bg-white/5">
+                                <td class="px-6 py-4">
+                                    <div>
+                                        <p class="font-medium text-slate-900 dark:text-white">{{ $payout->employee?->full_name }}</p>
+                                        <p class="text-xs text-slate-500 dark:text-white/50">{{ $payout->employee?->code }}</p>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-emerald-600 dark:text-emerald-400">
+                                    Rp {{ number_format($payout->gross_salary ?? 0, 0, ',', '.') }}
+                                </td>
+                                <td class="px-6 py-4 text-rose-600 dark:text-rose-400">
+                                    Rp {{ number_format($payout->total_deductions ?? 0, 0, ',', '.') }}
+                                </td>
+                                <td class="px-6 py-4 font-semibold text-slate-900 dark:text-white">
+                                    Rp {{ number_format($payout->net_salary ?? 0, 0, ',', '.') }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    @php
+                                        $statusColors = [
+                                            'pending' => 'bg-amber-100 text-amber-700 dark:bg-amber-400/20 dark:text-amber-300',
+                                            'paid' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-400/20 dark:text-emerald-300',
+                                            'failed' => 'bg-red-100 text-red-700 dark:bg-red-400/20 dark:text-red-300',
+                                        ];
+                                    @endphp
+                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $statusColors[$payout->status] ?? $statusColors['pending'] }}">
+                                        {{ str($payout->status)->headline() }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    @if ($payrollRun->status === 'draft')
+                                        <button
+                                            type="button"
+                                            wire:click="removePayout({{ $payout->id }})"
+                                            wire:confirm="Remove this payout?"
+                                            class="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+                                            title="Remove"
+                                        >
+                                            @svg('heroicon-o-trash', 'h-4 w-4')
+                                        </button>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-6 py-8 text-center">
+                                    @svg('heroicon-o-banknotes', 'mx-auto h-10 w-10 text-slate-300 dark:text-white/20')
+                                    <p class="mt-2 text-sm text-slate-500 dark:text-white/50">No payouts generated</p>
+                                    <p class="text-xs text-slate-400 dark:text-white/40">Click "Generate Payouts" to create payouts for employees</p>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

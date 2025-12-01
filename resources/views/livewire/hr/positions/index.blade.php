@@ -107,8 +107,11 @@
                     <tbody class="divide-y divide-slate-100 dark:divide-white/10">
                         @foreach ($positions as $position)
                             @php $isSelected = in_array($position->id, $selectedPositions); @endphp
-                            <tr class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5 {{ $isSelected ? 'bg-slate-50 dark:bg-white/5' : '' }}">
-                                <td class="whitespace-nowrap px-5 py-4" wire:click.stop>
+                            <tr
+                                class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5 {{ $isSelected ? 'bg-slate-50 dark:bg-white/5' : '' }}"
+                                onclick="window.location='{{ route('hr.positions.edit', $position) }}'"
+                            >
+                                <td class="whitespace-nowrap px-5 py-4" wire:click.stop onclick="event.stopPropagation()">
                                     <label class="inline-flex items-center">
                                         <input type="checkbox" wire:model.live="selectedPositions" value="{{ $position->id }}"
                                             class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500 dark:border-white/30 dark:bg-white/10 dark:checked:bg-white dark:checked:text-slate-900">

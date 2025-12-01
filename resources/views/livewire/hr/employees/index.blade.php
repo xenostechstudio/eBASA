@@ -189,8 +189,10 @@
                     <tbody class="divide-y divide-slate-100 dark:divide-white/10">
                         @foreach ($employees as $employee)
                             @php $isSelected = in_array($employee->id, $selectedEmployees); @endphp
-                            <tr class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5 {{ $isSelected ? 'bg-slate-50 dark:bg-white/5' : '' }}"
-                                wire:click="$dispatch('navigate', { url: '{{ route('hr.employees.edit', $employee) }}' })">
+                            <tr
+                                class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5 {{ $isSelected ? 'bg-slate-50 dark:bg-white/5' : '' }}"
+                                onclick="window.location='{{ route('hr.employees.edit', $employee) }}'"
+                            >
                                 <td class="whitespace-nowrap px-5 py-4" wire:click.stop>
                                     <label class="inline-flex items-center">
                                         <input type="checkbox" wire:model.live="selectedEmployees" value="{{ $employee->id }}"
@@ -234,6 +236,7 @@
                                     <div class="flex items-center justify-end gap-1">
                                         <a href="{{ route('hr.employees.edit', $employee) }}"
                                             wire:click.stop
+                                            onclick="event.stopPropagation()"
                                             class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-white/10 dark:hover:text-white"
                                             title="Edit">
                                             @svg('heroicon-o-pencil', 'h-4 w-4')

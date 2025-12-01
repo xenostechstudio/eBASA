@@ -11,7 +11,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('layouts.portal')]
+#[Layout('layouts.portal-sidebar')]
 class Create extends Component
 {
     /**
@@ -79,8 +79,9 @@ class Create extends Component
             'branches' => $this->branches,
             'departments' => $this->departments,
         ])->layoutData([
-            'pageTitle' => 'Human Resource',
-            'showBrand' => false,
+            'pageTitle' => 'New Position',
+            'pageTagline' => 'HR · People',
+            'activeModule' => 'hr',
             'navLinks' => HumanResourceNavigation::links('people', 'positions'),
         ]);
     }

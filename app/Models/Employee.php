@@ -2,14 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Employee extends Model
 {
-    use HasFactory;
+    use HasFactory, Auditable;
 
     protected $fillable = [
         'code',
@@ -30,6 +32,8 @@ class Employee extends Model
         'work_mode',
         'status',
         'salary_band',
+        'base_salary',
+        'payroll_group_id',
         'start_date',
         'probation_end_date',
         'end_date',
@@ -48,6 +52,7 @@ class Employee extends Model
         'start_date' => 'date',
         'probation_end_date' => 'date',
         'end_date' => 'date',
+        'base_salary' => 'decimal:2',
         'meta' => 'array',
     ];
 
@@ -74,5 +79,32 @@ class Employee extends Model
     public function reports(): HasMany
     {
         return $this->hasMany(self::class, 'manager_id');
+    }
+
+    public function payrollGroup(): BelongsTo
+    {
+        return $this->belongsTo(PayrollGroup::class);
+    }
+
+    public function payrollItems(): BelongsToMany
+    {
+        return $this->belongsToMany(PayrollItem::class, 'employee_payroll_items')
+            ->withPivot(['amount', 'effective_date', 'end_date', 'is_active', 'notes'])
+            ->withTimestamps();
+    }
+
+    public function employeePayrollItems(): HasMany
+    {
+        return $this->hasMany(EmployeePayrollItem::class);
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 }

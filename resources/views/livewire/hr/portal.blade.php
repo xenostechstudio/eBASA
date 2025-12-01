@@ -1,165 +1,88 @@
 <div class="space-y-10">
     @if ($activeSection === 'overview')
-        @php
-            $workflowQueue = [
-                ['label' => 'Leave approvals', 'value' => '5 pending', 'pill' => 'Approvals'],
-                ['label' => 'Offer letters', 'value' => '3 awaiting sign', 'pill' => 'Hiring'],
-                ['label' => 'Payroll variance check', 'value' => '+1.2%', 'pill' => 'Finance'],
-            ];
-            $riskAlerts = [
-                ['label' => 'Attendance policy refresh', 'detail' => 'Draft awaiting sign-off', 'severity' => 'Due in 3 days'],
-                ['label' => 'Payroll audit pack', 'detail' => 'Data gathering in progress', 'severity' => 'Week 48 target'],
-                ['label' => 'Leave policy localization', 'detail' => 'Bahasa ID translation pending', 'severity' => 'Needs owner'],
-            ];
-            $operationalCheckpoints = [
-                ['label' => 'Attendance exceptions', 'value' => 6, 'descriptor' => 'target < 8'],
-                ['label' => 'Payroll adjustments', 'value' => '3 drafts', 'descriptor' => 'review today'],
-                ['label' => 'Leave SLA compliance', 'value' => '92%', 'descriptor' => 'goal 95%'],
-            ];
-            $focusAreas = [
-                'Leadership mobility rollout',
-                'Seasonal payroll readiness',
-                'Audit & compliance sprint',
-            ];
-        @endphp
-
-        <section class="overflow-hidden rounded-[36px] border border-white/10 bg-gradient-to-br from-slate-900 via-slate-900/70 to-indigo-900/40 p-8 shadow-[0_45px_120px_-60px_rgba(15,23,42,0.9)]">
-            <div class="flex flex-col gap-8 lg:flex-row lg:items-center">
-                <div class="space-y-5 lg:flex-1">
-                    <p class="text-xs uppercase tracking-[0.6em] text-white/50">Human Resource</p>
-                    <h1 class="text-4xl font-semibold text-white md:text-5xl">Unified people operations cockpit</h1>
-                    <p class="text-base text-white/70">Monitor hiring velocity, payroll readiness, and compliance risk from a single glass panel before drilling into each HR area.</p>
-                    <div class="flex flex-wrap gap-3">
-                        <button class="rounded-full bg-white px-5 py-2 text-sm font-semibold text-slate-900 shadow-lg shadow-white/30">Add employee</button>
-                        <button class="rounded-full border border-white/30 px-5 py-2 text-sm font-semibold text-white/80 hover:border-white/60">Review payroll run</button>
-                        <button class="rounded-full border border-white/15 px-5 py-2 text-sm text-white/60 hover:border-white/40">Configure leave</button>
-                    </div>
+        {{-- Stats Cards --}}
+        <div class="grid gap-4 md:grid-cols-3">
+            <a href="{{ route('hr.employees') }}" class="group rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-slate-300 hover:shadow-sm dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+                <div class="flex items-center gap-3">
+                    @svg('heroicon-o-user-group', 'h-5 w-5 text-sky-500')
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/40">Employees</p>
                 </div>
+                <p class="mt-3 text-3xl font-bold text-slate-900 dark:text-white">{{ number_format($stats['employees'] ?? 0) }}</p>
+                <p class="mt-1 text-xs text-slate-500 dark:text-white/60">People in directory</p>
+            </a>
 
-                <div class="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 p-6">
-                    <p class="text-xs uppercase tracking-[0.4em] text-white/40">Pulse metrics</p>
-                    <div class="mt-4 space-y-4">
-                        @foreach ($stats as $stat)
-                            <div class="rounded-2xl border border-white/10 bg-slate-900/40 p-4">
-                                <p class="text-xs uppercase tracking-[0.35em] text-white/50">{{ $stat['label'] }}</p>
-                                <p class="mt-2 text-3xl font-semibold text-white">{{ $stat['value'] }}</p>
-                                <p class="text-xs text-emerald-300">{{ $stat['trend'] }}</p>
-                            </div>
-                        @endforeach
-                    </div>
+            <a href="{{ route('hr.departments') }}" class="group rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-slate-300 hover:shadow-sm dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+                <div class="flex items-center gap-3">
+                    @svg('heroicon-o-building-office-2', 'h-5 w-5 text-emerald-500')
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/40">Departments</p>
                 </div>
-            </div>
-        </section>
+                <p class="mt-3 text-3xl font-bold text-slate-900 dark:text-white">{{ number_format($stats['departments'] ?? 0) }}</p>
+                <p class="mt-1 text-xs text-slate-500 dark:text-white/60">Functional units</p>
+            </a>
 
-        <div class="flex flex-wrap gap-3">
-            @foreach ($focusAreas as $focus)
-                <span class="rounded-full border border-white/20 px-4 py-1.5 text-xs uppercase tracking-[0.35em] text-white/60">{{ $focus }}</span>
-            @endforeach
+            <a href="{{ route('hr.positions') }}" class="group rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-slate-300 hover:shadow-sm dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
+                <div class="flex items-center gap-3">
+                    @svg('heroicon-o-rectangle-group', 'h-5 w-5 text-amber-500')
+                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/40">Positions</p>
+                </div>
+                <p class="mt-3 text-3xl font-bold text-slate-900 dark:text-white">{{ number_format($stats['positions'] ?? 0) }}</p>
+                <p class="mt-1 text-xs text-slate-500 dark:text-white/60">Job definitions</p>
+            </a>
         </div>
 
-        <div class="grid gap-6 xl:grid-cols-3">
-            <div class="rounded-[28px] border border-white/10 bg-white/5 p-6 text-left">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-xs uppercase tracking-[0.35em] text-white/40">Talent</p>
-                        <h3 class="text-lg font-semibold text-white">Upcoming Reviews</h3>
-                    </div>
-                    <button class="text-xs uppercase tracking-[0.3em] text-white/60 hover:text-white">View all</button>
-                </div>
-                <ul class="mt-5 space-y-4">
-                    @foreach ($upcomingReviews as $review)
-                        <li class="flex items-center justify-between rounded-2xl border border-white/10 bg-slate-900/30 px-4 py-3">
-                            <div>
-                                <p class="font-medium text-white">{{ $review['name'] }}</p>
-                                <p class="text-xs text-white/50">{{ $review['role'] }}</p>
-                            </div>
-                            <span class="text-sm text-white/70">{{ $review['date'] }}</span>
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
+        {{-- Quick Access --}}
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-white/5">
+            <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Quick Access</h2>
+            <p class="text-xs text-slate-500 dark:text-white/60">Jump into the most-used HR screens.</p>
 
-            <div class="rounded-[28px] border border-white/10 bg-white/5 p-6 text-left">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-xs uppercase tracking-[0.35em] text-white/40">Growth</p>
-                        <h3 class="text-lg font-semibold text-white">Recent Hires</h3>
-                    </div>
-                    <button class="text-xs uppercase tracking-[0.3em] text-white/60 hover:text-white">Manage</button>
-                </div>
-                <ul class="mt-5 space-y-4">
-                    @foreach ($recentHires as $hire)
-                        <li class="flex items-center justify-between rounded-2xl border border-white/10 bg-slate-900/30 px-4 py-3">
-                            <div>
-                                <p class="font-medium text-white">{{ $hire['name'] }}</p>
-                                <p class="text-xs text-white/50">{{ $hire['role'] }} · {{ $hire['branch'] }}</p>
-                            </div>
-                            <span class="rounded-full border border-white/20 px-3 py-1 text-xs text-white/70">Onboarding</span>
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-
-            <div class="rounded-[28px] border border-white/10 bg-white/5 p-6 text-left">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-xs uppercase tracking-[0.35em] text-white/40">Queues</p>
-                        <h3 class="text-lg font-semibold text-white">Workstream Monitor</h3>
-                    </div>
-                    <button class="text-xs uppercase tracking-[0.3em] text-white/60 hover:text-white">Prioritize</button>
-                </div>
-                <ul class="mt-5 space-y-4">
-                    @foreach ($workflowQueue as $item)
-                        <li class="flex items-start justify-between rounded-2xl border border-white/10 bg-slate-900/30 px-4 py-3">
-                            <div>
-                                <p class="font-medium text-white">{{ $item['label'] }}</p>
-                                <p class="text-xs text-white/50">{{ $item['value'] }}</p>
-                            </div>
-                            <span class="rounded-full border border-white/20 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-white/60">{{ $item['pill'] }}</span>
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-        </div>
-
-        <div class="grid gap-6 lg:grid-cols-3">
-            <div class="rounded-[28px] border border-white/10 bg-white/5 p-6">
-                <p class="text-xs uppercase tracking-[0.35em] text-white/40">Compliance</p>
-                <h3 class="text-lg font-semibold text-white">Risk radar</h3>
-                <div class="mt-5 space-y-4">
-                    @foreach ($riskAlerts as $alert)
-                        <div class="rounded-2xl border border-white/10 bg-slate-900/30 p-4">
-                            <p class="text-sm font-medium text-white">{{ $alert['label'] }}</p>
-                            <p class="text-xs text-white/50">{{ $alert['detail'] }}</p>
-                            <p class="mt-2 text-xs text-amber-300">{{ $alert['severity'] }}</p>
+            <div class="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <a href="{{ route('hr.employees') }}" class="group rounded-xl border border-slate-200 p-4 transition hover:border-sky-300 hover:shadow-sm dark:border-white/10 dark:hover:border-sky-500/30">
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100 text-sky-600 transition group-hover:scale-105 dark:bg-sky-500/20 dark:text-sky-400">
+                            @svg('heroicon-o-user-group', 'h-5 w-5')
                         </div>
-                    @endforeach
-                </div>
-            </div>
-
-            <div class="rounded-[28px] border border-white/10 bg-slate-900/40 p-6">
-                <p class="text-xs uppercase tracking-[0.35em] text-white/40">Operations</p>
-                <h3 class="text-lg font-semibold text-white">Control tower</h3>
-                <div class="mt-5 space-y-4">
-                    @foreach ($operationalCheckpoints as $checkpoint)
-                        <div class="flex items-center justify-between rounded-2xl border border-white/5 bg-slate-900/50 px-4 py-3">
-                            <div>
-                                <p class="text-sm text-white/70">{{ $checkpoint['label'] }}</p>
-                                <p class="text-xs text-white/40">{{ $checkpoint['descriptor'] }}</p>
-                            </div>
-                            <p class="text-lg font-semibold text-white">{{ $checkpoint['value'] }}</p>
+                        <div class="flex-1">
+                            <h3 class="font-medium text-slate-900 dark:text-white">Employees</h3>
+                            <p class="mt-1 text-xs text-slate-500 dark:text-white/60">Directory & profiles</p>
                         </div>
-                    @endforeach
-                </div>
-            </div>
+                    </div>
+                </a>
 
-            <div class="rounded-[32px] border border-white/10 bg-gradient-to-br from-indigo-700/40 via-slate-900 to-slate-900/80 p-6 text-left">
-                <h3 class="text-lg font-semibold text-white">Filament vs Livewire?</h3>
-                <p class="mt-3 text-white/70">Use this Livewire cockpit for navigating strategy and quick approvals. When deeper record control is needed, route managers into Filament modules so the experience stays consistent while CRUD screens remain powerful.</p>
-                <div class="mt-6 space-y-2 text-sm text-white/60">
-                    <p>• Livewire → strategic overviews & blended workflows</p>
-                    <p>• Filament → bulk records, audits, and historical data</p>
-                </div>
+                <a href="{{ route('hr.departments') }}" class="group rounded-xl border border-slate-200 p-4 transition hover:border-emerald-300 hover:shadow-sm dark:border-white/10 dark:hover:border-emerald-500/30">
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 transition group-hover:scale-105 dark:bg-emerald-500/20 dark:text-emerald-400">
+                            @svg('heroicon-o-building-office-2', 'h-5 w-5')
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-medium text-slate-900 dark:text-white">Departments</h3>
+                            <p class="mt-1 text-xs text-slate-500 dark:text-white/60">Org structure</p>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="{{ route('hr.positions') }}" class="group rounded-xl border border-slate-200 p-4 transition hover:border-amber-300 hover:shadow-sm dark:border-white/10 dark:hover:border-amber-500/30">
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-600 transition group-hover:scale-105 dark:bg-amber-500/20 dark:text-amber-400">
+                            @svg('heroicon-o-rectangle-group', 'h-5 w-5')
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-medium text-slate-900 dark:text-white">Positions</h3>
+                            <p class="mt-1 text-xs text-slate-500 dark:text-white/60">Job templates</p>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="#attendance" class="group rounded-xl border border-slate-200 p-4 transition hover:border-purple-300 hover:shadow-sm dark:border-white/10 dark:hover:border-purple-500/30">
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-purple-600 transition group-hover:scale-105 dark:bg-purple-500/20 dark:text-purple-400">
+                            @svg('heroicon-o-clock', 'h-5 w-5')
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-medium text-slate-900 dark:text-white">Attendance & Leave</h3>
+                            <p class="mt-1 text-xs text-slate-500 dark:text-white/60">Daily operations</p>
+                        </div>
+                    </div>
+                </a>
             </div>
         </div>
     @else

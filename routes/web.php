@@ -24,15 +24,43 @@ use App\Livewire\GeneralSetup\Warehouses\Index as GeneralSetupWarehouses;
 use App\Livewire\GeneralSetup\Warehouses\Create as GeneralSetupWarehousesCreate;
 use App\Livewire\GeneralSetup\Warehouses\Edit as GeneralSetupWarehousesEdit;
 use App\Livewire\HumanResource\Departments\Create as HrDepartmentCreate;
+use App\Livewire\HumanResource\Departments\Edit as HrDepartmentEdit;
 use App\Livewire\HumanResource\Departments\Index as HrDepartmentIndex;
 use App\Livewire\HumanResource\Employees\Create as HrEmployeeCreate;
 use App\Livewire\HumanResource\Employees\Edit as HrEmployeeEdit;
 use App\Livewire\HumanResource\Employees\Index as HrEmployeeIndex;
 use App\Livewire\HumanResource\Employments\Create as HrEmploymentCreate;
+use App\Livewire\HumanResource\Employments\Edit as HrEmploymentEdit;
 use App\Livewire\HumanResource\Employments\Index as HrEmploymentIndex;
 use App\Livewire\HumanResource\Positions\Create as HrPositionCreate;
+use App\Livewire\HumanResource\Positions\Edit as HrPositionEdit;
 use App\Livewire\HumanResource\Positions\Index as HrPositionIndex;
 use App\Livewire\HumanResource\Portal as HrPortal;
+use App\Livewire\HumanResource\Payroll\PayrollGroups\Index as HrPayrollGroupIndex;
+use App\Livewire\HumanResource\Payroll\PayrollGroups\Create as HrPayrollGroupCreate;
+use App\Livewire\HumanResource\Payroll\PayrollGroups\Edit as HrPayrollGroupEdit;
+use App\Livewire\HumanResource\Payroll\PayrollRuns\Index as HrPayrollRunIndex;
+use App\Livewire\HumanResource\Payroll\PayrollRuns\Create as HrPayrollRunCreate;
+use App\Livewire\HumanResource\Payroll\PayrollRuns\Edit as HrPayrollRunEdit;
+use App\Livewire\HumanResource\Payroll\PayrollAdjustments\Index as HrPayrollAdjustmentIndex;
+use App\Livewire\HumanResource\Payroll\PayrollAdjustments\Create as HrPayrollAdjustmentCreate;
+use App\Livewire\HumanResource\Payroll\PayrollAdjustments\Edit as HrPayrollAdjustmentEdit;
+use App\Livewire\HumanResource\Payroll\PayrollPayouts\Index as HrPayrollPayoutIndex;
+use App\Livewire\HumanResource\Payroll\PayrollItems\Index as HrPayrollItemIndex;
+use App\Livewire\HumanResource\Payroll\PayrollItems\Create as HrPayrollItemCreate;
+use App\Livewire\HumanResource\Payroll\PayrollItems\Edit as HrPayrollItemEdit;
+use App\Livewire\HumanResource\Leave\LeaveTypes\Index as HrLeaveTypeIndex;
+use App\Livewire\HumanResource\Leave\LeaveTypes\Create as HrLeaveTypeCreate;
+use App\Livewire\HumanResource\Leave\LeaveTypes\Edit as HrLeaveTypeEdit;
+use App\Livewire\HumanResource\Leave\LeaveRequests\Index as HrLeaveRequestIndex;
+use App\Livewire\HumanResource\Leave\LeaveRequests\Create as HrLeaveRequestCreate;
+use App\Livewire\HumanResource\Leave\LeaveRequests\Edit as HrLeaveRequestEdit;
+use App\Livewire\HumanResource\Attendance\Attendances\Index as HrAttendanceIndex;
+use App\Livewire\HumanResource\Attendance\Attendances\Create as HrAttendanceCreate;
+use App\Livewire\HumanResource\Attendance\Attendances\Edit as HrAttendanceEdit;
+use App\Livewire\HumanResource\Attendance\Shifts\Index as HrShiftIndex;
+use App\Livewire\HumanResource\Attendance\Shifts\Create as HrShiftCreate;
+use App\Livewire\HumanResource\Attendance\Shifts\Edit as HrShiftEdit;
 use App\Livewire\Inventory\Catalog\Bundles\Index as InventoryCatalogBundles;
 use App\Livewire\Inventory\Catalog\PriceLists\Index as InventoryCatalogPriceLists;
 use App\Livewire\Inventory\Catalog\Products\Index as InventoryCatalogProducts;
@@ -217,15 +245,51 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Human Resources
     Route::prefix('hr')->name('hr.')->group(function () {
         Route::get('/', HrPortal::class)->name('portal');
+
+        // People
         Route::get('/employees', HrEmployeeIndex::class)->name('employees');
         Route::get('/employees/create', HrEmployeeCreate::class)->name('employees.create');
         Route::get('/employees/{employee}/edit', HrEmployeeEdit::class)->name('employees.edit');
         Route::get('/employments', HrEmploymentIndex::class)->name('employments');
         Route::get('/employments/create', HrEmploymentCreate::class)->name('employments.create');
+        Route::get('/employments/{employee}/edit', HrEmploymentEdit::class)->name('employments.edit');
         Route::get('/departments', HrDepartmentIndex::class)->name('departments');
         Route::get('/departments/create', HrDepartmentCreate::class)->name('departments.create');
+        Route::get('/departments/{department}/edit', HrDepartmentEdit::class)->name('departments.edit');
         Route::get('/positions', HrPositionIndex::class)->name('positions');
         Route::get('/positions/create', HrPositionCreate::class)->name('positions.create');
+        Route::get('/positions/{position}/edit', HrPositionEdit::class)->name('positions.edit');
+
+        // Payroll
+        Route::get('/payroll-items', HrPayrollItemIndex::class)->name('payroll-items');
+        Route::get('/payroll-items/create', HrPayrollItemCreate::class)->name('payroll-items.create');
+        Route::get('/payroll-items/{payrollItem}/edit', HrPayrollItemEdit::class)->name('payroll-items.edit');
+        Route::get('/payroll-groups', HrPayrollGroupIndex::class)->name('payroll-groups');
+        Route::get('/payroll-groups/create', HrPayrollGroupCreate::class)->name('payroll-groups.create');
+        Route::get('/payroll-groups/{payrollGroup}/edit', HrPayrollGroupEdit::class)->name('payroll-groups.edit');
+        Route::get('/payroll-runs', HrPayrollRunIndex::class)->name('payroll-runs');
+        Route::get('/payroll-runs/create', HrPayrollRunCreate::class)->name('payroll-runs.create');
+        Route::get('/payroll-runs/{payrollRun}/edit', HrPayrollRunEdit::class)->name('payroll-runs.edit');
+        Route::get('/payroll-adjustments', HrPayrollAdjustmentIndex::class)->name('payroll-adjustments');
+        Route::get('/payroll-adjustments/create', HrPayrollAdjustmentCreate::class)->name('payroll-adjustments.create');
+        Route::get('/payroll-adjustments/{payrollAdjustment}/edit', HrPayrollAdjustmentEdit::class)->name('payroll-adjustments.edit');
+        Route::get('/payroll-payouts', HrPayrollPayoutIndex::class)->name('payroll-payouts');
+
+        // Leave Management
+        Route::get('/leave-types', HrLeaveTypeIndex::class)->name('leave-types');
+        Route::get('/leave-types/create', HrLeaveTypeCreate::class)->name('leave-types.create');
+        Route::get('/leave-types/{leaveType}/edit', HrLeaveTypeEdit::class)->name('leave-types.edit');
+        Route::get('/leave-requests', HrLeaveRequestIndex::class)->name('leave-requests');
+        Route::get('/leave-requests/create', HrLeaveRequestCreate::class)->name('leave-requests.create');
+        Route::get('/leave-requests/{leaveRequest}/edit', HrLeaveRequestEdit::class)->name('leave-requests.edit');
+
+        // Attendance
+        Route::get('/attendances', HrAttendanceIndex::class)->name('attendances');
+        Route::get('/attendances/create', HrAttendanceCreate::class)->name('attendances.create');
+        Route::get('/attendances/{attendance}/edit', HrAttendanceEdit::class)->name('attendances.edit');
+        Route::get('/shifts', HrShiftIndex::class)->name('shifts');
+        Route::get('/shifts/create', HrShiftCreate::class)->name('shifts.create');
+        Route::get('/shifts/{shift}/edit', HrShiftEdit::class)->name('shifts.edit');
     });
 });
 
