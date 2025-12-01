@@ -267,7 +267,8 @@ class Index extends Component
         $editingWarehouse = null;
 
         if ($this->editingWarehouseId) {
-            $editingWarehouse = Warehouse::with('branch')->find($this->editingWarehouseId);
+            $editingWarehouse = Warehouse::with(['branch', 'createdBy', 'updatedBy'])
+                ->find($this->editingWarehouseId);
         }
 
         /** @noinspection PhpUndefinedMethodInspection */

@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<div>
     {{-- Flash Message --}}
     @if (session()->has('flash'))
         @php $flash = session('flash'); @endphp
@@ -6,8 +6,10 @@
             {{ $flash['message'] ?? '' }}
         </x-alert>
     @endif
-    {{-- Payment Methods --}}
-    <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-white/5">
+
+    <div class="space-y-6">
+        {{-- Payment Methods --}}
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-white/5">
         <div class="flex items-center justify-between">
             <div>
                 <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Payment Methods</h2>

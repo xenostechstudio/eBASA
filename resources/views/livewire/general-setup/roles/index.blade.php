@@ -6,10 +6,13 @@
                 <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Roles</h2>
                 <p class="text-xs text-slate-500 dark:text-white/60">Manage user roles and their permissions</p>
             </div>
-            <button class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90">
+            <a
+                href="{{ route('general-setup.roles.create') }}"
+                class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90"
+            >
                 @svg('heroicon-o-plus', 'h-4 w-4')
                 <span>Add Role</span>
-            </button>
+            </a>
         </div>
 
         <div class="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -45,12 +48,20 @@
                     <div class="mt-4 flex items-center justify-between">
                         <span class="text-xs text-slate-500 dark:text-white/50">{{ $role['users_count'] }} users</span>
                         <div class="flex items-center gap-1">
-                            <button class="rounded-lg p-1.5 text-slate-400 transition hover:bg-white/50 hover:text-slate-600 dark:hover:bg-white/10 dark:hover:text-white" title="Edit">
+                            <a
+                                href="{{ route('general-setup.roles.edit', ['role' => $role['id']]) }}"
+                                class="rounded-lg p-1.5 text-slate-400 transition hover:bg-white/50 hover:text-slate-600 dark:hover:bg-white/10 dark:hover:text-white"
+                                title="Edit role"
+                            >
                                 @svg('heroicon-o-pencil', 'h-4 w-4')
-                            </button>
-                            <button class="rounded-lg p-1.5 text-slate-400 transition hover:bg-white/50 hover:text-slate-600 dark:hover:bg-white/10 dark:hover:text-white" title="Permissions">
+                            </a>
+                            <a
+                                href="{{ route('general-setup.roles.permissions', ['role' => $role['id']]) }}"
+                                class="rounded-lg p-1.5 text-slate-400 transition hover:bg-white/50 hover:text-slate-600 dark:hover:bg-white/10 dark:hover:text-white"
+                                title="Manage permissions"
+                            >
                                 @svg('heroicon-o-key', 'h-4 w-4')
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>

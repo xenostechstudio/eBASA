@@ -3,6 +3,7 @@
 namespace App\Livewire\GeneralSetup\Users;
 
 use App\Models\Employee;
+use App\Models\Role;
 use App\Models\User;
 use App\Support\GeneralSetupNavigation;
 use Illuminate\Support\Facades\Hash;
@@ -46,6 +47,8 @@ class Index extends Component
     // Form fields
     public ?int $employee_id = null;
 
+    public ?int $role_id = null;
+
     public string $name = '';
 
     public string $email = '';
@@ -78,6 +81,7 @@ class Index extends Component
             $this->employee_id = $user->employee_id;
             $this->name = $user->name;
             $this->email = $user->email;
+            $this->role_id = $user->roles()->first()?->id;
             $this->password = '';
             $this->password_confirmation = '';
             $this->showEditModal = true;
@@ -95,6 +99,7 @@ class Index extends Component
     {
         $this->editingUserId = null;
         $this->employee_id = null;
+        $this->role_id = null;
         $this->name = '';
         $this->email = '';
         $this->password = '';
@@ -132,6 +137,7 @@ class Index extends Component
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email' . ($isEditing ? ',' . $this->editingUserId : ''),
             'password' => $isEditing ? 'nullable|string|min:8|confirmed' : 'required|string|min:8|confirmed',
+            'role_id' => 'required|exists:roles,id',
         ];
 
         $this->validate($rules);
@@ -146,17 +152,21 @@ class Index extends Component
                     $user->password = Hash::make($this->password);
                 }
                 $user->save();
+
+                $user->roles()->sync($this->role_id ? [$this->role_id] : []);
             }
 
             $flashMessage = 'User updated successfully.';
             $flashTitle = 'User updated';
         } else {
-            User::create([
+            $user = User::create([
                 'employee_id' => $this->employee_id,
                 'name' => $this->name,
                 'email' => $this->email,
                 'password' => Hash::make($this->password),
             ]);
+
+            $user->roles()->sync($this->role_id ? [$this->role_id] : []);
 
             $flashMessage = 'User created successfully.';
             $flashTitle = 'User created';
@@ -249,6 +259,7 @@ class Index extends Component
     public function render()
     {
         $users = User::query()
+            ->with('roles')
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('name', 'like', '%' . $this->search . '%')
@@ -282,12 +293,15 @@ class Index extends Component
             $editingUser = User::with(['createdBy', 'updatedBy'])->find($this->editingUserId);
         }
 
+        $roles = Role::orderBy('name')->get(['id', 'name', 'slug']);
+
         return view('livewire.general-setup.users.index', [
             'users' => $users,
             'stats' => $stats,
             'employees' => $employees,
             'editingUser' => $editingUser,
             'perPageOptions' => $this->perPageOptions,
+            'roles' => $roles,
         ])->layoutData([
             'pageTitle' => 'Users',
             'pageTagline' => 'General Setup',

@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<div>
     {{-- Flash Message --}}
     @if (session()->has('flash'))
         @php $flash = session('flash'); @endphp
@@ -7,8 +7,9 @@
         </x-alert>
     @endif
 
-    {{-- Stats Cards --}}
-    <div class="grid gap-4 md:grid-cols-3">
+    <div class="space-y-6">
+        {{-- Stats Cards --}}
+        <div class="grid gap-4 md:grid-cols-3">
         <x-stat.card label="Total Users" :value="number_format($stats['total'])" description="Registered accounts" tone="neutral">
             <x-slot:icon>
                 @svg('heroicon-o-users', 'h-5 w-5 text-sky-500')
@@ -66,10 +67,13 @@
                     <x-table.export-dropdown aria-label="Export users" />
 
                     {{-- Add User --}}
-                    <x-button.primary type="button" wire:click="openCreateModal" class="h-10 rounded-xl">
+                    <a
+                        href="{{ route('general-setup.users.create') }}"
+                        class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90"
+                    >
                         @svg('heroicon-o-plus', 'h-4 w-4')
                         <span>Add User</span>
-                    </x-button.primary>
+                    </a>
                 </div>
             </div>
         </div>
@@ -134,6 +138,7 @@
                                     @endif
                                 </button>
                             </th>
+                            <th class="px-5 py-3">ROLE</th>
                             <th class="px-5 py-3">STATUS</th>
                             <th class="px-5 py-3">
                                 <button wire:click="sortBy('created_at')"
@@ -148,9 +153,19 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-white/10">
+                        @php
+                            $roleBadgeClasses = [
+                                'red' => 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300',
+                                'amber' => 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300',
+                                'emerald' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
+                                'sky' => 'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300',
+                                'slate' => 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-white/70',
+                            ];
+                        @endphp
+
                         @foreach ($users as $user)
                             <tr class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5"
-                                wire:click="openEditModal({{ $user->id }})">
+                                onclick="window.location='{{ route('general-setup.users.edit', $user) }}'">
                                 <td class="whitespace-nowrap px-5 py-4">
                                     <div class="flex items-center gap-3">
                                         <div
@@ -163,6 +178,24 @@
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-600 dark:text-white/70">
                                     {{ $user->email }}
+                                </td>
+                                <td class="whitespace-nowrap px-5 py-4">
+                                    @php
+                                        $primaryRole = $user->roles->first();
+                                    @endphp
+
+                                    @if ($primaryRole)
+                                        @php
+                                            $colorKey = $primaryRole->color ?? 'slate';
+                                            $classes = $roleBadgeClasses[$colorKey] ?? $roleBadgeClasses['slate'];
+                                        @endphp
+                                        <span
+                                            class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium {{ $classes }}">
+                                            {{ $primaryRole->name }}
+                                        </span>
+                                    @else
+                                        <span class="text-xs text-slate-400 dark:text-white/40">—</span>
+                                    @endif
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4">
                                     @if ($user->email_verified_at)
@@ -191,12 +224,13 @@
                                         </div>
                                     @else
                                         <div class="flex items-center justify-end gap-1">
-                                            <button type="button"
-                                                wire:click.stop="openEditModal({{ $user->id }})"
+                                            <a
+                                                href="{{ route('general-setup.users.edit', $user) }}"
+                                                onclick="event.stopPropagation()"
                                                 class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-white/10 dark:hover:text-white"
                                                 title="Edit">
                                                 @svg('heroicon-o-pencil', 'h-4 w-4')
-                                            </button>
+                                            </a>
                                             <button type="button"
                                                 wire:click.stop="confirmDelete({{ $user->id }})"
                                                 class="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400"

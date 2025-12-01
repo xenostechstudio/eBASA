@@ -6,11 +6,23 @@ use App\Livewire\GeneralSetup\PaymentMethods\Index as GeneralSetupPaymentMethods
 use App\Livewire\GeneralSetup\Permissions\Index as GeneralSetupPermissions;
 use App\Livewire\GeneralSetup\Portal as GeneralSetupPortal;
 use App\Livewire\GeneralSetup\ProductCategories\Index as GeneralSetupProductCategories;
+use App\Livewire\GeneralSetup\ProductCategories\Create as GeneralSetupProductCategoriesCreate;
+use App\Livewire\GeneralSetup\ProductCategories\Edit as GeneralSetupProductCategoriesEdit;
+use App\Livewire\GeneralSetup\Users\Create as GeneralSetupUsersCreate;
+use App\Livewire\GeneralSetup\Users\Edit as GeneralSetupUsersEdit;
+use App\Livewire\Inventory\Branches\Edit as GeneralSetupBranchesEdit;
 use App\Livewire\GeneralSetup\Products\Index as GeneralSetupProducts;
+use App\Livewire\GeneralSetup\Products\Create as GeneralSetupProductsCreate;
+use App\Livewire\GeneralSetup\Products\Edit as GeneralSetupProductsEdit;
 use App\Livewire\GeneralSetup\Roles\Index as GeneralSetupRoles;
+use App\Livewire\GeneralSetup\Roles\Create as GeneralSetupRolesCreate;
+use App\Livewire\GeneralSetup\Roles\Edit as GeneralSetupRolesEdit;
+use App\Livewire\GeneralSetup\Roles\Permissions as GeneralSetupRolesPermissions;
 use App\Livewire\GeneralSetup\Settings\Index as GeneralSetupSettings;
 use App\Livewire\GeneralSetup\Users\Index as GeneralSetupUsers;
 use App\Livewire\GeneralSetup\Warehouses\Index as GeneralSetupWarehouses;
+use App\Livewire\GeneralSetup\Warehouses\Create as GeneralSetupWarehousesCreate;
+use App\Livewire\GeneralSetup\Warehouses\Edit as GeneralSetupWarehousesEdit;
 use App\Livewire\HumanResource\Departments\Create as HrDepartmentCreate;
 use App\Livewire\HumanResource\Departments\Index as HrDepartmentIndex;
 use App\Livewire\HumanResource\Employees\Create as HrEmployeeCreate;
@@ -64,6 +76,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    // Home & dashboard
     Route::get('/', function () {
         $modules = collect(config('modules.list', []));
         $branchShortcuts = Branch::orderBy('name')->get();
@@ -79,66 +92,141 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('dashboard', compact('modules'));
     })->name('dashboard');
 
+    // POS
     Route::get('/pos', PosScreen::class)->name('pos');
-    Route::get('/transactions', TransactionIndex::class)->name('transactions.index');
-    Route::get('/transactions/reports', TransactionReports::class)->name('transactions.reports');
-    Route::get('/transactions/settlements', TransactionSettlements::class)->name('transactions.settlements');
-    Route::get('/transactions/refunds', TransactionRefunds::class)->name('transactions.refunds');
-    Route::get('/transactions/shifts', TransactionShifts::class)->name('transactions.shifts');
-    Route::get('/transactions/cash-counts', TransactionCashCounts::class)->name('transactions.cash-counts');
-    Route::get('/inventory', InventoryPortal::class)->name('inventory.portal');
-    Route::get('/inventory/stock/levels', InventoryStockLevels::class)->name('inventory.stock.levels');
-    Route::get('/inventory/stock/adjustments', InventoryStockAdjustments::class)->name('inventory.stock.adjustments');
-    Route::get('/inventory/stock/adjustments/create', InventoryStockAdjustmentsCreate::class)->name('inventory.stock.adjustments.create');
-    Route::get('/inventory/stock/adjustments/{adjustment}', InventoryStockAdjustmentsShow::class)->name('inventory.stock.adjustments.show');
-    Route::get('/inventory/stock/transfers', InventoryStockTransfers::class)->name('inventory.stock.transfers');
-    Route::get('/inventory/stock/transfers/create', InventoryStockTransfersCreate::class)->name('inventory.stock.transfers.create');
-    Route::get('/inventory/stock/transfers/{transfer}', InventoryStockTransfersShow::class)->name('inventory.stock.transfers.show');
-    Route::get('/inventory/catalog/products', InventoryCatalogProducts::class)->name('inventory.catalog.products');
-    Route::get('/inventory/catalog/bundles', InventoryCatalogBundles::class)->name('inventory.catalog.bundles');
-    Route::get('/inventory/catalog/price-lists', InventoryCatalogPriceLists::class)->name('inventory.catalog.price-lists');
-    Route::get('/procurement', ProcurementPortal::class)->name('procurement.portal');
-    Route::get('/procurement/suppliers', ProcurementSuppliers::class)->name('procurement.suppliers');
-    Route::get('/procurement/suppliers/create', ProcurementSuppliersCreate::class)->name('procurement.suppliers.create');
-    Route::get('/procurement/suppliers/{supplier}', ProcurementSuppliersEdit::class)->name('procurement.suppliers.edit');
-    Route::get('/procurement/orders', ProcurementOrders::class)->name('procurement.orders');
-    Route::get('/procurement/orders/create', ProcurementOrderCreate::class)->name('procurement.orders.create');
-    Route::get('/procurement/receipts', ProcurementReceipts::class)->name('procurement.receipts');
-    Route::get('/procurement/returns', ProcurementReturns::class)->name('procurement.returns');
-    Route::get('/procurement/returns/create', ProcurementReturnsCreate::class)->name('procurement.returns.create');
-    Route::get('/procurement/returns/{return}', ProcurementReturnsEdit::class)->name('procurement.returns.edit');
-    Route::get('/reports', ReportPortal::class)->name('reports.portal');
-    Route::get('/reports/sales/daily', ReportSalesDaily::class)->name('reports.sales.daily');
-    Route::get('/reports/sales/products', ReportSalesProducts::class)->name('reports.sales.products');
-    Route::get('/reports/sales/branches', ReportSalesBranches::class)->name('reports.sales.branches');
-    Route::get('/reports/inventory/stock', ReportInventoryStock::class)->name('reports.inventory.stock');
-    Route::get('/reports/inventory/movements', ReportInventoryMovements::class)->name('reports.inventory.movements');
-    Route::get('/reports/financial/revenue', ReportFinancialRevenue::class)->name('reports.financial.revenue');
-    Route::get('/reports/financial/expenses', ReportFinancialExpenses::class)->name('reports.financial.expenses');
-    Route::get('/general-setup', GeneralSetupPortal::class)->name('general-setup.portal');
-    Route::get('/general-setup/users', GeneralSetupUsers::class)->name('general-setup.users.index');
-    Route::get('/general-setup/branches', GeneralSetupBranchesIndex::class)->name('general-setup.branches.index');
-    Route::get('/general-setup/branches/create', GeneralSetupBranchesCreate::class)->name('general-setup.branches.create');
-    Route::get('/general-setup/warehouses', GeneralSetupWarehouses::class)->name('general-setup.warehouses.index');
-    Route::get('/general-setup/products', GeneralSetupProducts::class)->name('general-setup.products.index');
-    Route::get('/general-setup/products/create', GeneralSetupProducts::class)->name('general-setup.products.create');
-    Route::get('/general-setup/products/{product}/edit', GeneralSetupProducts::class)->name('general-setup.products.edit');
-    Route::get('/general-setup/product-categories', GeneralSetupProductCategories::class)->name('general-setup.product-categories.index');
-    Route::get('/general-setup/payment-methods', GeneralSetupPaymentMethods::class)->name('general-setup.payment-methods.index');
-    Route::get('/general-setup/roles', GeneralSetupRoles::class)->name('general-setup.roles.index');
-    Route::get('/general-setup/permissions', GeneralSetupPermissions::class)->name('general-setup.permissions.index');
-    Route::get('/general-setup/settings', GeneralSetupSettings::class)->name('general-setup.settings.index');
-    Route::get('/general-setup/activity-logs', GeneralSetupActivityLogs::class)->name('general-setup.activity-logs.index');
-    Route::get('/hr', HrPortal::class)->name('hr.portal');
-    Route::get('/hr/employees', HrEmployeeIndex::class)->name('hr.employees');
-    Route::get('/hr/employees/create', HrEmployeeCreate::class)->name('hr.employees.create');
-    Route::get('/hr/employees/{employee}/edit', HrEmployeeEdit::class)->name('hr.employees.edit');
-    Route::get('/hr/employments', HrEmploymentIndex::class)->name('hr.employments');
-    Route::get('/hr/employments/create', HrEmploymentCreate::class)->name('hr.employments.create');
-    Route::get('/hr/departments', HrDepartmentIndex::class)->name('hr.departments');
-    Route::get('/hr/departments/create', HrDepartmentCreate::class)->name('hr.departments.create');
-    Route::get('/hr/positions', HrPositionIndex::class)->name('hr.positions');
-    Route::get('/hr/positions/create', HrPositionCreate::class)->name('hr.positions.create');
+
+    // Transactions
+    Route::prefix('transactions')->name('transactions.')->group(function () {
+        Route::get('/', TransactionIndex::class)->name('index');
+        Route::get('/reports', TransactionReports::class)->name('reports');
+        Route::get('/settlements', TransactionSettlements::class)->name('settlements');
+        Route::get('/refunds', TransactionRefunds::class)->name('refunds');
+        Route::get('/shifts', TransactionShifts::class)->name('shifts');
+        Route::get('/cash-counts', TransactionCashCounts::class)->name('cash-counts');
+    });
+
+    // Inventory
+    Route::prefix('inventory')->name('inventory.')->group(function () {
+        Route::get('/', InventoryPortal::class)->name('portal');
+
+        Route::prefix('stock')->name('stock.')->group(function () {
+            Route::get('/levels', InventoryStockLevels::class)->name('levels');
+            Route::get('/adjustments', InventoryStockAdjustments::class)->name('adjustments');
+            Route::get('/adjustments/create', InventoryStockAdjustmentsCreate::class)->name('adjustments.create');
+            Route::get('/adjustments/{adjustment}', InventoryStockAdjustmentsShow::class)->name('adjustments.show');
+            Route::get('/transfers', InventoryStockTransfers::class)->name('transfers');
+            Route::get('/transfers/create', InventoryStockTransfersCreate::class)->name('transfers.create');
+            Route::get('/transfers/{transfer}', InventoryStockTransfersShow::class)->name('transfers.show');
+        });
+
+        Route::prefix('catalog')->name('catalog.')->group(function () {
+            Route::get('/products', InventoryCatalogProducts::class)->name('products');
+            Route::get('/bundles', InventoryCatalogBundles::class)->name('bundles');
+            Route::get('/price-lists', InventoryCatalogPriceLists::class)->name('price-lists');
+        });
+
+        // Inventory branches list (reusing General Setup branches component)
+        Route::get('/branches', GeneralSetupBranchesIndex::class)->name('branches.index');
+    });
+
+    // Procurement
+    Route::prefix('procurement')->name('procurement.')->group(function () {
+        Route::get('/', ProcurementPortal::class)->name('portal');
+        Route::get('/suppliers', ProcurementSuppliers::class)->name('suppliers');
+        Route::get('/suppliers/create', ProcurementSuppliersCreate::class)->name('suppliers.create');
+        Route::get('/suppliers/{supplier}', ProcurementSuppliersEdit::class)->name('suppliers.edit');
+        Route::get('/orders', ProcurementOrders::class)->name('orders');
+        Route::get('/orders/create', ProcurementOrderCreate::class)->name('orders.create');
+        Route::get('/receipts', ProcurementReceipts::class)->name('receipts');
+        Route::get('/returns', ProcurementReturns::class)->name('returns');
+        Route::get('/returns/create', ProcurementReturnsCreate::class)->name('returns.create');
+        Route::get('/returns/{return}', ProcurementReturnsEdit::class)->name('returns.edit');
+    });
+
+    // Reports
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/', ReportPortal::class)->name('portal');
+
+        Route::prefix('sales')->name('sales.')->group(function () {
+            Route::get('/daily', ReportSalesDaily::class)->name('daily');
+            Route::get('/products', ReportSalesProducts::class)->name('products');
+            Route::get('/branches', ReportSalesBranches::class)->name('branches');
+        });
+
+        Route::prefix('inventory')->name('inventory.')->group(function () {
+            Route::get('/stock', ReportInventoryStock::class)->name('stock');
+            Route::get('/movements', ReportInventoryMovements::class)->name('movements');
+        });
+
+        Route::prefix('financial')->name('financial.')->group(function () {
+            Route::get('/revenue', ReportFinancialRevenue::class)->name('revenue');
+            Route::get('/expenses', ReportFinancialExpenses::class)->name('expenses');
+        });
+    });
+
+    // General Setup (protected by permission)
+    Route::prefix('general-setup')
+        ->name('general-setup.')
+        ->middleware('permission:system.access-general-setup')
+        ->group(function () {
+            Route::get('/', GeneralSetupPortal::class)->name('portal');
+
+            Route::prefix('users')->name('users.')->group(function () {
+                Route::get('/', GeneralSetupUsers::class)->name('index');
+                Route::get('/create', GeneralSetupUsersCreate::class)->name('create');
+                Route::get('/{user}/edit', GeneralSetupUsersEdit::class)->name('edit');
+            });
+
+            Route::prefix('branches')->name('branches.')->group(function () {
+                Route::get('/', GeneralSetupBranchesIndex::class)->name('index');
+                Route::get('/create', GeneralSetupBranchesCreate::class)->name('create');
+                Route::get('/{branch}/edit', GeneralSetupBranchesEdit::class)->name('edit');
+            });
+
+            Route::prefix('warehouses')->name('warehouses.')->group(function () {
+                Route::get('/', GeneralSetupWarehouses::class)->name('index');
+                Route::get('/create', GeneralSetupWarehousesCreate::class)->name('create');
+                Route::get('/{warehouse}/edit', GeneralSetupWarehousesEdit::class)->name('edit');
+            });
+
+            Route::prefix('products')->name('products.')->group(function () {
+                Route::get('/', GeneralSetupProducts::class)->name('index');
+                Route::get('/create', GeneralSetupProductsCreate::class)->name('create');
+                Route::get('/{product}/edit', GeneralSetupProductsEdit::class)->name('edit');
+            });
+
+            Route::prefix('product-categories')->name('product-categories.')->group(function () {
+                Route::get('/', GeneralSetupProductCategories::class)->name('index');
+                Route::get('/create', GeneralSetupProductCategoriesCreate::class)->name('create');
+                Route::get('/{category}/edit', GeneralSetupProductCategoriesEdit::class)->name('edit');
+            });
+
+            Route::get('/payment-methods', GeneralSetupPaymentMethods::class)->name('payment-methods.index');
+
+            Route::prefix('roles')->name('roles.')->group(function () {
+                Route::get('/', GeneralSetupRoles::class)->name('index');
+                Route::get('/create', GeneralSetupRolesCreate::class)->name('create');
+                Route::get('/{role}/edit', GeneralSetupRolesEdit::class)->name('edit');
+                Route::get('/{role}/permissions', GeneralSetupRolesPermissions::class)->name('permissions');
+            });
+            Route::get('/permissions', GeneralSetupPermissions::class)->name('permissions.index');
+            Route::get('/settings', GeneralSetupSettings::class)->name('settings.index');
+            Route::get('/activity-logs', GeneralSetupActivityLogs::class)->name('activity-logs.index');
+        });
+
+    // Human Resources
+    Route::prefix('hr')->name('hr.')->group(function () {
+        Route::get('/', HrPortal::class)->name('portal');
+        Route::get('/employees', HrEmployeeIndex::class)->name('employees');
+        Route::get('/employees/create', HrEmployeeCreate::class)->name('employees.create');
+        Route::get('/employees/{employee}/edit', HrEmployeeEdit::class)->name('employees.edit');
+        Route::get('/employments', HrEmploymentIndex::class)->name('employments');
+        Route::get('/employments/create', HrEmploymentCreate::class)->name('employments.create');
+        Route::get('/departments', HrDepartmentIndex::class)->name('departments');
+        Route::get('/departments/create', HrDepartmentCreate::class)->name('departments.create');
+        Route::get('/positions', HrPositionIndex::class)->name('positions');
+        Route::get('/positions/create', HrPositionCreate::class)->name('positions.create');
+    });
 });
 
 Route::middleware('auth')->group(function () {

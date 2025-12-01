@@ -7,6 +7,8 @@
     'textarea' => false,
     'rows' => 3,
     'required' => false,
+    'disabled' => false,
+    'helper' => null,
 ])
 
 @php
@@ -27,13 +29,13 @@
     ];
 
     $columnClass = trim('col-span-12 '.($spanClasses[$span] ?? 'md:col-span-12'));
-    $inputClasses = 'mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-slate-950/40 dark:text-white dark:placeholder:text-white/30 dark:focus:ring-2 dark:focus:ring-white/40';
+    $inputClasses = 'mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 disabled:border-slate-200 disabled:opacity-70 dark:border-white/10 dark:bg-slate-950/40 dark:text-white dark:placeholder:text-white/30 dark:focus:ring-2 dark:focus:ring-white/40 dark:disabled:bg-white/10 dark:disabled:text-white/40';
     $errorKey = str_replace(['\'', '"'], '', $model);
 @endphp
 
 <div {{ $attributes->merge(['class' => $columnClass]) }}>
     @if ($label)
-        <label class="block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-white/50">
+        <label class="block text-sm font-medium text-slate-600 dark:text-white/50">
             {{ $label }}
             @if ($required)
                 <span class="text-rose-500">*</span>
@@ -48,6 +50,7 @@
             placeholder="{{ $placeholder }}"
             class="{{ $inputClasses }} rounded-2xl"
             @if ($required) required @endif
+            @if ($disabled) disabled @endif
         ></textarea>
     @else
         <input
@@ -56,7 +59,12 @@
             placeholder="{{ $placeholder }}"
             class="{{ $inputClasses }}"
             @if ($required) required @endif
+            @if ($disabled) disabled @endif
         />
+    @endif
+
+    @if ($helper)
+        <p class="mt-1 text-[11px] text-slate-500 dark:text-white/50">{{ $helper }}</p>
     @endif
 
     @error($model)

@@ -101,7 +101,7 @@
         @click="open = !open; if (open) $nextTick(() => $refs.searchInput.focus())"
         @keydown="onKeydown"
         :disabled="{{ $disabled ? 'true' : 'false' }}"
-        class="flex w-full items-center justify-between rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-left text-sm text-slate-900 transition focus:border-slate-400 focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-slate-950/40 dark:text-white"
+        class="flex w-full items-center justify-between rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-left text-sm text-slate-900 transition focus:border-slate-400 focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-500 disabled:border-slate-200 disabled:opacity-70 dark:border-white/10 dark:bg-slate-950/40 dark:text-white dark:disabled:bg-white/10 dark:disabled:text-white/40"
     >
         <span x-text="selectedLabel || '{{ $placeholder }}'" :class="{ 'text-slate-400 dark:text-white/40': !selectedLabel }"></span>
         <span class="flex items-center gap-1">

@@ -18,6 +18,7 @@ class Product extends Model
     protected $fillable = [
         'sku',
         'name',
+        'brand',
         'barcode',
         'description',
         'category_id',
@@ -26,9 +27,13 @@ class Product extends Model
         'unit',
         'stock_quantity',
         'min_stock_level',
+        'size',
+        'color',
+        'tax_group',
         'is_active',
         'track_inventory',
         'image_path',
+        'internal_notes',
     ];
 
     protected $casts = [

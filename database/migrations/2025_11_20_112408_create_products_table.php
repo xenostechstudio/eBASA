@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('sku')->unique();
             $table->string('name');
+            $table->string('brand')->nullable();
             $table->string('barcode')->nullable()->index();
             $table->text('description')->nullable();
             $table->foreignId('category_id')->nullable()->constrained('product_categories')->nullOnDelete();
@@ -20,9 +21,13 @@ return new class extends Migration
             $table->string('unit')->default('pcs');
             $table->integer('stock_quantity')->default(0);
             $table->integer('min_stock_level')->default(0);
+            $table->string('size')->nullable();
+            $table->string('color')->nullable();
+            $table->string('tax_group')->nullable();
             $table->boolean('is_active')->default(true);
             $table->boolean('track_inventory')->default(true);
             $table->string('image_path')->nullable();
+            $table->text('internal_notes')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users');
             $table->foreignId('updated_by')->nullable()->constrained('users');
             $table->foreignId('deleted_by')->nullable()->constrained('users');

@@ -23,6 +23,8 @@ return new class extends Migration
             $table->string('manager_name')->nullable();
             $table->boolean('is_active')->default(true);
             $table->json('meta')->nullable();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
         });
     }

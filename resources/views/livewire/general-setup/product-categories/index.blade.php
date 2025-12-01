@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<div>
     {{-- Flash Message --}}
     @if (session()->has('flash'))
         @php $flash = session('flash'); @endphp
@@ -6,8 +6,10 @@
             {{ $flash['message'] ?? '' }}
         </x-alert>
     @endif
-    {{-- Stats Cards --}}
-    <div class="grid gap-4 md:grid-cols-3">
+
+    <div class="space-y-6">
+        {{-- Stats Cards --}}
+        <div class="grid gap-4 md:grid-cols-3">
         <x-stat.card
             label="Total Categories"
             :value="number_format($stats['total'])"
@@ -78,14 +80,13 @@
 
                     <x-table.export-dropdown aria-label="Export categories" />
 
-                    <button
-                        type="button"
-                        wire:click="openCreateModal"
+                    <a
+                        href="{{ route('general-setup.product-categories.create') }}"
                         class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90"
                     >
                         @svg('heroicon-o-plus', 'h-4 w-4')
                         <span>Add Category</span>
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -140,7 +141,7 @@
                         @foreach ($categories as $category)
                             <tr
                                 class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5"
-                                wire:click="openEditModal({{ $category->id }})"
+                                onclick="window.location='{{ route('general-setup.product-categories.edit', $category) }}'"
                             >
                                 <td class="whitespace-nowrap px-5 py-4">
                                     <div class="flex items-center gap-3">

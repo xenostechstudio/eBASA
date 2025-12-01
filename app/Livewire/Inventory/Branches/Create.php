@@ -3,9 +3,11 @@
 namespace App\Livewire\Inventory\Branches;
 
 use App\Models\Branch;
+use App\Models\Employee;
 use App\Support\GeneralSetupNavigation;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -23,6 +25,7 @@ class Create extends Component
     public string $phone = '';
     public string $email = '';
     public string $manager_name = '';
+    public ?int $manager_employee_id = null;
     public bool $is_active = true;
 
     protected function rules(): array
@@ -36,13 +39,32 @@ class Create extends Component
             'phone' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:120'],
             'manager_name' => ['nullable', 'string', 'max:120'],
+            'manager_employee_id' => ['nullable', 'integer', 'exists:employees,id'],
             'is_active' => ['boolean'],
         ];
+    }
+
+    #[Computed]
+    public function managers()
+    {
+        return Employee::query()
+            ->where('status', 'active')
+            ->orderBy('full_name')
+            ->get(['id', 'full_name', 'code']);
     }
 
     public function save(): void
     {
         $data = $this->validate();
+
+        // Derive manager_name from selected active employee, or clear it
+        if ($this->manager_employee_id) {
+            $employee = Employee::where('status', 'active')->find($this->manager_employee_id);
+            $data['manager_name'] = $employee?->full_name;
+        } else {
+            $data['manager_name'] = null;
+        }
+
         Branch::create($data);
 
         session()->flash('status', 'Branch created successfully.');
@@ -53,7 +75,7 @@ class Create extends Component
     public function render(): View
     {
         /** @noinspection PhpUndefinedMethodInspection */
-        return view('livewire.inventory.branches.create')->layoutData([
+        return view('livewire.general-setup.branches.create')->layoutData([
             'pageTitle' => 'New Branch',
             'pageTagline' => 'General Setup',
             'activeModule' => 'general-setup',

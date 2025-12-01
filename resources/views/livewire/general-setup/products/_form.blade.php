@@ -6,130 +6,127 @@
         <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400 dark:text-white/40">
             Basic Information
         </p>
-        <div class="grid gap-4 md:grid-cols-2">
-            {{-- SKU --}}
-            <div>
-                <label for="sku" class="block text-sm font-medium text-slate-700 dark:text-white/80">
-                    SKU <span class="text-red-500">*</span>
-                </label>
-                <input
-                    type="text"
-                    id="sku"
-                    wire:model="sku"
-                    autocomplete="off"
-                    class="mt-1 block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
-                    placeholder="e.g. PRD-001"
-                >
-                @error('sku') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-            </div>
 
-            {{-- Name --}}
-            <div>
-                <label for="name" class="block text-sm font-medium text-slate-700 dark:text-white/80">
-                    Product Name <span class="text-red-500">*</span>
-                </label>
-                <input
-                    type="text"
-                    id="name"
-                    wire:model="name"
-                    autocomplete="off"
-                    class="mt-1 block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg.white/5 dark:text-white dark:placeholder:text-white/40"
-                    placeholder="e.g. Coca Cola 330ml"
-                >
-                @error('name') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-            </div>
-
-            {{-- Barcode --}}
-            <div>
-                <label for="barcode" class="block text-sm font-medium text-slate-700 dark:text-white/80">
-                    Barcode
+        <div class="flex flex-col md:flex-row gap-4 items-start">
+            {{-- Image column --}}
+            <div class="shrink-0 space-y-2" x-data>
+                <label for="product_image" class="block text-sm font-medium text-slate-700 dark:text-white/80">
+                    Product Image
                     <span class="font-normal text-slate-400 dark:text-white/40">(optional)</span>
                 </label>
-                <input
-                    type="text"
-                    id="barcode"
-                    wire:model="barcode"
-                    autocomplete="off"
-                    class="mt-1 block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
-                    placeholder="e.g. 8991234567890"
+                <button
+                    type="button"
+                    class="relative block text-slate-400 transition hover:opacity-80 dark:text-white/40"
+                    @click="$refs.productImageInput.click()"
                 >
-                @error('barcode') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-            </div>
-
-            {{-- Category --}}
-            <div>
-                <label for="category_id" class="block text-sm font-medium text-slate-700 dark:text-white/80">
-                    Category
-                </label>
-                <select
-                    id="category_id"
-                    wire:model="category_id"
-                    class="mt-1 block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                >
-                    <option value="">Select category</option>
-                    @foreach ($this->categories as $category)
-                        <option value="{{ $category->id }}">{{ $category->name }}</option>
-                    @endforeach
-                </select>
-                @error('category_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-            </div>
-        </div>
-
-        <div class="mt-2">
-            <label for="product_image" class="block text-sm font-medium text-slate-700 dark:text-white/80">
-                Product Image
-                <span class="font-normal text-slate-400 dark:text-white/40">(optional)</span>
-            </label>
-            <div class="mt-2 flex items-start gap-4">
-                <div
-                    class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl bg-slate-100 text-slate-400 dark:bg-white/10 dark:text-white/40"
-                >
-                    @if ($image)
-                        <img src="{{ $image->temporaryUrl() }}" alt="Product image preview" class="h-full w-full object-cover">
-                    @elseif ($this->image_path)
-                        <img src="{{ Storage::url($this->image_path) }}" alt="Product image" class="h-full w-full object-cover">
-                    @else
-                        @svg('heroicon-o-photo', 'h-6 w-6')
-                    @endif
-                </div>
+                    <div class="aspect-[3/4] w-[240px] overflow-hidden rounded-2xl border border-dashed border-slate-300 bg-slate-50/80 shadow-sm dark:border-white/20 dark:bg-white/10">
+                        @if ($image)
+                            <img src="{{ $image->temporaryUrl() }}" alt="Product image preview" class="h-full w-full object-cover">
+                        @elseif ($this->image_path)
+                            <img src="{{ Storage::url($this->image_path) }}" alt="Product image" class="h-full w-full object-cover">
+                        @else
+                            <div class="flex h-full w-full flex-col items-center justify-center gap-1 px-3 text-center">
+                                @svg('heroicon-o-photo', 'h-8 w-8')
+                                <p class="text-[11px] font-medium text-slate-500 dark:text-white/70">Click to add image</p>
+                                <p class="text-[10px] text-slate-400 dark:text-white/60">PNG or JPG up to 2MB</p>
+                            </div>
+                        @endif
+                    </div>
+                </button>
 
                 <div class="space-y-1">
-                    <label
-                        for="product_image"
-                        class="inline-flex cursor-pointer items-center rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90"
-                    >
-                        @svg('heroicon-o-arrow-up-tray', 'mr-1 h-4 w-4')
-                        <span>Upload image</span>
-                    </label>
                     <input
+                        x-ref="productImageInput"
                         id="product_image"
                         type="file"
                         class="hidden"
                         wire:model="image"
                         accept="image/*"
                     >
-                    <p class="text-[11px] text-slate-400 dark:text-white/40">
-                        PNG or JPG up to 2MB.
-                    </p>
                     @error('image') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>
             </div>
-        </div>
 
-        {{-- Description --}}
-        <div>
-            <label for="description" class="block text-sm font-medium text-slate-700 dark:text-white/80">
-                Description
-                <span class="font-normal text-slate-400 dark:text-white/40">(optional)</span>
-            </label>
-            <textarea
-                id="description"
-                wire:model="description"
-                rows="2"
-                class="mt-1 block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
-                placeholder="Brief product description"
-            ></textarea>
-            @error('description') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+            {{-- Text fields column --}}
+            <div class="flex-1 min-w-0 space-y-4">
+                <div class="grid gap-4 md:grid-cols-2">
+                    <x-form.input
+                        label="SKU"
+                        model="sku"
+                        placeholder="e.g. PRD-001"
+                        col-span="1"
+                        :required="true"
+                    />
+
+                    <x-form.input
+                        label="Product Name"
+                        model="name"
+                        placeholder="e.g. Coca Cola 330ml"
+                        col-span="1"
+                        :required="true"
+                    />
+                </div>
+
+                <div class="grid gap-4 md:grid-cols-3">
+                    <x-form.input
+                        label="Brand (optional)"
+                        model="brand"
+                        placeholder="e.g. Coca Cola, Nike"
+                        col-span="1"
+                    />
+
+                    <x-form.input
+                        label="Size (optional)"
+                        model="size"
+                        placeholder="e.g. 330ml, L, XL"
+                        col-span="1"
+                    />
+
+                    <x-form.input
+                        label="Color (optional)"
+                        model="color"
+                        placeholder="e.g. Red, Black"
+                        col-span="1"
+                    />
+                </div>
+
+                <div class="grid gap-4 md:grid-cols-2">
+                    <x-form.input
+                        label="Barcode (optional)"
+                        model="barcode"
+                        placeholder="e.g. 8991234567890"
+                        col-span="1"
+                    />
+
+                    {{-- Category --}}
+                    <div class="col-span-12 md:col-span-1">
+                        <label for="category_id" class="block text-sm font-medium text-slate-700 dark:text-white/80">
+                            Category
+                        </label>
+                        <div class="mt-2">
+                            <x-form.searchable-select
+                                name="category_id"
+                                id="category_id"
+                                wire:model.live="category_id"
+                                :options="$this->categories"
+                                value-key="id"
+                                label-key="name"
+                                placeholder="Select category"
+                            />
+                        </div>
+                        @error('category_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
+                {{-- Description --}}
+                <x-form.input
+                    label="Description (optional)"
+                    model="description"
+                    placeholder="Brief product description"
+                    :textarea="true"
+                    rows="2"
+                />
+            </div>
         </div>
     </div>
 
@@ -184,19 +181,25 @@
                 <label for="unit" class="block text-sm font-medium text-slate-700 dark:text-white/80">
                     Unit <span class="text-red-500">*</span>
                 </label>
-                <select
-                    id="unit"
-                    wire:model="unit"
-                    class="mt-1 block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                >
-                    <option value="pcs">Pieces (pcs)</option>
-                    <option value="kg">Kilogram (kg)</option>
-                    <option value="g">Gram (g)</option>
-                    <option value="l">Liter (l)</option>
-                    <option value="ml">Milliliter (ml)</option>
-                    <option value="box">Box</option>
-                    <option value="pack">Pack</option>
-                </select>
+                <div class="mt-1">
+                    <x-form.searchable-select
+                        name="unit"
+                        id="unit"
+                        wire:model.live="unit"
+                        :options="[
+                            ['id' => 'pcs', 'name' => 'Pieces (pcs)'],
+                            ['id' => 'kg', 'name' => 'Kilogram (kg)'],
+                            ['id' => 'g', 'name' => 'Gram (g)'],
+                            ['id' => 'l', 'name' => 'Liter (l)'],
+                            ['id' => 'ml', 'name' => 'Milliliter (ml)'],
+                            ['id' => 'box', 'name' => 'Box'],
+                            ['id' => 'pack', 'name' => 'Pack'],
+                        ]"
+                        value-key="id"
+                        label-key="name"
+                        placeholder="Select unit"
+                    />
+                </div>
                 @error('unit') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
             </div>
         </div>
@@ -272,6 +275,27 @@
                 >
                 <span class="text-sm font-medium text-slate-700 dark:text-white/80">Product is active and available for sale</span>
             </label>
+    </div>
+
+    {{-- Internal Notes --}}
+    <div class="space-y-3 border-t border-dashed border-slate-200 pt-4 dark:border-white/10">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400 dark:text-white/40">
+            Internal Notes
+        </p>
+        <div>
+            <label for="internal_notes" class="block text-sm font-medium text-slate-700 dark:text-white/80">
+                Notes for internal use
+                <span class="font-normal text-slate-400 dark:text-white/40">(optional, not shown to customers)</span>
+            </label>
+            <textarea
+                id="internal_notes"
+                wire:model="internal_notes"
+                rows="3"
+                class="mt-1 block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
+                placeholder="Store any special handling instructions, supplier info, or internal notes here."
+            ></textarea>
+            @error('internal_notes') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+        </div>
     </div>
 </div>
 

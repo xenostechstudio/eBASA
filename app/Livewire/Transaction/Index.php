@@ -65,6 +65,21 @@ class Index extends Component
         }
     }
 
+    public function export(string $format): void
+    {
+        if (! in_array($format, ['excel', 'pdf'], true)) {
+            return;
+        }
+
+        $label = strtoupper($format);
+
+        session()->flash('flash', [
+            'type' => 'info',
+            'title' => $label . ' export',
+            'message' => 'Export functionality is not implemented yet.',
+        ]);
+    }
+
     public function render()
     {
         // Stats

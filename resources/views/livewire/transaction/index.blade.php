@@ -79,73 +79,28 @@
                     </div>
 
                     {{-- Status Filter --}}
-                    <div class="relative">
-                        @svg('heroicon-o-funnel', 'pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400')
-                        <select
-                            wire:model.live="statusFilter"
-                            class="h-10 appearance-none rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-8 text-sm text-slate-700 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                        >
-                            @foreach ($statusOptions as $value => $label)
-                                <option value="{{ $value }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        @svg('heroicon-s-chevron-down', 'pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400')
-                    </div>
-
                     {{-- Payment Filter --}}
-                    <div class="relative">
-                        @svg('heroicon-o-credit-card', 'pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400')
-                        <select
-                            wire:model.live="paymentFilter"
-                            class="h-10 appearance-none rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-8 text-sm text-slate-700 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                        >
-                            @foreach ($paymentOptions as $value => $label)
-                                <option value="{{ $value }}">{{ $label }}</option>
-                            @endforeach
-                        </select>
-                        @svg('heroicon-s-chevron-down', 'pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400')
-                    </div>
+                    <x-table.dynamic-filters :filters="[
+                        'status' => [
+                            'label' => 'Status',
+                            'options' => $statusOptions,
+                            'selected' => $statusFilter,
+                            'default' => '',
+                            'onSelect' => 'setStatusFilter',
+                        ],
+                        'payment' => [
+                            'label' => 'Payment',
+                            'options' => $paymentOptions,
+                            'selected' => $paymentFilter,
+                            'default' => '',
+                            'onSelect' => 'setPaymentFilter',
+                        ],
+                    ]" />
 
                     {{-- Export Dropdown --}}
-                    <div class="relative" x-data="{ open: false }">
-                        <button
-                            @click="open = !open"
-                            class="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
-                        >
-                            @svg('heroicon-o-arrow-down-tray', 'h-4 w-4')
-                            <span>Export</span>
-                            @svg('heroicon-s-chevron-down', 'h-4 w-4 text-slate-400')
-                        </button>
-                        <div
-                            x-cloak
-                            x-show="open"
-                            @click.away="open = false"
-                            x-transition:enter="transition ease-out duration-100"
-                            x-transition:enter-start="opacity-0 scale-95"
-                            x-transition:enter-end="opacity-100 scale-100"
-                            x-transition:leave="transition ease-in duration-75"
-                            x-transition:leave-start="opacity-100 scale-100"
-                            x-transition:leave-end="opacity-0 scale-95"
-                            class="absolute right-0 z-10 mt-2 w-44 origin-top-right rounded-xl border border-slate-200 bg-white p-1 shadow-lg dark:border-white/10 dark:bg-slate-900"
-                        >
-                            <button
-                                type="button"
-                                @click="open = false"
-                                class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-white/80 dark:hover:bg-white/5"
-                            >
-                                @svg('heroicon-o-document-text', 'h-5 w-5 text-red-500')
-                                <span>Export as PDF</span>
-                            </button>
-                            <button
-                                type="button"
-                                @click="open = false"
-                                class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-white/80 dark:hover:bg-white/5"
-                            >
-                                @svg('heroicon-o-table-cells', 'h-5 w-5 text-emerald-500')
-                                <span>Export as Excel</span>
-                            </button>
-                        </div>
-                    </div>
+                    <x-table.export-dropdown
+                        aria-label="Export transactions"
+                    />
                 </div>
             </div>
         </div>

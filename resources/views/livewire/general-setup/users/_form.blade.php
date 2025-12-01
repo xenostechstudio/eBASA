@@ -70,6 +70,34 @@
 
     <div class="space-y-3 border-t border-dashed border-slate-200 pt-4 dark:border-white/10">
         <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400 dark:text-white/40">
+            Role
+        </p>
+        <div class="grid gap-4 md:grid-cols-2">
+            <div class="md:col-span-1">
+                <label for="role_id" class="block text-sm font-medium text-slate-700 dark:text-white/80">
+                    Primary Role <span class="text-red-500">*</span>
+                </label>
+                <div class="mt-2">
+                    <x-form.searchable-select
+                        name="role_id"
+                        id="role_id"
+                        wire:model.live="role_id"
+                        :options="$roles"
+                        value-key="id"
+                        label-key="name"
+                        placeholder="Select role"
+                    />
+                </div>
+                @error('role_id') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                <p class="mt-1 text-[11px] text-slate-400 dark:text-white/40">
+                    Each user has one primary role that controls their access.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="space-y-3 border-t border-dashed border-slate-200 pt-4 dark:border-white/10">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.28em] text-slate-400 dark:text-white/40">
             Security
         </p>
         <div class="grid gap-4 md:grid-cols-2">

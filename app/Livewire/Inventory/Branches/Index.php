@@ -245,7 +245,7 @@ class Index extends Component
         ];
 
         /** @noinspection PhpUndefinedMethodInspection */
-        return view('livewire.inventory.branches.index', [
+        return view('livewire.general-setup.branches.index', [
             'branches' => $branches,
             'stats' => $stats,
         ])->layoutData([

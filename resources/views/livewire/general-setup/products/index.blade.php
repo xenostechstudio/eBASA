@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<div>
     {{-- Flash Message --}}
     @if (session()->has('flash'))
         @php $flash = session('flash'); @endphp
@@ -7,8 +7,9 @@
         </x-alert>
     @endif
 
-    {{-- Stats Cards --}}
-    <div class="grid gap-4 md:grid-cols-3">
+    <div class="space-y-6">
+        {{-- Stats Cards --}}
+        <div class="grid gap-4 md:grid-cols-3">
         <x-stat.card
             label="Total Products"
             :value="number_format($this->stats['total'])"
@@ -91,14 +92,13 @@
                     <x-table.export-dropdown aria-label="Export products" />
 
                     {{-- Add Product --}}
-                    <x-button.primary
-                        type="button"
-                        wire:click="openCreateModal"
-                        class="h-10 rounded-xl"
+                    <a
+                        href="{{ route('general-setup.products.create') }}"
+                        class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90"
                     >
                         @svg('heroicon-o-plus', 'h-4 w-4')
                         <span>Add Product</span>
-                    </x-button.primary>
+                    </a>
                 </div>
             </div>
         </div>
@@ -212,7 +212,7 @@
                         @foreach ($this->products as $product)
                             <tr
                                 class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5"
-                                wire:click="openEditModal({{ $product->id }})"
+                                onclick="window.location='{{ route('general-setup.products.edit', $product) }}'"
                             >
                                 <td class="whitespace-nowrap px-5 py-4">
                                     <span class="font-mono text-sm text-slate-600 dark:text-white/70">{{ $product->sku }}</span>
