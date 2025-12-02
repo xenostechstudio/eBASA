@@ -1,100 +1,101 @@
-<div class="space-y-6">
-    {{-- Stats Cards --}}
-    <div class="grid gap-4 md:grid-cols-4">
-        <x-stat.card label="Total Employees" :value="number_format($stats['total'])" description="Records in directory" tone="neutral">
-            <x-slot:icon>
-                @svg('heroicon-o-user-group', 'h-5 w-5 text-slate-500')
-            </x-slot:icon>
-        </x-stat.card>
+<div>
+    @if (session()->has('status'))
+        <x-alert type="success">{{ session('status') }}</x-alert>
+    @endif
 
-        <x-stat.card label="Active" :value="number_format($stats['active'])" description="In-good-standing" tone="success">
-            <x-slot:icon>
-                @svg('heroicon-o-check-badge', 'h-5 w-5 text-emerald-500')
-            </x-slot:icon>
-        </x-stat.card>
+    <div class="space-y-6">
+        {{-- Stats Cards --}}
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <x-stat.card label="Total Employees" :value="number_format($stats['total'])" description="Records in directory" tone="neutral">
+                <x-slot:icon>@svg('heroicon-o-user-group', 'h-5 w-5 text-slate-500')</x-slot:icon>
+            </x-stat.card>
 
-        <x-stat.card label="On Leave" :value="number_format($stats['on_leave'])" description="Currently offline" tone="warning">
-            <x-slot:icon>
-                @svg('heroicon-o-calendar-days', 'h-5 w-5 text-amber-500')
-            </x-slot:icon>
-        </x-stat.card>
+            <x-stat.card label="Active" :value="number_format($stats['active'])" description="In-good-standing" tone="success">
+                <x-slot:icon>@svg('heroicon-o-check-badge', 'h-5 w-5 text-emerald-500')</x-slot:icon>
+            </x-stat.card>
 
-        <x-stat.card label="Probation" :value="number_format($stats['probation'])" description="Under evaluation" tone="info">
-            <x-slot:icon>
-                @svg('heroicon-o-clock', 'h-5 w-5 text-sky-500')
-            </x-slot:icon>
-        </x-stat.card>
-    </div>
+            <x-stat.card label="On Leave" :value="number_format($stats['on_leave'])" description="Currently offline" tone="warning">
+                <x-slot:icon>@svg('heroicon-o-calendar-days', 'h-5 w-5 text-amber-500')</x-slot:icon>
+            </x-stat.card>
 
-    {{-- Employees Table --}}
-    <div class="rounded-2xl border border-slate-300 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
-        <div class="border-b border-slate-100 px-5 py-4 dark:border-white/10">
-            <div class="flex flex-wrap items-center justify-end gap-3">
-                {{-- Selection Summary --}}
-                <x-table.selection-summary
-                    :count="count($selectedEmployees)"
-                    :total="$employees->total()"
-                    description="employees selected"
-                    select-all-action="selectAllEmployees"
-                    select-page-action="selectPage"
-                    deselect-action="deselectAll"
-                    delete-action="deleteSelected"
-                />
-
-                {{-- Search --}}
-                <div class="relative">
-                    @svg('heroicon-o-magnifying-glass', 'pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400')
-                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search employees..."
-                        class="h-10 w-64 rounded-xl border border-slate-300 bg-white pl-10 pr-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40">
-                </div>
-
-                {{-- Dynamic Filters --}}
-                <x-table.dynamic-filters :filters="[
-                    'status' => [
-                        'label' => 'Status',
-                        'options' => [
-                            'all' => 'All status',
-                            'active' => 'Active',
-                            'on_leave' => 'On Leave',
-                            'probation' => 'Probation',
-                            'terminated' => 'Terminated',
-                        ],
-                        'selected' => $statusFilter,
-                        'default' => 'all',
-                        'onSelect' => 'setStatusFilter',
-                    ],
-                    'department' => [
-                        'label' => 'Department',
-                        'options' => array_merge(
-                            ['all' => 'All departments'],
-                            $departments->pluck('name', 'id')->toArray()
-                        ),
-                        'selected' => $departmentFilter,
-                        'default' => 'all',
-                        'onSelect' => 'setDepartmentFilter',
-                    ],
-                    'position' => [
-                        'label' => 'Position',
-                        'options' => array_merge(
-                            ['all' => 'All positions'],
-                            $positions->pluck('title', 'id')->toArray()
-                        ),
-                        'selected' => $positionFilter,
-                        'default' => 'all',
-                        'onSelect' => 'setPositionFilter',
-                    ],
-                ]" />
-
-                <x-table.export-dropdown aria-label="Export employees" />
-
-                {{-- Add Employee --}}
-                <a href="{{ route('hr.employees.create') }}"
-                    class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90">
-                    @svg('heroicon-o-plus', 'h-4 w-4')
-                    <span>Add Employee</span>
-                </a>
-            </div>
+            <x-stat.card label="Probation" :value="number_format($stats['probation'])" description="Under evaluation" tone="info">
+                <x-slot:icon>@svg('heroicon-o-clock', 'h-5 w-5 text-sky-500')</x-slot:icon>
+            </x-stat.card>
         </div>
+
+        {{-- Table Card --}}
+        <div class="rounded-2xl border border-slate-300 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
+            {{-- Toolbar --}}
+            <div class="border-b border-slate-100 px-5 py-4 dark:border-white/10">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    {{-- Left: Search --}}
+                    <div class="relative">
+                        @svg('heroicon-o-magnifying-glass', 'pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400')
+                        <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search employees..."
+                            class="h-10 w-64 rounded-xl border border-slate-300 bg-white pl-10 pr-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40">
+                    </div>
+
+                    {{-- Right: Selection, Filters, Export, Add --}}
+                    <div class="flex items-center gap-2">
+                        {{-- Selection Summary --}}
+                        <x-table.selection-summary
+                            :count="count($selectedEmployees)"
+                            :total="$employees->total()"
+                            description="employees selected"
+                            select-all-action="selectAllEmployees"
+                            select-page-action="selectPage"
+                            deselect-action="deselectAll"
+                            delete-action="deleteSelected"
+                        />
+
+                        {{-- Dynamic Filters --}}
+                        <x-table.dynamic-filters :filters="[
+                            'status' => [
+                                'label' => 'Status',
+                                'options' => [
+                                    'all' => 'All status',
+                                    'active' => 'Active',
+                                    'on_leave' => 'On Leave',
+                                    'probation' => 'Probation',
+                                    'terminated' => 'Terminated',
+                                ],
+                                'selected' => $statusFilter,
+                                'default' => 'all',
+                                'onSelect' => 'setStatusFilter',
+                            ],
+                            'department' => [
+                                'label' => 'Department',
+                                'options' => array_merge(
+                                    ['all' => 'All departments'],
+                                    $departments->pluck('name', 'id')->toArray()
+                                ),
+                                'selected' => $departmentFilter,
+                                'default' => 'all',
+                                'onSelect' => 'setDepartmentFilter',
+                            ],
+                            'position' => [
+                                'label' => 'Position',
+                                'options' => array_merge(
+                                    ['all' => 'All positions'],
+                                    $positions->pluck('title', 'id')->toArray()
+                                ),
+                                'selected' => $positionFilter,
+                                'default' => 'all',
+                                'onSelect' => 'setPositionFilter',
+                            ],
+                        ]" />
+
+                        <x-table.export-dropdown aria-label="Export employees" />
+
+                        {{-- Add Employee --}}
+                        <a href="{{ route('hr.employees.create') }}"
+                            class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90">
+                            @svg('heroicon-o-plus', 'h-4 w-4')
+                            <span>Add Employee</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
 
         @php
             $hasActiveFilters = $statusFilter !== 'all' || $departmentFilter !== 'all' || $positionFilter !== 'all';
@@ -175,6 +176,12 @@
                                 </button>
                             </th>
                             <th class="px-5 py-3">STATUS</th>
+                            <th class="px-5 py-3 text-right">
+                                <div class="flex items-center justify-end gap-1">
+                                    BASE SALARY
+                                    <span class="text-slate-400" title="Monthly base salary before allowances">@svg('heroicon-o-information-circle', 'h-3.5 w-3.5')</span>
+                                </div>
+                            </th>
                             <th class="px-5 py-3">
                                 <button wire:click="setSort('start_date')" class="flex items-center gap-1 hover:text-slate-700 dark:hover:text-white">
                                     START DATE
@@ -190,6 +197,7 @@
                         @foreach ($employees as $employee)
                             @php $isSelected = in_array($employee->id, $selectedEmployees); @endphp
                             <tr
+                                wire:key="employee-{{ $employee->id }}"
                                 class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5 {{ $isSelected ? 'bg-slate-50 dark:bg-white/5' : '' }}"
                                 onclick="window.location='{{ route('hr.employees.edit', $employee) }}'"
                             >
@@ -229,19 +237,18 @@
                                         {{ ucfirst(str_replace('_', ' ', $employee->status)) }}
                                     </span>
                                 </td>
+                                <td class="whitespace-nowrap px-5 py-4 text-right">
+                                    @if ($employee->base_salary)
+                                        <p class="font-medium text-slate-900 dark:text-white">Rp {{ number_format($employee->base_salary, 0, ',', '.') }}</p>
+                                    @else
+                                        <span class="text-xs text-slate-400 dark:text-white/40">Not set</span>
+                                    @endif
+                                </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500 dark:text-white/60">
                                     {{ $employee->start_date?->format(config('basa.date_format', 'd M Y')) ?? '—' }}
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4">
-                                    <div class="flex items-center justify-end gap-1">
-                                        <a href="{{ route('hr.employees.edit', $employee) }}"
-                                            wire:click.stop
-                                            onclick="event.stopPropagation()"
-                                            class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-white/10 dark:hover:text-white"
-                                            title="Edit">
-                                            @svg('heroicon-o-pencil', 'h-4 w-4')
-                                        </a>
-                                    </div>
+                                    @svg('heroicon-o-chevron-right', 'h-4 w-4 text-slate-400')
                                 </td>
                             </tr>
                         @endforeach

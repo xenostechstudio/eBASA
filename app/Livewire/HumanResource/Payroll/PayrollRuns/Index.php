@@ -49,6 +49,24 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function setStatusFilter(string $value): void
+    {
+        $this->filterStatus = $value === 'all' ? '' : $value;
+        $this->resetPage();
+    }
+
+    public function setPayrollGroupFilter(string $value): void
+    {
+        $this->filterPayrollGroup = $value === 'all' ? '' : $value;
+        $this->resetPage();
+    }
+
+    public function setBranchFilter(string $value): void
+    {
+        $this->filterBranch = $value === 'all' ? '' : $value;
+        $this->resetPage();
+    }
+
     public function resetFilters(): void
     {
         $this->filterStatus = '';

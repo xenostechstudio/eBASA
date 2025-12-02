@@ -4,13 +4,18 @@ namespace App\Livewire\HumanResource\Employees;
 
 use App\Models\Employee;
 use App\Support\HumanResourceNavigation;
+use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Layout('layouts.portal-sidebar')]
 class Edit extends Component
 {
+    use WithPagination;
+
     public Employee $employee;
 
     /**
@@ -18,16 +23,12 @@ class Edit extends Component
      */
     public array $form = [];
 
-    public string $activeTab = 'personal';
-
-    public array $tabs = [
-        'personal' => 'Personal Info',
-        'emergency' => 'Emergency & Banking',
-    ];
+    // Employments tab state
+    public string $employmentsSearch = '';
 
     public function mount(Employee $employee): void
     {
-        $this->employee = $employee;
+        $this->employee = $employee->load(['branch', 'department', 'position', 'payrollGroup']);
 
         $this->form = [
             'full_name' => $employee->full_name,
@@ -57,17 +58,36 @@ class Edit extends Component
         session()->flash('status', 'Employee updated successfully');
 
         $this->dispatch('notify', message: 'Employee updated');
-
-        $this->redirect(route('hr.employees'), navigate: true);
     }
 
-    public function setTab(string $tab): void
+    #[Computed]
+    public function stats(): array
     {
-        if (! array_key_exists($tab, $this->tabs)) {
-            return;
-        }
+        return [
+            'tenure' => $this->employee->start_date
+                ? $this->employee->start_date->diffForHumans(now(), ['parts' => 2, 'short' => true])
+                : '-',
+            'status' => $this->employee->status ?? 'active',
+            'department' => $this->employee->department?->name ?? '-',
+            'position' => $this->employee->position?->title ?? '-',
+            'branch' => $this->employee->branch?->name ?? '-',
+            'baseSalary' => $this->employee->base_salary ?? 0,
+            'payrollItemsCount' => $this->employee->employeePayrollItems()->count(),
+        ];
+    }
 
-        $this->activeTab = $tab;
+    #[Computed]
+    public function payrollItems()
+    {
+        return $this->employee->employeePayrollItems()
+            ->with('payrollItem')
+            ->orderBy('id')
+            ->get();
+    }
+
+    public function goToEmployment(): void
+    {
+        $this->redirect(route('hr.employments.edit', $this->employee), navigate: true);
     }
 
     public function rules(): array
@@ -101,12 +121,9 @@ class Edit extends Component
         ];
     }
 
-    public function render()
+    public function render(): View
     {
-        return view('livewire.hr.employees.edit', [
-            'tabs' => $this->tabs,
-            'activeTab' => $this->activeTab,
-        ])->layoutData([
+        return view('livewire.hr.employees.edit')->layoutData([
             'pageTitle' => 'Edit Employee',
             'pageTagline' => 'HR · Employees',
             'activeModule' => 'hr',

@@ -101,40 +101,40 @@
             </div>
         </div>
 
-        {{-- Footer with auditing & actions --}}
-        <div class="flex flex-col gap-2 border-t border-slate-200 px-6 py-4 dark:border-white/10 md:flex-row md:items-center md:justify-between">
+        {{-- Footer with Auditing Info --}}
+        <div class="flex flex-col gap-3 border-t border-slate-200 px-6 py-4 dark:border-white/10 md:flex-row md:items-center md:justify-between">
             @if ($isEditing && isset($employee) && $employee)
-                <div class="text-[11px] text-slate-400 dark:text-white/40">
-                    <p>
-                        Created
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-400 dark:text-white/40">
+                    <div class="flex items-center gap-1.5">
+                        @svg('heroicon-o-clock', 'h-3.5 w-3.5')
+                        <span>Created</span>
                         <span class="font-medium text-slate-500 dark:text-white/60">
-                            {{ optional($employee->created_at)->format(config('basa.datetime_format')) }}
+                            {{ optional($employee->created_at)->format(config('basa.datetime_format', 'd M Y H:i')) }}
                         </span>
                         @if ($employee->createdBy)
-                            by
-                            <span class="font-medium text-slate-600 dark:text-white/80">
-                                {{ $employee->createdBy->name }}
-                            </span>
+                            <span>by</span>
+                            <span class="font-medium text-slate-600 dark:text-white/80">{{ $employee->createdBy->name }}</span>
                         @endif
-                    </p>
-                    @if ($employee->updated_at)
-                        <p>
-                            Last updated
+                    </div>
+                    @if ($employee->updated_at && $employee->updated_at->ne($employee->created_at))
+                        <div class="flex items-center gap-1.5">
+                            @svg('heroicon-o-pencil-square', 'h-3.5 w-3.5')
+                            <span>Updated</span>
                             <span class="font-medium text-slate-500 dark:text-white/60">
-                                {{ optional($employee->updated_at)->format(config('basa.datetime_format')) }}
+                                {{ optional($employee->updated_at)->format(config('basa.datetime_format', 'd M Y H:i')) }}
                             </span>
                             @if ($employee->updatedBy)
-                                by
-                                <span class="font-medium text-slate-600 dark:text-white/80">
-                                    {{ $employee->updatedBy->name }}
-                                </span>
+                                <span>by</span>
+                                <span class="font-medium text-slate-600 dark:text-white/80">{{ $employee->updatedBy->name }}</span>
                             @endif
-                        </p>
+                        </div>
                     @endif
                 </div>
+            @else
+                <div></div>
             @endif
 
-            <div class="flex items-center justify-end gap-3 md:ml-auto">
+            <div class="flex items-center justify-end gap-3">
                 <a
                     href="{{ route('hr.employees') }}"
                     class="inline-flex h-10 items-center rounded-xl border border-slate-200 px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:text-white/80 dark:hover:bg-white/5"

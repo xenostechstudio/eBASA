@@ -1,25 +1,32 @@
-<div class="space-y-6">
-    {{-- Header --}}
-    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-            <p class="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-white/50">Procurement</p>
-            <h1 class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">Add Supplier</h1>
-            <p class="mt-1 text-sm text-slate-500 dark:text-white/60">Register a new vendor for purchase orders.</p>
-        </div>
-        <div class="flex items-center gap-3">
-            <a href="{{ route('procurement.suppliers') }}"
-                class="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20">
-                Cancel
-            </a>
-            <button wire:click="save"
-                class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90">
-                @svg('heroicon-o-check', 'h-4 w-4')
-                <span>Save Supplier</span>
-            </button>
-        </div>
-    </div>
+<div>
+    @if (session()->has('status'))
+        <x-alert type="success">
+            {{ session('status') }}
+        </x-alert>
+    @endif
 
-    <div class="grid gap-6 lg:grid-cols-3">
+    <div class="space-y-6">
+        {{-- Header --}}
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+                <p class="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-white/50">Procurement</p>
+                <h1 class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">Add Supplier</h1>
+                <p class="mt-1 text-sm text-slate-500 dark:text-white/60">Register a new vendor for purchase orders.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="{{ route('procurement.suppliers') }}"
+                    class="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20">
+                    Cancel
+                </a>
+                <button wire:click="save"
+                    class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90">
+                    @svg('heroicon-o-check', 'h-4 w-4')
+                    <span>Save Supplier</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="grid gap-6 lg:grid-cols-3">
         {{-- Supplier Form --}}
         <div class="space-y-6 lg:col-span-2">
             <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5">

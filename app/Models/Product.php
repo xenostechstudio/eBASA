@@ -6,6 +6,7 @@ use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -51,6 +52,16 @@ class Product extends Model
     public function transactionItems(): HasMany
     {
         return $this->hasMany(TransactionItem::class);
+    }
+
+    /**
+     * Suppliers that can provide this product (with pivot data).
+     */
+    public function suppliers(): BelongsToMany
+    {
+        return $this->belongsToMany(Supplier::class, 'supplier_products')
+            ->withPivot(['supplier_price', 'supplier_sku', 'lead_time_days', 'min_order_qty', 'is_preferred'])
+            ->withTimestamps();
     }
 
     public function createdBy(): BelongsTo

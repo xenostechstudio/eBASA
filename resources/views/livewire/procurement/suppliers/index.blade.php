@@ -1,25 +1,25 @@
 <div class="space-y-6">
     {{-- Stats Cards --}}
     <div class="grid gap-4 md:grid-cols-4">
-        <x-stat.card label="Total Suppliers" :value="number_format($stats['totalSuppliers'])" description="Registered vendors" tone="neutral">
+        <x-stat.card label="Total Suppliers" :value="number_format($this->stats['totalSuppliers'])" description="Registered vendors" tone="neutral">
             <x-slot:icon>
                 @svg('heroicon-o-building-office', 'h-5 w-5 text-slate-500')
             </x-slot:icon>
         </x-stat.card>
 
-        <x-stat.card label="Active" :value="number_format($stats['active'])" description="Currently active" tone="success">
+        <x-stat.card label="Active" :value="number_format($this->stats['active'])" description="Currently active" tone="success">
             <x-slot:icon>
                 @svg('heroicon-o-check-circle', 'h-5 w-5 text-emerald-500')
             </x-slot:icon>
         </x-stat.card>
 
-        <x-stat.card label="Inactive" :value="number_format($stats['inactive'])" description="Not active" tone="warning">
+        <x-stat.card label="Inactive" :value="number_format($this->stats['inactive'])" description="Not active" tone="warning">
             <x-slot:icon>
                 @svg('heroicon-o-pause-circle', 'h-5 w-5 text-amber-500')
             </x-slot:icon>
         </x-stat.card>
 
-        <x-stat.card label="New This Month" :value="number_format($stats['newThisMonth'])" description="Recently added" tone="info">
+        <x-stat.card label="New This Month" :value="number_format($this->stats['newThisMonth'])" description="Recently added" tone="info">
             <x-slot:icon>
                 @svg('heroicon-o-plus-circle', 'h-5 w-5 text-sky-500')
             </x-slot:icon>
@@ -33,7 +33,7 @@
                 {{-- Selection Summary --}}
                 <x-table.selection-summary
                     :count="count($selectedItems)"
-                    :total="count($suppliers)"
+                    :total="$this->suppliers->total()"
                     description="suppliers selected"
                     select-all-action="selectAll"
                     select-page-action="selectPage"
@@ -74,7 +74,7 @@
             </div>
         </div>
 
-        @if ($suppliers->count() > 0)
+        @if ($this->suppliers->count() > 0)
             <div class="overflow-x-auto">
                 <table class="w-full">
                     <thead>
@@ -100,7 +100,7 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-white/10">
-                        @foreach ($suppliers as $supplier)
+                        @foreach ($this->suppliers as $supplier)
                             @php $isSelected = in_array($supplier->id, $selectedItems); @endphp
                             <tr wire:click="goToSupplier({{ $supplier->id }})" class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5 {{ $isSelected ? 'bg-slate-50 dark:bg-white/5' : '' }}">
                                 <td class="whitespace-nowrap px-5 py-4" wire:click.stop>
@@ -121,7 +121,7 @@
                                     {{ $supplier->phone }}
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-600 dark:text-white/70">
-                                    {{ $supplier->orders_count }} orders
+                                    {{ $supplier->purchase_orders_count }} orders
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4">
                                     <span class="inline-flex items-center rounded-lg px-2 py-1 text-xs font-medium {{ $supplier->is_active ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-white/60' }}">
@@ -133,6 +133,12 @@
                     </tbody>
                 </table>
             </div>
+
+            @if($this->suppliers->hasPages())
+                <div class="border-t border-slate-100 px-5 py-4 dark:border-white/10">
+                    {{ $this->suppliers->links() }}
+                </div>
+            @endif
         @else
             <div class="flex flex-col items-center justify-center py-16 text-center">
                 @svg('heroicon-o-building-office', 'h-12 w-12 text-slate-300 dark:text-white/20')

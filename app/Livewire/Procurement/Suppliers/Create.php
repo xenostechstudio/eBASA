@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Procurement\Suppliers;
 
+use App\Models\Supplier;
 use App\Support\ProcurementNavigation;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Layout;
@@ -21,39 +22,46 @@ class Create extends Component
         'phone' => '',
         'tax_number' => '',
         'address' => '',
-        'payment_terms' => '30',
+        'payment_terms' => 30,
         'is_active' => true,
         'notes' => '',
     ];
 
+    public function mount(): void
+    {
+        // Auto-generate supplier code
+        $this->form['code'] = Supplier::generateCode();
+    }
+
     public function save(): void
     {
-        // In a real implementation this would persist to the database.
-        $this->validate([
+        $validated = $this->validate([
             'form.name' => ['required', 'string', 'max:255'],
-            'form.code' => ['required', 'string', 'max:50'],
+            'form.code' => ['required', 'string', 'max:50', 'unique:suppliers,code'],
             'form.contact_name' => ['nullable', 'string', 'max:255'],
             'form.email' => ['nullable', 'email', 'max:255'],
             'form.phone' => ['nullable', 'string', 'max:50'],
             'form.tax_number' => ['nullable', 'string', 'max:50'],
             'form.address' => ['nullable', 'string'],
-            'form.payment_terms' => ['nullable', 'string', 'max:50'],
+            'form.payment_terms' => ['nullable', 'integer', 'min:0'],
             'form.is_active' => ['boolean'],
             'form.notes' => ['nullable', 'string'],
         ]);
 
-        session()->flash('status', 'Supplier created (demo only).');
+        $supplier = Supplier::create($validated['form']);
 
-        $this->dispatch('notify', message: 'Supplier created');
+        session()->flash('status', 'Supplier created successfully');
 
-        $this->redirect(route('procurement.suppliers'), navigate: true);
+        $this->dispatch('notify', message: 'Supplier created successfully');
+
+        $this->redirect(route('procurement.suppliers.edit', $supplier), navigate: true);
     }
 
     public function render(): View
     {
         $stats = [
-            'totalSuppliers' => 48,
-            'active' => 42,
+            'totalSuppliers' => Supplier::count(),
+            'active' => Supplier::where('is_active', true)->count(),
             'avgLeadTime' => 7,
         ];
 

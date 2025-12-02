@@ -43,19 +43,12 @@
         </x-stat.card>
     </div>
 
-        {{-- Warehouses Table --}}
+        {{-- Table Card --}}
         <div class="rounded-2xl border border-slate-300 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
-        <div class="border-b border-slate-100 px-5 py-4 dark:border-white/10">
-            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                    <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Warehouses</h2>
-                    <p class="text-xs text-slate-500 dark:text-white/60">
-                        Manage storage locations linked to branches.
-                    </p>
-                </div>
-
-                <div class="flex flex-wrap items-center gap-3">
-                    {{-- Search --}}
+            {{-- Toolbar --}}
+            <div class="border-b border-slate-100 px-5 py-4 dark:border-white/10">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    {{-- Left: Search --}}
                     <div class="relative">
                         @svg('heroicon-o-magnifying-glass', 'pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400')
                         <input
@@ -66,42 +59,43 @@
                         >
                     </div>
 
-                    {{-- Filters --}}
-                    <x-table.dynamic-filters :filters="[
-                        'status' => [
-                            'label' => 'Status',
-                            'options' => [
-                                '' => 'All status',
-                                'active' => 'Active',
-                                'inactive' => 'Inactive',
+                    {{-- Right: Filters, Export, Add --}}
+                    <div class="flex items-center gap-2">
+                        <x-table.dynamic-filters :filters="[
+                            'status' => [
+                                'label' => 'Status',
+                                'options' => [
+                                    '' => 'All status',
+                                    'active' => 'Active',
+                                    'inactive' => 'Inactive',
+                                ],
+                                'selected' => $statusFilter,
+                                'default' => '',
+                                'onSelect' => 'setStatusFilter',
                             ],
-                            'selected' => $statusFilter,
-                            'default' => '',
-                            'onSelect' => 'setStatusFilter',
-                        ],
-                        'branch' => [
-                            'label' => 'Branch',
-                            'options' => collect($branches)->mapWithKeys(fn($b) => [
-                                (string) $b->id => $b->code . ' - ' . $b->name,
-                            ])->prepend('All branches', ''),
-                            'selected' => (string) $branchFilter,
-                            'default' => '',
-                            'onSelect' => 'setBranchFilter',
-                        ],
-                    ]" />
+                            'branch' => [
+                                'label' => 'Branch',
+                                'options' => collect($branches)->mapWithKeys(fn($b) => [
+                                    (string) $b->id => $b->code . ' - ' . $b->name,
+                                ])->prepend('All branches', ''),
+                                'selected' => (string) $branchFilter,
+                                'default' => '',
+                                'onSelect' => 'setBranchFilter',
+                            ],
+                        ]" />
 
-                    <x-table.export-dropdown aria-label="Export warehouses" />
+                        <x-table.export-dropdown aria-label="Export warehouses" />
 
-                    <a
-                        href="{{ route('general-setup.warehouses.create') }}"
-                        class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90"
-                    >
-                        @svg('heroicon-o-plus', 'h-4 w-4')
-                        <span>Add Warehouse</span>
-                    </a>
+                        <a
+                            href="{{ route('general-setup.warehouses.create') }}"
+                            class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90"
+                        >
+                            @svg('heroicon-o-plus', 'h-4 w-4')
+                            <span>Add Warehouse</span>
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
 
         @php
             $statusLabel = null;
@@ -139,17 +133,19 @@
             <div class="overflow-x-auto">
                 <table class="w-full">
                     <thead>
-                        <tr class="border-b border-slate-100 bg-slate-100 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-white/60">
+                        <tr class="border-b border-slate-100 bg-slate-50 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-white/60">
                             <th class="px-5 py-3">CODE</th>
                             <th class="px-5 py-3">WAREHOUSE</th>
                             <th class="px-5 py-3">BRANCH</th>
                             <th class="px-5 py-3">LOCATION</th>
                             <th class="px-5 py-3">STATUS</th>
+                            <th class="px-5 py-3"></th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-white/10">
                         @foreach ($warehouses as $warehouse)
                             <tr
+                                wire:key="warehouse-{{ $warehouse->id }}"
                                 class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5"
                                 onclick="window.location='{{ route('general-setup.warehouses.edit', $warehouse) }}'"
                             >
@@ -157,7 +153,7 @@
                                     {{ $warehouse->code }}
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4">
-                                    <div class="font-semibold text-slate-900 dark:text-white">{{ $warehouse->name }}</div>
+                                    <div class="font-medium text-slate-900 dark:text-white">{{ $warehouse->name }}</div>
                                     @if ($warehouse->contact_name)
                                         <p class="text-xs text-slate-500 dark:text-white/50">Contact: {{ $warehouse->contact_name }}</p>
                                     @endif
@@ -165,7 +161,7 @@
                                 <td class="whitespace-nowrap px-5 py-4">
                                     @if ($warehouse->branch)
                                         <p class="text-sm text-slate-700 dark:text-white/80">{{ $warehouse->branch->name }}</p>
-                                        <p class="text-xs text-slate-500 dark:text-white/50">Code: {{ $warehouse->branch->code }}</p>
+                                        <p class="text-xs text-slate-500 dark:text-white/50">{{ $warehouse->branch->code }}</p>
                                     @else
                                         <span class="text-sm text-slate-400 dark:text-white/40">Unassigned</span>
                                     @endif
@@ -184,6 +180,9 @@
                                             Inactive
                                         </span>
                                     @endif
+                                </td>
+                                <td class="whitespace-nowrap px-5 py-4">
+                                    @svg('heroicon-o-chevron-right', 'h-4 w-4 text-slate-400')
                                 </td>
                             </tr>
                         @endforeach

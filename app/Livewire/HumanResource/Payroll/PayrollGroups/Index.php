@@ -50,6 +50,24 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function setFrequencyFilter(string $value): void
+    {
+        $this->filterFrequency = $value === 'all' ? '' : $value;
+        $this->resetPage();
+    }
+
+    public function setBranchFilter(string $value): void
+    {
+        $this->filterBranch = $value === 'all' ? '' : $value;
+        $this->resetPage();
+    }
+
+    public function setStatusFilter(string $value): void
+    {
+        $this->filterStatus = $value === 'all' ? '' : $value;
+        $this->resetPage();
+    }
+
     public function resetFilters(): void
     {
         $this->filterFrequency = '';

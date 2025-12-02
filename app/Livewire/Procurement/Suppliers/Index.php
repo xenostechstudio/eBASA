@@ -2,8 +2,10 @@
 
 namespace App\Livewire\Procurement\Suppliers;
 
+use App\Models\Supplier;
 use App\Support\ProcurementNavigation;
 use Illuminate\Contracts\View\View;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -75,6 +77,8 @@ class Index extends Component
             return;
         }
 
+        Supplier::whereIn('id', $this->selectedItems)->delete();
+
         $this->resetSelection();
         $this->dispatch('notify', message: 'Selected suppliers deleted');
     }
@@ -90,28 +94,38 @@ class Index extends Component
         $this->redirectRoute('procurement.suppliers.edit', ['supplier' => $supplierId], navigate: true);
     }
 
+    #[Computed]
+    public function suppliers()
+    {
+        return Supplier::query()
+            ->withCount('purchaseOrders')
+            ->when($this->search, fn ($q) => $q->where(function ($q) {
+                $q->where('name', 'like', "%{$this->search}%")
+                    ->orWhere('code', 'like', "%{$this->search}%")
+                    ->orWhere('contact_name', 'like', "%{$this->search}%");
+            }))
+            ->when($this->statusFilter === 'active', fn ($q) => $q->where('is_active', true))
+            ->when($this->statusFilter === 'inactive', fn ($q) => $q->where('is_active', false))
+            ->orderBy($this->sortField, $this->sortDirection)
+            ->paginate(15);
+    }
+
+    #[Computed]
+    public function stats(): array
+    {
+        return [
+            'totalSuppliers' => Supplier::count(),
+            'active' => Supplier::where('is_active', true)->count(),
+            'inactive' => Supplier::where('is_active', false)->count(),
+            'newThisMonth' => Supplier::whereMonth('created_at', now()->month)->count(),
+        ];
+    }
+
     public function render(): View
     {
-        // Mock data for suppliers
-        $suppliers = collect([
-            (object) ['id' => 1, 'name' => 'PT Supplier Utama', 'code' => 'SUP-001', 'contact_name' => 'Budi Santoso', 'phone' => '021-1234567', 'email' => 'budi@supplier.com', 'is_active' => true, 'orders_count' => 45],
-            (object) ['id' => 2, 'name' => 'CV Mitra Jaya', 'code' => 'SUP-002', 'contact_name' => 'Siti Rahayu', 'phone' => '021-7654321', 'email' => 'siti@mitrajaya.com', 'is_active' => true, 'orders_count' => 32],
-            (object) ['id' => 3, 'name' => 'UD Berkah Makmur', 'code' => 'SUP-003', 'contact_name' => 'Ahmad Wijaya', 'phone' => '024-5551234', 'email' => 'ahmad@berkah.com', 'is_active' => false, 'orders_count' => 18],
-        ]);
+        $this->pageItemIds = $this->suppliers->pluck('id')->toArray();
 
-        $this->pageItemIds = $suppliers->pluck('id')->toArray();
-
-        $stats = [
-            'totalSuppliers' => 48,
-            'active' => 42,
-            'inactive' => 6,
-            'newThisMonth' => 3,
-        ];
-
-        return view('livewire.procurement.suppliers.index', [
-            'suppliers' => $suppliers,
-            'stats' => $stats,
-        ])->layoutData([
+        return view('livewire.procurement.suppliers.index')->layoutData([
             'pageTitle' => 'Suppliers',
             'pageTagline' => 'Procurement',
             'activeModule' => 'procurement',

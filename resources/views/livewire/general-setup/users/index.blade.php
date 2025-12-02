@@ -8,75 +8,75 @@
     @endif
 
     <div class="space-y-6">
-        {{-- Stats Cards --}}
-        <div class="grid gap-4 md:grid-cols-3">
-        <x-stat.card label="Total Users" :value="number_format($stats['total'])" description="Registered accounts" tone="neutral">
-            <x-slot:icon>
-                @svg('heroicon-o-users', 'h-5 w-5 text-sky-500')
-            </x-slot:icon>
-        </x-stat.card>
+            {{-- Stats Cards --}}
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <x-stat.card label="Total Users" :value="number_format($stats['total'])" description="Registered accounts" tone="neutral">
+                <x-slot:icon>@svg('heroicon-o-users', 'h-5 w-5 text-sky-500')</x-slot:icon>
+            </x-stat.card>
 
-        <x-stat.card label="Active" :value="number_format($stats['active'])" description="Verified accounts" tone="success">
-            <x-slot:icon>
-                @svg('heroicon-o-check-badge', 'h-5 w-5 text-emerald-500')
-            </x-slot:icon>
-        </x-stat.card>
+            <x-stat.card label="Active" :value="number_format($stats['active'])" description="Verified accounts" tone="success">
+                <x-slot:icon>@svg('heroicon-o-check-badge', 'h-5 w-5 text-emerald-500')</x-slot:icon>
+            </x-stat.card>
 
-        <x-stat.card label="Pending" :value="number_format($stats['pending'])" description="Awaiting verification" tone="warning">
-            <x-slot:icon>
-                @svg('heroicon-o-clock', 'h-5 w-5 text-amber-500')
-            </x-slot:icon>
-        </x-stat.card>
-    </div>
+            <x-stat.card label="Pending" :value="number_format($stats['pending'])" description="Awaiting verification" tone="warning">
+                <x-slot:icon>@svg('heroicon-o-clock', 'h-5 w-5 text-amber-500')</x-slot:icon>
+            </x-stat.card>
+        </div>
 
-    {{-- Users Table --}}
-    <div class="rounded-2xl border border-slate-300 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
-        <div class="border-b border-slate-100 px-5 py-4 dark:border-white/10">
-            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                    <h2 class="text-lg font-semibold text-slate-900 dark:text-white">All Users</h2>
-                    <p class="text-xs text-slate-500 dark:text-white/60">
-                        Manage user accounts and access
-                    </p>
-                </div>
-
-                <div class="flex items-center gap-3">
-                    {{-- Search --}}
+        {{-- Table Card --}}
+        <div class="rounded-2xl border border-slate-300 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
+            {{-- Toolbar --}}
+            <div class="border-b border-slate-100 px-5 py-4 dark:border-white/10">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    {{-- Left: Search --}}
                     <div class="relative">
                         @svg('heroicon-o-magnifying-glass', 'pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400')
                         <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search users..."
                             class="h-10 w-64 rounded-xl border border-slate-300 bg-white pl-10 pr-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40">
                     </div>
 
-                    {{-- Status filter --}}
-                    <x-table.dynamic-filters :filters="[
-                        'status' => [
-                            'label' => 'Status',
-                            'options' => [
-                                '' => 'All active',
-                                'verified' => 'Verified',
-                                'pending' => 'Pending',
-                                'trashed' => 'Trashed',
+                    {{-- Right: Selection, Filters, Export, Add --}}
+                    <div class="flex items-center gap-2">
+                        {{-- Selection Summary --}}
+                        <x-table.selection-summary
+                            :count="count($selectedUsers)"
+                            :total="$users->total()"
+                            description="users selected"
+                            select-all-action="selectAllUsers"
+                            select-page-action="selectPage"
+                            deselect-action="deselectAll"
+                            delete-action="deleteSelected"
+                        />
+
+                        {{-- Status filter --}}
+                        <x-table.dynamic-filters :filters="[
+                            'status' => [
+                                'label' => 'Status',
+                                'options' => [
+                                    '' => 'All active',
+                                    'verified' => 'Verified',
+                                    'pending' => 'Pending',
+                                    'trashed' => 'Trashed',
+                                ],
+                                'selected' => $statusFilter,
+                                'default' => '',
+                                'onSelect' => 'setStatusFilter',
                             ],
-                            'selected' => $statusFilter,
-                            'default' => '',
-                            'onSelect' => 'setStatusFilter',
-                        ],
-                    ]" />
+                        ]" />
 
-                    <x-table.export-dropdown aria-label="Export users" />
+                        <x-table.export-dropdown aria-label="Export users" />
 
-                    {{-- Add User --}}
-                    <a
-                        href="{{ route('general-setup.users.create') }}"
-                        class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90"
-                    >
-                        @svg('heroicon-o-plus', 'h-4 w-4')
-                        <span>Add User</span>
-                    </a>
+                        {{-- Add User --}}
+                        <a
+                            href="{{ route('general-setup.users.create') }}"
+                            class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90"
+                        >
+                            @svg('heroicon-o-plus', 'h-4 w-4')
+                            <span>Add User</span>
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
 
         @if ($statusFilter !== '')
             @php
@@ -118,11 +118,15 @@
             <div class="overflow-x-auto">
                 <table class="w-full">
                     <thead>
-                        <tr
-                            class="border-b border-slate-100 bg-slate-100 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-white/60">
+                        <tr class="border-b border-slate-100 bg-slate-50 text-left text-xs font-medium uppercase tracking-wider text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-white/60">
+                            <th class="w-12 px-5 py-3">
+                                <label class="inline-flex items-center">
+                                    <input type="checkbox" wire:click="toggleSelectPage" @checked($selectPage)
+                                        class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500 dark:border-white/30 dark:bg-white/10 dark:checked:bg-white dark:checked:text-slate-900">
+                                </label>
+                            </th>
                             <th class="px-5 py-3">
-                                <button wire:click="sortBy('name')"
-                                    class="flex items-center gap-1 hover:text-slate-700 dark:hover:text-white">
+                                <button wire:click="sortBy('name')" class="flex items-center gap-1 hover:text-slate-700 dark:hover:text-white">
                                     NAME
                                     @if ($sortField === 'name')
                                         @svg($sortDirection === 'asc' ? 'heroicon-s-chevron-up' : 'heroicon-s-chevron-down', 'h-3 w-3')
@@ -130,8 +134,7 @@
                                 </button>
                             </th>
                             <th class="px-5 py-3">
-                                <button wire:click="sortBy('email')"
-                                    class="flex items-center gap-1 hover:text-slate-700 dark:hover:text-white">
+                                <button wire:click="sortBy('email')" class="flex items-center gap-1 hover:text-slate-700 dark:hover:text-white">
                                     EMAIL
                                     @if ($sortField === 'email')
                                         @svg($sortDirection === 'asc' ? 'heroicon-s-chevron-up' : 'heroicon-s-chevron-down', 'h-3 w-3')
@@ -141,8 +144,7 @@
                             <th class="px-5 py-3">ROLE</th>
                             <th class="px-5 py-3">STATUS</th>
                             <th class="px-5 py-3">
-                                <button wire:click="sortBy('created_at')"
-                                    class="flex items-center gap-1 hover:text-slate-700 dark:hover:text-white">
+                                <button wire:click="sortBy('created_at')" class="flex items-center gap-1 hover:text-slate-700 dark:hover:text-white">
                                     REGISTERED
                                     @if ($sortField === 'created_at')
                                         @svg($sortDirection === 'asc' ? 'heroicon-s-chevron-up' : 'heroicon-s-chevron-down', 'h-3 w-3')
@@ -164,33 +166,37 @@
                         @endphp
 
                         @foreach ($users as $user)
-                            <tr class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5"
-                                onclick="window.location='{{ route('general-setup.users.edit', $user) }}'">
+                            @php $isSelected = in_array($user->id, $selectedUsers); @endphp
+                            <tr
+                                wire:key="user-{{ $user->id }}"
+                                class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5 {{ $isSelected ? 'bg-slate-50 dark:bg-white/5' : '' }}"
+                                onclick="window.location='{{ route('general-setup.users.edit', $user) }}'"
+                            >
+                                <td class="whitespace-nowrap px-5 py-4" wire:click.stop>
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" wire:model.live="selectedUsers" value="{{ $user->id }}"
+                                            class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500 dark:border-white/30 dark:bg-white/10 dark:checked:bg-white dark:checked:text-slate-900">
+                                    </label>
+                                </td>
                                 <td class="whitespace-nowrap px-5 py-4">
                                     <div class="flex items-center gap-3">
-                                        <div
-                                            class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-200 text-sm font-medium text-slate-600 dark:bg-white/10 dark:text-white/80">
+                                        <div class="flex h-9 w-9 items-center justify-center rounded-full bg-slate-200 text-sm font-medium text-slate-600 dark:bg-white/10 dark:text-white/80">
                                             {{ strtoupper(substr($user->name, 0, 1)) }}
                                         </div>
-                                        <span
-                                            class="text-sm font-medium text-slate-900 dark:text-white">{{ $user->name }}</span>
+                                        <span class="text-sm font-medium text-slate-900 dark:text-white">{{ $user->name }}</span>
                                     </div>
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-600 dark:text-white/70">
                                     {{ $user->email }}
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4">
-                                    @php
-                                        $primaryRole = $user->roles->first();
-                                    @endphp
-
+                                    @php $primaryRole = $user->roles->first(); @endphp
                                     @if ($primaryRole)
                                         @php
                                             $colorKey = $primaryRole->color ?? 'slate';
                                             $classes = $roleBadgeClasses[$colorKey] ?? $roleBadgeClasses['slate'];
                                         @endphp
-                                        <span
-                                            class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium {{ $classes }}">
+                                        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium {{ $classes }}">
                                             {{ $primaryRole->name }}
                                         </span>
                                     @else
@@ -199,13 +205,11 @@
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4">
                                     @if ($user->email_verified_at)
-                                        <span
-                                            class="inline-flex items-center rounded-lg bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
+                                        <span class="inline-flex items-center rounded-lg bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
                                             Verified
                                         </span>
                                     @else
-                                        <span
-                                            class="inline-flex items-center rounded-lg bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
+                                        <span class="inline-flex items-center rounded-lg bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
                                             Pending
                                         </span>
                                     @endif
@@ -215,29 +219,13 @@
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4">
                                     @if ($statusFilter === 'trashed')
-                                        <div class="flex items-center justify-end gap-1">
-                                            <button type="button" wire:click.stop="restore({{ $user->id }})"
-                                                class="rounded-lg p-2 text-emerald-600 transition hover:bg-emerald-50 hover:text-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-500/10"
-                                                title="Restore">
-                                                @svg('heroicon-o-arrow-uturn-left', 'h-4 w-4')
-                                            </button>
-                                        </div>
+                                        <button type="button" wire:click.stop="restore({{ $user->id }})"
+                                            class="rounded-lg p-2 text-emerald-600 transition hover:bg-emerald-50 hover:text-emerald-700 dark:text-emerald-400 dark:hover:bg-emerald-500/10"
+                                            title="Restore">
+                                            @svg('heroicon-o-arrow-uturn-left', 'h-4 w-4')
+                                        </button>
                                     @else
-                                        <div class="flex items-center justify-end gap-1">
-                                            <a
-                                                href="{{ route('general-setup.users.edit', $user) }}"
-                                                onclick="event.stopPropagation()"
-                                                class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-white/10 dark:hover:text-white"
-                                                title="Edit">
-                                                @svg('heroicon-o-pencil', 'h-4 w-4')
-                                            </a>
-                                            <button type="button"
-                                                wire:click.stop="confirmDelete({{ $user->id }})"
-                                                class="rounded-lg p-2 text-slate-400 transition hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400"
-                                                title="Delete">
-                                                @svg('heroicon-o-trash', 'h-4 w-4')
-                                            </button>
-                                        </div>
+                                        @svg('heroicon-o-chevron-right', 'h-4 w-4 text-slate-400')
                                     @endif
                                 </td>
                             </tr>

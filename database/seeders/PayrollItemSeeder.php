@@ -10,20 +10,7 @@ class PayrollItemSeeder extends Seeder
     public function run(): void
     {
         $items = [
-            // Earnings
-            [
-                'code' => 'PI-001',
-                'name' => 'Gaji Pokok',
-                'description' => 'Gaji pokok bulanan karyawan',
-                'type' => 'earning',
-                'category' => 'basic_salary',
-                'calculation_type' => 'fixed',
-                'default_amount' => 5000000,
-                'is_taxable' => true,
-                'is_recurring' => true,
-                'is_active' => true,
-                'sort_order' => 1,
-            ],
+            // Earnings (Note: Gaji Pokok/Base Salary is stored directly on Employee.base_salary)
             [
                 'code' => 'PI-002',
                 'name' => 'Tunjangan Transport',

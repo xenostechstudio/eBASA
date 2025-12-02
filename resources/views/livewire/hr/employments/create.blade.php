@@ -1,15 +1,12 @@
 <div>
-    {{-- Flash Message --}}
     @if (session()->has('status'))
-        <x-alert type="success">
-            {{ session('status') }}
-        </x-alert>
+        <x-alert type="success">{{ session('status') }}</x-alert>
     @endif
 
     <div class="space-y-6">
         {{-- Header --}}
         <x-form.section-header
-            title="Employment Record"
+            title="New Employment Record"
             description="Assign an employee to a branch, department, and position with contract terms."
         />
 

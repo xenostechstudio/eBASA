@@ -80,6 +80,7 @@ use App\Livewire\Pos\Screen as PosScreen;
 use App\Livewire\Procurement\Orders\Create as ProcurementOrderCreate;
 use App\Livewire\Procurement\Orders\Index as ProcurementOrders;
 use App\Livewire\Procurement\Portal as ProcurementPortal;
+use App\Livewire\Procurement\Receipts\Create as ProcurementReceiptsCreate;
 use App\Livewire\Procurement\Receipts\Index as ProcurementReceipts;
 use App\Livewire\Procurement\Returns\Create as ProcurementReturnsCreate;
 use App\Livewire\Procurement\Returns\Edit as ProcurementReturnsEdit;
@@ -166,6 +167,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/orders', ProcurementOrders::class)->name('orders');
         Route::get('/orders/create', ProcurementOrderCreate::class)->name('orders.create');
         Route::get('/receipts', ProcurementReceipts::class)->name('receipts');
+        Route::get('/receipts/create', ProcurementReceiptsCreate::class)->name('receipts.create');
         Route::get('/returns', ProcurementReturns::class)->name('returns');
         Route::get('/returns/create', ProcurementReturnsCreate::class)->name('returns.create');
         Route::get('/returns/{return}', ProcurementReturnsEdit::class)->name('returns.edit');
@@ -294,9 +296,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile', \App\Livewire\Profile\Edit::class)->name('profile.edit');
 
     Route::post('/locale', function (Request $request) {
         $request->validate([

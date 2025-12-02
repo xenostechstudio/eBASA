@@ -103,6 +103,7 @@
     </div>
 </div>
 
+{{-- Footer with Auditing Info --}}
 <div class="flex flex-col gap-2 border-t border-slate-200 px-6 py-4 dark:border-white/10 md:flex-row md:items-center md:justify-between">
     @if ($isEditing && isset($editingCategory) && $editingCategory)
         <div class="text-[11px] text-slate-400 dark:text-white/40">
@@ -111,30 +112,42 @@
                 <span class="font-medium text-slate-500 dark:text-white/60">
                     {{ optional($editingCategory->created_at)->format(config('basa.datetime_format')) }}
                 </span>
+                @if ($editingCategory->createdBy)
+                    by
+                    <span class="font-medium text-slate-600 dark:text-white/80">
+                        {{ $editingCategory->createdBy->name }}
+                    </span>
+                @endif
             </p>
             <p>
                 Last updated
                 <span class="font-medium text-slate-500 dark:text-white/60">
                     {{ optional($editingCategory->updated_at)->format(config('basa.datetime_format')) }}
                 </span>
+                @if ($editingCategory->updatedBy)
+                    by
+                    <span class="font-medium text-slate-600 dark:text-white/80">
+                        {{ $editingCategory->updatedBy->name }}
+                    </span>
+                @endif
             </p>
         </div>
     @endif
 
     <div class="flex items-center justify-end gap-3 md:ml-auto">
-        <button
+        <x-button.secondary
             type="button"
             wire:click="closeModal"
-            class="inline-flex h-10 items-center rounded-xl border border-slate-200 px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:text-white/80 dark:hover:bg-white/5"
         >
             Cancel
-        </button>
-        <button
+        </x-button.secondary>
+
+        <x-button.primary
             type="button"
             wire:click="save"
             wire:loading.attr="disabled"
             wire:target="save"
-            class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-50 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90"
+            class="h-10"
         >
             <span wire:loading.remove wire:target="save">
                 @svg('heroicon-o-check', 'h-4 w-4')
@@ -143,6 +156,6 @@
                 @svg('heroicon-o-arrow-path', 'h-4 w-4 animate-spin')
             </span>
             <span>{{ $isEditing ? 'Save Changes' : 'Create Category' }}</span>
-        </button>
+        </x-button.primary>
     </div>
 </div>

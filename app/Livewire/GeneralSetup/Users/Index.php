@@ -31,6 +31,13 @@ class Index extends Component
 
     public array $perPageOptions = [15, 30, 50];
 
+    // Multi-selection
+    public array $selectedUsers = [];
+
+    public bool $selectPage = false;
+
+    public array $pageUserIds = [];
+
     // Modal state
     public bool $showCreateModal = false;
 
@@ -65,6 +72,66 @@ class Index extends Component
             $this->sortField = $field;
             $this->sortDirection = 'asc';
         }
+    }
+
+    public function updatedSelectedUsers(): void
+    {
+        $this->selectPage = count($this->selectedUsers) === count($this->pageUserIds)
+            && count($this->pageUserIds) > 0;
+    }
+
+    public function toggleSelectPage(): void
+    {
+        $this->selectPage = ! $this->selectPage;
+
+        if ($this->selectPage) {
+            $this->selectedUsers = array_map('strval', $this->pageUserIds);
+        } else {
+            $this->selectedUsers = [];
+        }
+    }
+
+    public function selectPage(): void
+    {
+        $this->selectPage = true;
+        $this->selectedUsers = array_map('strval', $this->pageUserIds);
+    }
+
+    public function selectAllUsers(): void
+    {
+        $this->selectedUsers = User::query()
+            ->when($this->search, fn ($q) => $q->where('name', 'like', '%' . $this->search . '%')->orWhere('email', 'like', '%' . $this->search . '%'))
+            ->when($this->statusFilter === 'verified', fn ($q) => $q->whereNotNull('email_verified_at'))
+            ->when($this->statusFilter === 'pending', fn ($q) => $q->whereNull('email_verified_at'))
+            ->when($this->statusFilter === 'trashed', fn ($q) => $q->onlyTrashed())
+            ->pluck('id')
+            ->map(fn ($id) => (string) $id)
+            ->toArray();
+    }
+
+    public function deselectAll(): void
+    {
+        $this->selectedUsers = [];
+        $this->selectPage = false;
+    }
+
+    public function deleteSelected(): void
+    {
+        if (empty($this->selectedUsers)) {
+            return;
+        }
+
+        User::whereIn('id', $this->selectedUsers)->delete();
+
+        $count = count($this->selectedUsers);
+        $this->selectedUsers = [];
+        $this->selectPage = false;
+
+        session()->flash('flash', [
+            'type' => 'success',
+            'title' => 'Users deleted',
+            'message' => $count . ' user(s) deleted successfully.',
+        ]);
     }
 
     public function openCreateModal(): void
@@ -277,6 +344,8 @@ class Index extends Component
             })
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);
+
+        $this->pageUserIds = $users->pluck('id')->toArray();
 
         $stats = [
             'total' => User::count(),

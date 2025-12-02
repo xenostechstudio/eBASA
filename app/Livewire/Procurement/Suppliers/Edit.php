@@ -2,84 +2,214 @@
 
 namespace App\Livewire\Procurement\Suppliers;
 
+use App\Models\Product;
+use App\Models\PurchaseOrder;
+use App\Models\Supplier;
 use App\Support\ProcurementNavigation;
 use Illuminate\Contracts\View\View;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Layout('layouts.portal-sidebar')]
 class Edit extends Component
 {
-    public int $supplierId;
+    use WithPagination;
+
+    public Supplier $supplier;
 
     /**
      * @var array<string, mixed>
      */
     public array $form = [];
 
-    public function mount(int $supplier): void
+    // Relation manager state
+    public string $ordersSearch = '';
+    public string $ordersStatusFilter = 'all';
+    public string $ordersSortField = 'order_date';
+    public string $ordersSortDirection = 'desc';
+
+    // Products tab state
+    public string $productsSearch = '';
+    public bool $showAddProductModal = false;
+    public ?int $selectedProductId = null;
+    public ?float $supplierPrice = null;
+    public ?string $supplierSku = null;
+    public ?int $leadTimeDays = null;
+    public int $minOrderQty = 1;
+
+    public function mount(Supplier $supplier): void
     {
-        $this->supplierId = $supplier;
+        $this->supplier = $supplier;
 
-        // Mock supplier data for demo purposes
-        $supplierData = [
-            'name' => 'PT Supplier Utama',
-            'code' => 'SUP-00'.$supplier,
-            'contact_name' => 'Budi Santoso',
-            'email' => 'budi@supplier.com',
-            'phone' => '021-1234567',
-            'tax_number' => '01.234.567.8-901.000',
-            'address' => 'Jl. Contoh No. 123, Jakarta',
-            'payment_terms' => '30',
-            'is_active' => true,
-            'notes' => 'Top tier supplier with consistent lead times.',
+        $this->form = [
+            'name' => $this->supplier->name,
+            'code' => $this->supplier->code,
+            'contact_name' => $this->supplier->contact_name,
+            'email' => $this->supplier->email,
+            'phone' => $this->supplier->phone,
+            'tax_number' => $this->supplier->tax_number,
+            'address' => $this->supplier->address,
+            'payment_terms' => $this->supplier->payment_terms,
+            'is_active' => $this->supplier->is_active,
+            'notes' => $this->supplier->notes,
         ];
-
-        $this->form = $supplierData;
     }
 
     public function save(): void
     {
-        $this->validate([
+        $validated = $this->validate([
             'form.name' => ['required', 'string', 'max:255'],
-            'form.code' => ['required', 'string', 'max:50'],
+            'form.code' => ['required', 'string', 'max:50', 'unique:suppliers,code,' . $this->supplier->id],
             'form.contact_name' => ['nullable', 'string', 'max:255'],
             'form.email' => ['nullable', 'email', 'max:255'],
             'form.phone' => ['nullable', 'string', 'max:50'],
             'form.tax_number' => ['nullable', 'string', 'max:50'],
             'form.address' => ['nullable', 'string'],
-            'form.payment_terms' => ['nullable', 'string', 'max:50'],
+            'form.payment_terms' => ['nullable', 'integer', 'min:0'],
             'form.is_active' => ['boolean'],
             'form.notes' => ['nullable', 'string'],
         ]);
 
-        session()->flash('status', 'Supplier updated (demo only).');
+        $this->supplier->update($validated['form']);
 
-        $this->dispatch('notify', message: 'Supplier updated');
+        session()->flash('status', 'Supplier updated successfully');
 
-        $this->redirect(route('procurement.suppliers'), navigate: true);
+        $this->dispatch('notify', message: 'Supplier updated successfully');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Orders Relation Manager
+    // ─────────────────────────────────────────────────────────────
+
+    public function setOrdersSort(string $field): void
+    {
+        if ($this->ordersSortField === $field) {
+            $this->ordersSortDirection = $this->ordersSortDirection === 'asc' ? 'desc' : 'asc';
+            return;
+        }
+        $this->ordersSortField = $field;
+        $this->ordersSortDirection = 'asc';
+    }
+
+    public function setOrdersStatusFilter(string $status): void
+    {
+        $this->ordersStatusFilter = $status;
+        $this->resetPage('ordersPage');
+    }
+
+    #[Computed]
+    public function orders()
+    {
+        return $this->supplier->purchaseOrders()
+            ->with('warehouse')
+            ->when($this->ordersSearch, fn ($q) => $q->where('reference', 'like', "%{$this->ordersSearch}%"))
+            ->when($this->ordersStatusFilter !== 'all', fn ($q) => $q->where('status', $this->ordersStatusFilter))
+            ->orderBy($this->ordersSortField, $this->ordersSortDirection)
+            ->paginate(5, pageName: 'ordersPage');
+    }
+
+    public function createOrderForSupplier(): void
+    {
+        $this->redirect(route('procurement.orders.create', ['supplier' => $this->supplier->id]), navigate: true);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Products Relation Manager
+    // ─────────────────────────────────────────────────────────────
+
+    #[Computed]
+    public function supplierProducts()
+    {
+        return $this->supplier->products()
+            ->when($this->productsSearch, fn ($q) => $q->where('name', 'like', "%{$this->productsSearch}%"))
+            ->orderBy('name')
+            ->paginate(10, pageName: 'productsPage');
+    }
+
+    #[Computed]
+    public function availableProducts()
+    {
+        $existingIds = $this->supplier->products()->pluck('products.id');
+
+        return Product::whereNotIn('id', $existingIds)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->limit(50)
+            ->get();
+    }
+
+    public function openAddProductModal(): void
+    {
+        $this->reset(['selectedProductId', 'supplierPrice', 'supplierSku', 'leadTimeDays', 'minOrderQty']);
+        $this->minOrderQty = 1;
+        $this->showAddProductModal = true;
+    }
+
+    public function addProduct(): void
+    {
+        $this->validate([
+            'selectedProductId' => ['required', 'exists:products,id'],
+            'supplierPrice' => ['nullable', 'numeric', 'min:0'],
+            'supplierSku' => ['nullable', 'string', 'max:100'],
+            'leadTimeDays' => ['nullable', 'integer', 'min:0'],
+            'minOrderQty' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $this->supplier->products()->attach($this->selectedProductId, [
+            'supplier_price' => $this->supplierPrice,
+            'supplier_sku' => $this->supplierSku,
+            'lead_time_days' => $this->leadTimeDays,
+            'min_order_qty' => $this->minOrderQty,
+        ]);
+
+        $this->showAddProductModal = false;
+        unset($this->supplierProducts, $this->availableProducts);
+        $this->dispatch('notify', message: 'Product added to supplier');
+    }
+
+    public function removeProduct(int $productId): void
+    {
+        $this->supplier->products()->detach($productId);
+        unset($this->supplierProducts, $this->availableProducts);
+        $this->dispatch('notify', message: 'Product removed from supplier');
+    }
+
+    public function togglePreferred(int $productId): void
+    {
+        $pivot = $this->supplier->products()->where('products.id', $productId)->first()?->pivot;
+        if ($pivot) {
+            $this->supplier->products()->updateExistingPivot($productId, [
+                'is_preferred' => !$pivot->is_preferred,
+            ]);
+            unset($this->supplierProducts);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Stats
+    // ─────────────────────────────────────────────────────────────
+
+    #[Computed]
+    public function stats(): array
+    {
+        return [
+            'lifetimeSpend' => $this->supplier->purchaseOrders()
+                ->whereIn('status', ['approved', 'partially_received', 'received'])
+                ->sum('total'),
+            'ordersCount' => $this->supplier->purchaseOrders()->count(),
+            'openOrders' => $this->supplier->purchaseOrders()
+                ->whereIn('status', ['approved', 'partially_received'])
+                ->count(),
+            'productsCount' => $this->supplier->products()->count(),
+        ];
     }
 
     public function render(): View
     {
-        // Mock stats & related orders similar to a Filament relation manager
-        $stats = [
-            'lifetimeSpend' => 125000000,
-            'ordersCount' => 45,
-            'openOrders' => 3,
-            'onTimeRate' => 96,
-        ];
-
-        $orders = collect([
-            ['number' => 'PO-2024-045', 'date' => now()->subDays(2), 'status' => 'open', 'amount' => 12500000],
-            ['number' => 'PO-2024-044', 'date' => now()->subDays(7), 'status' => 'completed', 'amount' => 9800000],
-            ['number' => 'PO-2024-043', 'date' => now()->subDays(14), 'status' => 'completed', 'amount' => 15400000],
-        ]);
-
-        return view('livewire.procurement.suppliers.edit', [
-            'stats' => $stats,
-            'orders' => $orders,
-        ])->layoutData([
+        return view('livewire.procurement.suppliers.edit')->layoutData([
             'pageTitle' => 'Edit Supplier',
             'pageTagline' => 'Procurement',
             'activeModule' => 'procurement',

@@ -34,9 +34,17 @@ class Index extends Component
     public ?int $deletingItemId = null;
     public ?string $deletingItemName = null;
 
+    /** @var array<int, int> */
+    public array $selectedItems = [];
+    public bool $selectPage = false;
+
+    /** @var array<int, int> */
+    public array $pageItemIds = [];
+
     public function updatedSearch(): void
     {
         $this->resetPage();
+        $this->resetSelection();
     }
 
     public function setTypeFilter(string $value): void
@@ -99,6 +107,80 @@ class Index extends Component
         ]);
     }
 
+    public function toggleSelectPage(): void
+    {
+        $this->selectPage = ! $this->selectPage;
+
+        if ($this->selectPage) {
+            $this->selectedItems = array_map('strval', $this->pageItemIds);
+            return;
+        }
+
+        $this->selectedItems = [];
+    }
+
+    public function selectPage(): void
+    {
+        $this->selectedItems = array_map('strval', $this->pageItemIds);
+        $this->selectPage = $this->pageHasAllSelected();
+    }
+
+    public function selectAllItems(): void
+    {
+        $query = PayrollItem::query()
+            ->when($this->search, fn ($q) => $q->where('name', 'like', "%{$this->search}%")
+                ->orWhere('code', 'like', "%{$this->search}%"))
+            ->when($this->typeFilter, fn ($q) => $q->where('type', $this->typeFilter))
+            ->when($this->categoryFilter, fn ($q) => $q->where('category', $this->categoryFilter));
+
+        $allIds = $query->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $this->selectedItems = array_map('strval', $allIds);
+        $this->selectPage = $this->pageHasAllSelected();
+    }
+
+    public function deselectAll(): void
+    {
+        $this->resetSelection();
+    }
+
+    public function deleteSelected(): void
+    {
+        if (empty($this->selectedItems)) {
+            return;
+        }
+
+        PayrollItem::query()
+            ->whereIn('id', array_map('intval', $this->selectedItems))
+            ->delete();
+
+        $this->resetSelection();
+        $this->dispatch('notify', message: 'Selected payroll items deleted');
+    }
+
+    public function updatedSelectedItems(): void
+    {
+        $normalized = array_values(array_unique(array_map('intval', $this->selectedItems)));
+        $this->selectedItems = array_map('strval', $normalized);
+        $this->selectPage = $this->pageHasAllSelected($normalized);
+    }
+
+    protected function resetSelection(): void
+    {
+        $this->selectedItems = [];
+        $this->selectPage = false;
+    }
+
+    protected function pageHasAllSelected(?array $selectedIds = null): bool
+    {
+        $selectedIds ??= array_values(array_unique(array_map('intval', $this->selectedItems)));
+
+        if (empty($this->pageItemIds)) {
+            return false;
+        }
+
+        return empty(array_diff($this->pageItemIds, $selectedIds));
+    }
+
     public function render(): View
     {
         $items = PayrollItem::query()
@@ -108,6 +190,9 @@ class Index extends Component
             ->when($this->categoryFilter, fn ($q) => $q->where('category', $this->categoryFilter))
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate($this->perPage);
+
+        $this->pageItemIds = $items->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $this->selectPage = $this->pageHasAllSelected();
 
         $stats = [
             'total' => PayrollItem::count(),

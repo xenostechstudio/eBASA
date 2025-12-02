@@ -38,8 +38,8 @@ class PayrollItem extends Model
 
     public const TYPES = ['earning', 'deduction'];
 
+    // Note: Base Salary (Gaji Pokok) is stored directly on Employee.base_salary, not as a PayrollItem
     public const CATEGORIES = [
-        'basic_salary' => 'Gaji Pokok',
         'allowance' => 'Tunjangan',
         'bonus' => 'Bonus',
         'overtime' => 'Lembur',

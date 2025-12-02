@@ -8,12 +8,16 @@ use App\Models\Position;
 use App\Support\HumanResourceNavigation;
 use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Layout('layouts.portal-sidebar')]
 class Edit extends Component
 {
+    use WithPagination;
+
     public Position $position;
 
     /**
@@ -24,9 +28,12 @@ class Edit extends Component
     public array $branches = [];
     public array $departments = [];
 
+    // Relation manager state
+    public string $employeesSearch = '';
+
     public function mount(Position $position): void
     {
-        $this->position = $position;
+        $this->position = $position->load(['department', 'branch']);
 
         $this->form = [
             'code' => $position->code,
@@ -51,8 +58,32 @@ class Edit extends Component
 
         session()->flash('status', 'Position updated successfully');
         $this->dispatch('notify', message: 'Position updated');
+    }
 
-        $this->redirect(route('hr.positions'), navigate: true);
+    #[Computed]
+    public function stats(): array
+    {
+        return [
+            'employeesCount' => $this->position->employees()->count(),
+            'activeEmployees' => $this->position->employees()->where('status', 'active')->count(),
+            'department' => $this->position->department?->name ?? '-',
+            'branch' => $this->position->branch?->name ?? '-',
+        ];
+    }
+
+    #[Computed]
+    public function employees()
+    {
+        return $this->position->employees()
+            ->with(['department', 'branch'])
+            ->when($this->employeesSearch, fn ($q) => $q->where('full_name', 'like', "%{$this->employeesSearch}%"))
+            ->orderBy('full_name')
+            ->paginate(10, pageName: 'employeesPage');
+    }
+
+    public function goToEmployee(int $employeeId): void
+    {
+        $this->redirect(route('hr.employees.edit', $employeeId), navigate: true);
     }
 
     public function rules(): array
@@ -81,11 +112,7 @@ class Edit extends Component
 
     public function render(): View
     {
-        return view('livewire.hr.positions.edit', [
-            'branches' => $this->branches,
-            'departments' => $this->departments,
-            'position' => $this->position,
-        ])->layoutData([
+        return view('livewire.hr.positions.edit')->layoutData([
             'pageTitle' => 'Edit Position',
             'pageTagline' => 'HR · People',
             'activeModule' => 'hr',

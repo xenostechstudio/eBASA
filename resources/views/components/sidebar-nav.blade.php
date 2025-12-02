@@ -77,17 +77,36 @@
 
         {{-- Bottom: Profile Only --}}
         <div class="mt-auto flex flex-col items-center gap-3 pb-4">
-            {{-- Profile with Language & Theme inside --}}
-            <div class="relative" x-data="{ open: false }">
+            {{-- Profile with Language & Theme sub-dropdowns --}}
+            <div class="relative" x-data="{ 
+                open: false, 
+                submenu: null,
+                theme: localStorage.getItem('ebasa-theme') || 'system',
+                setTheme(mode) {
+                    this.theme = mode;
+                    localStorage.setItem('ebasa-theme', mode);
+                    if (mode === 'dark' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                },
+                closeAll() {
+                    this.open = false;
+                    this.submenu = null;
+                }
+            }">
                 <button
                     type="button"
-                    @click="open = !open"
+                    @click="open = !open; submenu = null"
                     class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 text-sm font-semibold text-white shadow-sm transition hover:from-slate-600 hover:to-slate-800 dark:from-white/20 dark:to-white/10 dark:hover:from-white/30 dark:hover:to-white/20"
                     :class="open ? 'ring-2 ring-slate-400 ring-offset-2 dark:ring-white/30 dark:ring-offset-slate-950' : ''"
                     aria-label="Profile menu"
                 >
                     {{ strtoupper(substr(auth()->user()->name ?? 'U', 0, 1)) }}
                 </button>
+
+                {{-- Main Dropdown --}}
                 <div
                     x-cloak
                     x-show="open"
@@ -97,8 +116,8 @@
                     x-transition:leave="transition ease-in duration-100"
                     x-transition:leave-start="opacity-100 scale-100"
                     x-transition:leave-end="opacity-0 scale-95"
-                    @click.away="open = false"
-                    class="absolute bottom-0 left-full z-50 ml-3 w-64 origin-bottom-left rounded-2xl border border-slate-300 bg-white p-2 shadow-xl dark:border-white/10 dark:bg-slate-900"
+                    @click.away="closeAll()"
+                    class="absolute bottom-0 left-full z-50 ml-3 w-56 origin-bottom-left rounded-2xl border border-slate-300 bg-white p-2 shadow-xl dark:border-white/10 dark:bg-slate-900"
                 >
                     {{-- User Info Header --}}
                     <div class="mb-2 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 p-3 dark:from-white/5 dark:to-white/10">
@@ -115,85 +134,46 @@
 
                     {{-- Menu Items --}}
                     <div class="space-y-0.5">
-                        <a href="{{ route('profile.edit') }}" class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-white/80 dark:hover:bg-white/5">
+                        <a href="{{ route('profile.edit') }}" @click="closeAll()" class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-white/80 dark:hover:bg-white/5">
                             @svg('heroicon-o-user-circle', 'h-5 w-5 text-slate-400 dark:text-white/40')
                             <span>My Profile</span>
                         </a>
-                        <a href="#" class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-white/80 dark:hover:bg-white/5">
-                            @svg('heroicon-o-cog-6-tooth', 'h-5 w-5 text-slate-400 dark:text-white/40')
-                            <span>Settings</span>
-                        </a>
-                    </div>
 
-                    {{-- Divider --}}
-                    <div class="my-2 border-t border-slate-100 dark:border-white/10"></div>
+                        {{-- Language Sub-menu Trigger --}}
+                        <button
+                            type="button"
+                            @click="submenu = submenu === 'language' ? null : 'language'"
+                            class="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-white/80 dark:hover:bg-white/5"
+                            :class="submenu === 'language' ? 'bg-slate-50 dark:bg-white/5' : ''"
+                        >
+                            <span class="flex items-center gap-3">
+                                @svg('heroicon-o-language', 'h-5 w-5 text-slate-400 dark:text-white/40')
+                                <span>Language</span>
+                            </span>
+                            <span class="flex items-center gap-2">
+                                <span class="text-xs text-slate-400 dark:text-white/40">{{ $currentLocale['flag'] ?? '🌐' }} {{ strtoupper($currentLocale['code'] ?? 'EN') }}</span>
+                                @svg('heroicon-o-chevron-right', 'h-4 w-4 text-slate-400 dark:text-white/40')
+                            </span>
+                        </button>
 
-                    {{-- Language Switcher --}}
-                    <div class="px-1">
-                        <p class="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/40">Language</p>
-                        <div class="flex gap-1">
-                            @foreach ($locales as $option)
-                                <form method="POST" action="{{ route('locale.switch') }}" class="m-0 flex-1">
-                                    @csrf
-                                    <input type="hidden" name="locale" value="{{ $option['code'] }}">
-                                    <button
-                                        type="submit"
-                                        class="flex w-full flex-col items-center gap-1 rounded-xl px-2 py-2 text-center transition {{ app()->getLocale() === $option['code'] ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 dark:bg-white/5 dark:text-white/70 dark:hover:bg-white/10' }}"
-                                    >
-                                        <span class="text-lg">{{ $option['flag'] ?? '🌐' }}</span>
-                                        <span class="text-[10px] font-medium uppercase tracking-wide">{{ $option['code'] }}</span>
-                                    </button>
-                                </form>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    {{-- Divider --}}
-                    <div class="my-2 border-t border-slate-100 dark:border-white/10"></div>
-
-                    {{-- Theme Toggle --}}
-                    <div class="px-1" x-data="{ 
-                        theme: localStorage.getItem('ebasa-theme') || 'system',
-                        setTheme(mode) {
-                            this.theme = mode;
-                            localStorage.setItem('ebasa-theme', mode);
-                            if (mode === 'dark' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                                document.documentElement.classList.add('dark');
-                            } else {
-                                document.documentElement.classList.remove('dark');
-                            }
-                        }
-                    }">
-                        <p class="mb-2 px-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/40">Theme</p>
-                        <div class="flex gap-1">
-                            <button
-                                type="button"
-                                @click="setTheme('light')"
-                                class="flex flex-1 flex-col items-center gap-1 rounded-xl px-2 py-2 text-center transition"
-                                :class="theme === 'light' ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 dark:bg-white/5 dark:text-white/70 dark:hover:bg-white/10'"
-                            >
-                                @svg('heroicon-o-sun', 'h-4 w-4')
-                                <span class="text-[10px] font-medium">Light</span>
-                            </button>
-                            <button
-                                type="button"
-                                @click="setTheme('dark')"
-                                class="flex flex-1 flex-col items-center gap-1 rounded-xl px-2 py-2 text-center transition"
-                                :class="theme === 'dark' ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 dark:bg-white/5 dark:text-white/70 dark:hover:bg-white/10'"
-                            >
-                                @svg('heroicon-o-moon', 'h-4 w-4')
-                                <span class="text-[10px] font-medium">Dark</span>
-                            </button>
-                            <button
-                                type="button"
-                                @click="setTheme('system')"
-                                class="flex flex-1 flex-col items-center gap-1 rounded-xl px-2 py-2 text-center transition"
-                                :class="theme === 'system' ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 dark:bg-white/5 dark:text-white/70 dark:hover:bg-white/10'"
-                            >
-                                @svg('heroicon-o-computer-desktop', 'h-4 w-4')
-                                <span class="text-[10px] font-medium">Auto</span>
-                            </button>
-                        </div>
+                        {{-- Theme Sub-menu Trigger --}}
+                        <button
+                            type="button"
+                            @click="submenu = submenu === 'theme' ? null : 'theme'"
+                            class="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-white/80 dark:hover:bg-white/5"
+                            :class="submenu === 'theme' ? 'bg-slate-50 dark:bg-white/5' : ''"
+                        >
+                            <span class="flex items-center gap-3">
+                                <template x-if="theme === 'light'">@svg('heroicon-o-sun', 'h-5 w-5 text-slate-400 dark:text-white/40')</template>
+                                <template x-if="theme === 'dark'">@svg('heroicon-o-moon', 'h-5 w-5 text-slate-400 dark:text-white/40')</template>
+                                <template x-if="theme === 'system'">@svg('heroicon-o-computer-desktop', 'h-5 w-5 text-slate-400 dark:text-white/40')</template>
+                                <span>Theme</span>
+                            </span>
+                            <span class="flex items-center gap-2">
+                                <span class="text-xs capitalize text-slate-400 dark:text-white/40" x-text="theme === 'system' ? 'Auto' : theme"></span>
+                                @svg('heroicon-o-chevron-right', 'h-4 w-4 text-slate-400 dark:text-white/40')
+                            </span>
+                        </button>
                     </div>
 
                     {{-- Divider --}}
@@ -207,6 +187,86 @@
                             <span>Sign out</span>
                         </button>
                     </form>
+                </div>
+
+                {{-- Language Sub-dropdown --}}
+                <div
+                    x-cloak
+                    x-show="submenu === 'language'"
+                    x-transition:enter="transition ease-out duration-100"
+                    x-transition:enter-start="opacity-0 translate-x-2"
+                    x-transition:enter-end="opacity-100 translate-x-0"
+                    x-transition:leave="transition ease-in duration-75"
+                    x-transition:leave-start="opacity-100 translate-x-0"
+                    x-transition:leave-end="opacity-0 translate-x-2"
+                    class="absolute bottom-0 left-full z-50 ml-[15.5rem] w-44 origin-bottom-left rounded-2xl border border-slate-300 bg-white p-2 shadow-xl dark:border-white/10 dark:bg-slate-900"
+                >
+                    <p class="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/40">Select Language</p>
+                    <div class="space-y-0.5">
+                        @foreach ($locales as $option)
+                            <form method="POST" action="{{ route('locale.switch') }}" class="m-0">
+                                @csrf
+                                <input type="hidden" name="locale" value="{{ $option['code'] }}">
+                                <button
+                                    type="submit"
+                                    class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition {{ app()->getLocale() === $option['code'] ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-700 hover:bg-slate-50 dark:text-white/80 dark:hover:bg-white/5' }}"
+                                >
+                                    <span class="text-lg">{{ $option['flag'] ?? '🌐' }}</span>
+                                    <span>{{ $option['name'] ?? strtoupper($option['code']) }}</span>
+                                    @if(app()->getLocale() === $option['code'])
+                                        @svg('heroicon-o-check', 'ml-auto h-4 w-4')
+                                    @endif
+                                </button>
+                            </form>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Theme Sub-dropdown --}}
+                <div
+                    x-cloak
+                    x-show="submenu === 'theme'"
+                    x-transition:enter="transition ease-out duration-100"
+                    x-transition:enter-start="opacity-0 translate-x-2"
+                    x-transition:enter-end="opacity-100 translate-x-0"
+                    x-transition:leave="transition ease-in duration-75"
+                    x-transition:leave-start="opacity-100 translate-x-0"
+                    x-transition:leave-end="opacity-0 translate-x-2"
+                    class="absolute bottom-0 left-full z-50 ml-[15.5rem] w-44 origin-bottom-left rounded-2xl border border-slate-300 bg-white p-2 shadow-xl dark:border-white/10 dark:bg-slate-900"
+                >
+                    <p class="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/40">Select Theme</p>
+                    <div class="space-y-0.5">
+                        <button
+                            type="button"
+                            @click="setTheme('light'); submenu = null"
+                            class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition"
+                            :class="theme === 'light' ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-700 hover:bg-slate-50 dark:text-white/80 dark:hover:bg-white/5'"
+                        >
+                            @svg('heroicon-o-sun', 'h-5 w-5')
+                            <span>Light</span>
+                            <template x-if="theme === 'light'">@svg('heroicon-o-check', 'ml-auto h-4 w-4')</template>
+                        </button>
+                        <button
+                            type="button"
+                            @click="setTheme('dark'); submenu = null"
+                            class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition"
+                            :class="theme === 'dark' ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-700 hover:bg-slate-50 dark:text-white/80 dark:hover:bg-white/5'"
+                        >
+                            @svg('heroicon-o-moon', 'h-5 w-5')
+                            <span>Dark</span>
+                            <template x-if="theme === 'dark'">@svg('heroicon-o-check', 'ml-auto h-4 w-4')</template>
+                        </button>
+                        <button
+                            type="button"
+                            @click="setTheme('system'); submenu = null"
+                            class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition"
+                            :class="theme === 'system' ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-700 hover:bg-slate-50 dark:text-white/80 dark:hover:bg-white/5'"
+                        >
+                            @svg('heroicon-o-computer-desktop', 'h-5 w-5')
+                            <span>Auto (System)</span>
+                            <template x-if="theme === 'system'">@svg('heroicon-o-check', 'ml-auto h-4 w-4')</template>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
