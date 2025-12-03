@@ -2,13 +2,201 @@
 
 namespace App\Livewire\Pos;
 
+use App\Models\CashierShift;
+use App\Models\Transaction;
+use App\Models\TransactionItem;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 #[Layout('layouts.pos')]
 class Screen extends Component
 {
+    /** @var array<int, array{id: int|null, name: string, sku: string, qty: int, price: int, total: int}> */
+    public array $cart = [];
+    public function mount(): void
+    {
+        $this->initializeDemoCart();
+    }
+
+    public function initializeDemoCart(): void
+    {
+        $this->cart = [
+            ['id' => 1, 'name' => 'Indomie Goreng Fried Noodles', 'sku' => 'SKU-IND-001', 'qty' => 3, 'price' => 3500, 'total' => 10500],
+            ['id' => 2, 'name' => 'Indomie Kari Ayam Noodles', 'sku' => 'SKU-IND-002', 'qty' => 5, 'price' => 3400, 'total' => 17000],
+            ['id' => 3, 'name' => 'ABC Sambal Extra Pedas 135ml', 'sku' => 'SKU-ABC-221', 'qty' => 1, 'price' => 12800, 'total' => 12800],
+            ['id' => 4, 'name' => 'ABC Kecap Manis 135ml', 'sku' => 'SKU-ABC-045', 'qty' => 2, 'price' => 9000, 'total' => 18000],
+            ['id' => 5, 'name' => 'Ultra Milk Full Cream 1L', 'sku' => 'SKU-MIL-908', 'qty' => 2, 'price' => 18500, 'total' => 37000],
+        ];
+    }
+
+    public function addToCart(int $productId, string $name, string $sku, int $price): void
+    {
+        $existingIndex = collect($this->cart)->search(fn ($item) => $item['id'] === $productId);
+
+        if ($existingIndex !== false) {
+            $this->cart[$existingIndex]['qty']++;
+            $this->cart[$existingIndex]['total'] = $this->cart[$existingIndex]['qty'] * $this->cart[$existingIndex]['price'];
+        } else {
+            $this->cart[] = [
+                'id' => $productId,
+                'name' => $name,
+                'sku' => $sku,
+                'qty' => 1,
+                'price' => $price,
+                'total' => $price,
+            ];
+        }
+    }
+
+    public function updateCartQty(int $index, int $qty): void
+    {
+        if ($qty <= 0) {
+            $this->removeFromCart($index);
+            return;
+        }
+
+        if (isset($this->cart[$index])) {
+            $this->cart[$index]['qty'] = $qty;
+            $this->cart[$index]['total'] = $qty * $this->cart[$index]['price'];
+        }
+    }
+
+    public function removeFromCart(int $index): void
+    {
+        unset($this->cart[$index]);
+        $this->cart = array_values($this->cart);
+    }
+
+    public function clearCart(): void
+    {
+        $this->cart = [];
+    }
+
+    public function getCartTotals(): array
+    {
+        $subtotal = collect($this->cart)->sum('total');
+        $discount = (int) round($subtotal * 0.05);
+        $taxableAmount = $subtotal - $discount;
+        $tax = (int) round($taxableAmount * 0.10);
+        $total = $taxableAmount + $tax;
+
+        return [
+            'subtotal' => $subtotal,
+            'discount' => $discount,
+            'tax' => $tax,
+            'total' => $total,
+        ];
+    }
+
+    public function completeCheckout(string $paymentMethodLabel, int $paidAmount): void
+    {
+        $user = Auth::user();
+
+        if (! $user || empty($this->cart)) {
+            return;
+        }
+
+        $branchId = (int) session('active_branch_id', 0);
+
+        if ($branchId <= 0) {
+            return;
+        }
+
+        $shift = CashierShift::where('branch_id', $branchId)
+            ->where('cashier_id', $user->id)
+            ->where('status', 'open')
+            ->first();
+
+        if (! $shift) {
+            return;
+        }
+
+        $totals = $this->getCartTotals();
+        $subtotal = $totals['subtotal'];
+        $discount = $totals['discount'];
+        $tax = $totals['tax'];
+        $total = $totals['total'];
+
+        if ($paidAmount < $total) {
+            return;
+        }
+
+        $paymentMethod = $this->normalizePaymentMethod($paymentMethodLabel);
+        $change = max(0, $paidAmount - $total);
+        $cartItems = $this->cart;
+
+        DB::transaction(function () use ($branchId, $user, $shift, $paymentMethod, $subtotal, $discount, $tax, $total, $paidAmount, $change, $cartItems) {
+            $transaction = Transaction::create([
+                'transaction_code' => $this->generateTransactionCode(),
+                'branch_id' => $branchId,
+                'cashier_id' => $user->id,
+                'shift_id' => $shift->id,
+                'type' => 'sale',
+                'status' => 'completed',
+                'payment_method' => $paymentMethod,
+                'subtotal' => $subtotal,
+                'discount_amount' => $discount,
+                'tax_amount' => $tax,
+                'total_amount' => $total,
+                'paid_amount' => $paidAmount,
+                'change_amount' => $change,
+                'completed_at' => now(),
+            ]);
+
+            foreach ($cartItems as $item) {
+                TransactionItem::create([
+                    'transaction_id' => $transaction->id,
+                    'product_id' => $item['id'] ?? null,
+                    'product_name' => $item['name'],
+                    'product_sku' => $item['sku'],
+                    'unit_price' => $item['price'],
+                    'quantity' => $item['qty'],
+                    'discount_amount' => 0,
+                    'subtotal' => $item['total'],
+                ]);
+            }
+
+            $shift->increment('total_transactions');
+            $shift->update([
+                'total_sales' => $shift->total_sales + $total,
+            ]);
+        });
+
+        $this->cart = [];
+        $this->dispatch('pos-checkout-complete');
+    }
+
+    private function normalizePaymentMethod(string $label): string
+    {
+        $value = strtolower($label);
+
+        if (str_contains($value, 'qris')) {
+            return 'qris';
+        }
+
+        if (str_contains($value, 'debit') || str_contains($value, 'card')) {
+            return 'card';
+        }
+
+        if (str_contains($value, 'transfer')) {
+            return 'transfer';
+        }
+
+        if (str_contains($value, 'mixed')) {
+            return 'mixed';
+        }
+
+        return 'cash';
+    }
+
+    private function generateTransactionCode(): string
+    {
+        return 'POS-' . now()->format('YmdHis') . '-' . random_int(100, 999);
+    }
+
     public function render(): View
     {
         $shiftSummary = [
@@ -24,188 +212,8 @@ class Screen extends Component
             ['label' => 'Suspend Sale', 'icon' => 'pause'],
         ];
 
-        $cartItems = [
-            [
-                'name' => 'Indomie Goreng Fried Noodles',
-                'sku' => 'SKU-IND-001',
-                'qty' => 3,
-                'price' => 3500,
-                'total' => 10500,
-                'badges' => ['Best Seller'],
-                'status' => 'Low stock',
-            ],
-            [
-                'name' => 'Indomie Kari Ayam Noodles',
-                'sku' => 'SKU-IND-002',
-                'qty' => 5,
-                'price' => 3400,
-                'total' => 17000,
-                'badges' => [],
-                'status' => null,
-            ],
-            [
-                'name' => 'ABC Sambal Extra Pedas 135ml',
-                'sku' => 'SKU-ABC-221',
-                'qty' => 1,
-                'price' => 12800,
-                'total' => 12800,
-                'badges' => ['Promo'],
-                'status' => null,
-            ],
-            [
-                'name' => 'ABC Kecap Manis 135ml',
-                'sku' => 'SKU-ABC-045',
-                'qty' => 2,
-                'price' => 9000,
-                'total' => 18000,
-                'badges' => [],
-                'status' => null,
-            ],
-            [
-                'name' => 'Ultra Milk Full Cream 1L',
-                'sku' => 'SKU-MIL-908',
-                'qty' => 2,
-                'price' => 18500,
-                'total' => 37000,
-                'badges' => [],
-                'status' => 'Price override pending',
-            ],
-            [
-                'name' => 'Ultra Milk Chocolate 250ml',
-                'sku' => 'SKU-MIL-432',
-                'qty' => 4,
-                'price' => 6500,
-                'total' => 26000,
-                'badges' => ['Chilled'],
-                'status' => null,
-            ],
-            [
-                'name' => 'Aqua Mineral Water 600ml',
-                'sku' => 'SKU-AQA-600',
-                'qty' => 6,
-                'price' => 4000,
-                'total' => 24000,
-                'badges' => [],
-                'status' => null,
-            ],
-            [
-                'name' => 'Pocari Sweat 350ml',
-                'sku' => 'SKU-POC-350',
-                'qty' => 3,
-                'price' => 8500,
-                'total' => 25500,
-                'badges' => ['Popular'],
-                'status' => null,
-            ],
-            [
-                'name' => 'Teh Botol Sosro Original',
-                'sku' => 'SKU-TBS-001',
-                'qty' => 4,
-                'price' => 6500,
-                'total' => 26000,
-                'badges' => [],
-                'status' => null,
-            ],
-            [
-                'name' => 'Good Day Freeze Coffee 250ml',
-                'sku' => 'SKU-GDY-250',
-                'qty' => 2,
-                'price' => 9000,
-                'total' => 18000,
-                'badges' => [],
-                'status' => null,
-            ],
-            [
-                'name' => 'Sari Roti Tawar Kupas',
-                'sku' => 'SKU-ROT-101',
-                'qty' => 1,
-                'price' => 19500,
-                'total' => 19500,
-                'badges' => ['Fresh'],
-                'status' => null,
-            ],
-            [
-                'name' => 'Roti Aoka Cokelat',
-                'sku' => 'SKU-ROT-202',
-                'qty' => 3,
-                'price' => 9500,
-                'total' => 28500,
-                'badges' => [],
-                'status' => null,
-            ],
-            [
-                'name' => 'SilverQueen Almond 65g',
-                'sku' => 'SKU-SQ-065',
-                'qty' => 2,
-                'price' => 14500,
-                'total' => 29000,
-                'badges' => ['Impulse'],
-                'status' => null,
-            ],
-            [
-                'name' => 'Chitato Sapi Panggang 68g',
-                'sku' => 'SKU-CHT-068',
-                'qty' => 4,
-                'price' => 9500,
-                'total' => 38000,
-                'badges' => ['Promo'],
-                'status' => null,
-            ],
-            [
-                'name' => 'Lays Rumput Laut 55g',
-                'sku' => 'SKU-LAY-055',
-                'qty' => 2,
-                'price' => 8500,
-                'total' => 17000,
-                'badges' => [],
-                'status' => null,
-            ],
-            [
-                'name' => 'Dettol Handwash Refill 200ml',
-                'sku' => 'SKU-DTL-200',
-                'qty' => 1,
-                'price' => 23500,
-                'total' => 23500,
-                'badges' => [],
-                'status' => null,
-            ],
-            [
-                'name' => 'Lifebuoy Body Wash 450ml',
-                'sku' => 'SKU-LFB-450',
-                'qty' => 1,
-                'price' => 29500,
-                'total' => 29500,
-                'badges' => [],
-                'status' => null,
-            ],
-            [
-                'name' => 'Downy Softener 900ml',
-                'sku' => 'SKU-DWN-900',
-                'qty' => 1,
-                'price' => 32500,
-                'total' => 32500,
-                'badges' => ['Promo'],
-                'status' => null,
-            ],
-            [
-                'name' => 'Sunlight Jeruk Nipis 755ml',
-                'sku' => 'SKU-SLT-755',
-                'qty' => 2,
-                'price' => 17500,
-                'total' => 35000,
-                'badges' => [],
-                'status' => null,
-            ],
-            [
-                'name' => 'Bango Kecap Manis 520ml',
-                'sku' => 'SKU-BNG-520',
-                'qty' => 1,
-                'price' => 29500,
-                'total' => 29500,
-                'badges' => ['Favorite'],
-                'status' => null,
-            ],
-        ];
+        $cartItems = $this->cart;
+        $paymentSummary = $this->getCartTotals();
 
         $suspendedSales = [
             ['number' => '#1032', 'amount' => 120000, 'time' => '14:02', 'note' => 'Customer grabbing cash'],
@@ -225,12 +233,6 @@ class Screen extends Component
             ['type' => 'warning', 'message' => 'Inventory sync delayed 2 min'],
         ];
 
-        $paymentSummary = [
-            'subtotal' => 60300,
-            'discount' => 5000,
-            'tax' => 3015,
-            'total' => 58315,
-        ];
 
         $checkoutPromos = [
             ['label' => 'Member Weekend', 'description' => 'Automatic loyalty discount', 'amount' => -3500],

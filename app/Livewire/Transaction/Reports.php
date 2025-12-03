@@ -12,10 +12,24 @@ class Reports extends Component
 {
     public function render()
     {
+        $activeBranchId = (int) session('active_branch_id', 0);
+        $activeBranchId = $activeBranchId > 0 ? $activeBranchId : null;
+
         $stats = [
-            'totalRevenue' => Transaction::where('status', 'completed')->sum('total_amount'),
-            'totalTransactions' => Transaction::count(),
-            'avgTransaction' => Transaction::where('status', 'completed')->avg('total_amount') ?? 0,
+            'totalRevenue' => Transaction::when($activeBranchId, function ($query) use ($activeBranchId) {
+                    $query->where('branch_id', $activeBranchId);
+                })
+                ->where('status', 'completed')
+                ->sum('total_amount'),
+            'totalTransactions' => Transaction::when($activeBranchId, function ($query) use ($activeBranchId) {
+                    $query->where('branch_id', $activeBranchId);
+                })
+                ->count(),
+            'avgTransaction' => Transaction::when($activeBranchId, function ($query) use ($activeBranchId) {
+                    $query->where('branch_id', $activeBranchId);
+                })
+                ->where('status', 'completed')
+                ->avg('total_amount') ?? 0,
         ];
 
         return view('livewire.transaction.reports', [

@@ -22,7 +22,13 @@ class Shifts extends Component
 
     public function render()
     {
+        $activeBranchId = (int) session('active_branch_id', 0);
+        $activeBranchId = $activeBranchId > 0 ? $activeBranchId : null;
+
         $shifts = CashierShift::with(['cashier', 'branch'])
+            ->when($activeBranchId, function ($query) use ($activeBranchId) {
+                $query->where('branch_id', $activeBranchId);
+            })
             ->when($this->search, function ($query) {
                 $query->whereHas('cashier', function ($q) {
                     $q->where('name', 'like', '%' . $this->search . '%');
@@ -35,11 +41,21 @@ class Shifts extends Component
             ->paginate(15);
 
         $stats = [
-            'openShifts' => CashierShift::where('status', 'open')->count(),
-            'closedToday' => CashierShift::where('status', 'closed')
+            'openShifts' => CashierShift::when($activeBranchId, function ($query) use ($activeBranchId) {
+                    $query->where('branch_id', $activeBranchId);
+                })
+                ->where('status', 'open')
+                ->count(),
+            'closedToday' => CashierShift::when($activeBranchId, function ($query) use ($activeBranchId) {
+                    $query->where('branch_id', $activeBranchId);
+                })
+                ->where('status', 'closed')
                 ->whereDate('closed_at', today())
                 ->count(),
-            'totalShifts' => CashierShift::count(),
+            'totalShifts' => CashierShift::when($activeBranchId, function ($query) use ($activeBranchId) {
+                    $query->where('branch_id', $activeBranchId);
+                })
+                ->count(),
         ];
 
         return view('livewire.transaction.shifts', [

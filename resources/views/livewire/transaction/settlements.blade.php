@@ -65,9 +65,9 @@
                     <tbody class="divide-y divide-slate-100 dark:divide-white/10">
                         @foreach ($settlements as $settlement)
                             @php
-                                $difference = ($settlement->actual_cash ?? 0) - ($settlement->expected_cash ?? 0);
+                                $difference = ($settlement->closing_cash ?? 0) - ($settlement->expected_cash ?? 0);
                             @endphp
-                            <tr class="transition hover:bg-slate-50 dark:hover:bg-white/5">
+                            <tr onclick="window.location='{{ route('transactions.settlements.show', $settlement) }}'" class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5">
                                 <td class="whitespace-nowrap px-5 py-4">
                                     <p class="text-sm font-medium text-slate-900 dark:text-white">{{ $settlement->cashier?->name ?? '-' }}</p>
                                 </td>
@@ -85,7 +85,7 @@
                                     Rp {{ number_format($settlement->expected_cash ?? 0, 0, ',', '.') }}
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-right text-sm font-medium text-slate-900 dark:text-white">
-                                    Rp {{ number_format($settlement->actual_cash ?? 0, 0, ',', '.') }}
+                                    Rp {{ number_format($settlement->closing_cash ?? 0, 0, ',', '.') }}
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-right">
                                     <span class="text-sm font-medium {{ $difference >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400' }}">
@@ -95,20 +95,21 @@
                                 <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500 dark:text-white/60">
                                     {{ $settlement->closed_at?->format('d M Y H:i') ?? '-' }}
                                 </td>
-                                <td class="whitespace-nowrap px-5 py-4">
-                                    <button class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-white/10 dark:hover:text-white" title="View Details">
+                                <td class="whitespace-nowrap px-5 py-4" onclick="event.stopPropagation()">
+                                    <a
+                                        href="{{ route('transactions.settlements.show', $settlement) }}"
+                                        class="inline-flex items-center rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-white/10 dark:hover:text-white"
+                                        title="View Details"
+                                    >
                                         @svg('heroicon-o-eye', 'h-4 w-4')
-                                    </button>
+                                    </a>
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
-
-            <div class="border-t border-slate-100 px-5 py-4 dark:border-white/10">
-                {{ $settlements->links() }}
-            </div>
+            <x-table.pagination :paginator="$settlements" :per-page-options="$perPageOptions" />
         @else
             <div class="flex flex-col items-center justify-center py-16 text-center">
                 @svg('heroicon-o-banknotes', 'h-12 w-12 text-slate-300 dark:text-white/20')

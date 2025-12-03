@@ -12,10 +12,13 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 #[Layout('layouts.portal-sidebar')]
 class Edit extends Component
 {
+    use WithPagination;
+
     public PayrollRun $payrollRun;
     public array $form = [];
     public array $payrollGroups = [];
@@ -23,6 +26,13 @@ class Edit extends Component
     public array $statuses = ['draft', 'processing', 'approved', 'paid', 'cancelled'];
 
     public string $employeeSearch = '';
+    public int $perPage = 10;
+    public array $perPageOptions = [10, 25, 50];
+
+    public function updatedEmployeeSearch(): void
+    {
+        $this->resetPage();
+    }
 
     public function mount(PayrollRun $payrollRun): void
     {
@@ -168,40 +178,44 @@ class Edit extends Component
 
     public function render(): View
     {
-        $payouts = $this->payrollRun->payouts()
-            ->with('employee')
-            ->when($this->employeeSearch, fn ($q) => $q->whereHas('employee', fn ($e) => $e->where('full_name', 'like', "%{$this->employeeSearch}%")))
-            ->orderBy('id')
-            ->get();
+        // Get all payouts for totals calculation (without pagination)
+        $allPayouts = $this->payrollRun->payouts()->with('employee')->get();
+        $totalGross = $allPayouts->sum('gross_salary');
+        $totalDeductions = $allPayouts->sum('total_deductions');
+        $totalNet = $allPayouts->sum('net_salary');
+        $employeesWithPayouts = $allPayouts->pluck('employee_id')->toArray();
 
-        $totalGross = $payouts->sum('gross_salary');
-        $totalDeductions = $payouts->sum('total_deductions');
-        $totalNet = $payouts->sum('net_salary');
-
-        // Get employees from payroll group (for reference)
-        $groupEmployees = Employee::where('payroll_group_id', $this->payrollRun->payroll_group_id)
+        // Get employees from payroll group with their payout status (unified view)
+        $employees = Employee::where('payroll_group_id', $this->payrollRun->payroll_group_id)
             ->with(['position', 'department'])
-            ->when($this->employeeSearch, fn ($q) => $q->where('full_name', 'like', "%{$this->employeeSearch}%"))
+            ->when($this->employeeSearch, fn ($q) => $q->where(function ($query) {
+                $query->where('full_name', 'like', "%{$this->employeeSearch}%")
+                    ->orWhere('code', 'like', "%{$this->employeeSearch}%");
+            }))
             ->orderBy('full_name')
-            ->get();
+            ->paginate($this->perPage);
 
-        // Employees with payouts
-        $employeesWithPayouts = $payouts->pluck('employee_id')->toArray();
+        // Map payouts by employee_id for quick lookup
+        $payoutsByEmployee = $allPayouts->keyBy('employee_id');
+
+        // Total employee count in group (without search filter)
+        $totalGroupEmployees = Employee::where('payroll_group_id', $this->payrollRun->payroll_group_id)->count();
 
         return view('livewire.hr.payroll.payroll-runs.edit', [
             'payrollGroups' => $this->payrollGroups,
             'branches' => $this->branches,
             'statuses' => $this->statuses,
             'payrollRun' => $this->payrollRun,
-            'payouts' => $payouts,
+            'employees' => $employees,
+            'payoutsByEmployee' => $payoutsByEmployee,
+            'employeesWithPayouts' => $employeesWithPayouts,
             'totalGross' => $totalGross,
             'totalDeductions' => $totalDeductions,
             'totalNet' => $totalNet,
-            'employeeCount' => $payouts->count(),
-            'processedCount' => $payouts->where('status', 'paid')->count(),
-            'groupEmployees' => $groupEmployees,
-            'groupEmployeeCount' => $groupEmployees->count(),
-            'employeesWithPayouts' => $employeesWithPayouts,
+            'payoutCount' => $allPayouts->count(),
+            'totalGroupEmployees' => $totalGroupEmployees,
+            'processedCount' => $allPayouts->where('status', 'paid')->count(),
+            'perPageOptions' => $this->perPageOptions,
         ])->layoutData([
             'pageTitle' => 'Edit Payroll Run',
             'pageTagline' => 'HR · Payroll',

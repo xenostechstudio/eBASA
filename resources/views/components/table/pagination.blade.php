@@ -11,7 +11,7 @@
     $pageName = $paginator->getPageName();
 @endphp
 
-<div class="flex flex-col gap-3 border-t border-slate-200 dark:border-white/10 px-6 py-4 text-sm text-slate-700 dark:text-white/70 md:flex-row md:items-center">
+<div class="flex flex-col gap-3 px-6 py-4 text-sm text-slate-700 dark:text-white/70 md:flex-row md:items-center border-t">
     <div class="md:w-1/3">
         @if ($paginator->total())
             <p>Showing {{ $paginator->firstItem() }}–{{ $paginator->lastItem() }} of {{ $paginator->total() }} results</p>

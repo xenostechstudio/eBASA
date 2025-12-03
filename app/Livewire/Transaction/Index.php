@@ -28,6 +28,10 @@ class Index extends Component
 
     public string $sortDirection = 'desc';
 
+    public ?int $selectedTransactionId = null;
+
+    public ?Transaction $selectedTransaction = null;
+
     public function updatedSearch(): void
     {
         $this->resetPage();
@@ -65,6 +69,18 @@ class Index extends Component
         }
     }
 
+    public function viewTransaction(int $id): void
+    {
+        $this->selectedTransactionId = $id;
+        $this->selectedTransaction = Transaction::with(['items', 'branch', 'cashier'])->find($id);
+    }
+
+    public function closeTransactionDetail(): void
+    {
+        $this->selectedTransactionId = null;
+        $this->selectedTransaction = null;
+    }
+
     public function export(string $format): void
     {
         if (! in_array($format, ['excel', 'pdf'], true)) {
@@ -82,19 +98,46 @@ class Index extends Component
 
     public function render()
     {
+        $activeBranchId = (int) session('active_branch_id', 0);
+        $activeBranchId = $activeBranchId > 0 ? $activeBranchId : null;
+
         // Stats
-        $todaySales = Transaction::whereDate('created_at', today())
+        $todaySales = Transaction::when($activeBranchId, function ($query) use ($activeBranchId) {
+                $query->where('branch_id', $activeBranchId);
+            })
+            ->whereDate('created_at', today())
             ->where('status', 'completed')
             ->sum('total_amount');
 
-        $completedCount = Transaction::where('status', 'completed')->count();
-        $pendingCount = Transaction::where('status', 'pending')->count();
-        $refundedCount = Transaction::where('status', 'refunded')->count();
+        $completedCount = Transaction::when($activeBranchId, function ($query) use ($activeBranchId) {
+                $query->where('branch_id', $activeBranchId);
+            })
+            ->where('status', 'completed')
+            ->count();
 
-        $openShifts = CashierShift::where('status', 'open')->count();
+        $pendingCount = Transaction::when($activeBranchId, function ($query) use ($activeBranchId) {
+                $query->where('branch_id', $activeBranchId);
+            })
+            ->where('status', 'pending')
+            ->count();
+
+        $refundedCount = Transaction::when($activeBranchId, function ($query) use ($activeBranchId) {
+                $query->where('branch_id', $activeBranchId);
+            })
+            ->where('status', 'refunded')
+            ->count();
+
+        $openShifts = CashierShift::when($activeBranchId, function ($query) use ($activeBranchId) {
+                $query->where('branch_id', $activeBranchId);
+            })
+            ->where('status', 'open')
+            ->count();
 
         // Transactions query
         $transactionsQuery = Transaction::with(['branch', 'cashier'])
+            ->when($activeBranchId, function ($query) use ($activeBranchId) {
+                $query->where('branch_id', $activeBranchId);
+            })
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('transaction_code', 'like', '%' . $this->search . '%')

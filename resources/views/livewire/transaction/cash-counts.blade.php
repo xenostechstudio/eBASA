@@ -22,9 +22,35 @@
     {{-- Cash Counts Table --}}
     <div class="rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-white/5">
         <div class="border-b border-slate-100 px-5 py-4 dark:border-white/10">
-            <div>
-                <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Cash Count History</h2>
-                <p class="text-xs text-slate-500 dark:text-white/60">Cash reconciliation records from closed shifts</p>
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Cash Count History</h2>
+                    <p class="text-xs text-slate-500 dark:text-white/60">Cash reconciliation records from closed shifts</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="relative">
+                        @svg('heroicon-o-magnifying-glass', 'pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400')
+                        <input
+                            type="text"
+                            wire:model.live.debounce.300ms="search"
+                            placeholder="Search cashier or branch..."
+                            class="h-10 w-64 rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
+                        >
+                    </div>
+
+                    <div class="relative">
+                        @svg('heroicon-o-funnel', 'pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400')
+                        <select
+                            wire:model.live="discrepancyFilter"
+                            class="h-10 appearance-none rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-8 text-sm text-slate-700 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                        >
+                            <option value="">All Counts</option>
+                            <option value="discrepancy">With Discrepancy</option>
+                            <option value="balanced">Balanced Only</option>
+                        </select>
+                        @svg('heroicon-s-chevron-down', 'pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400')
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -46,10 +72,10 @@
                     <tbody class="divide-y divide-slate-100 dark:divide-white/10">
                         @foreach ($cashCounts as $count)
                             @php
-                                $difference = ($count->actual_cash ?? 0) - ($count->expected_cash ?? 0);
+                                $difference = ($count->closing_cash ?? 0) - ($count->expected_cash ?? 0);
                                 $hasDiscrepancy = $difference != 0;
                             @endphp
-                            <tr class="transition hover:bg-slate-50 dark:hover:bg-white/5">
+                            <tr onclick="window.location='{{ route('transactions.settlements.show', $count) }}'" class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5">
                                 <td class="whitespace-nowrap px-5 py-4">
                                     <p class="text-sm font-medium text-slate-900 dark:text-white">{{ $count->cashier?->name ?? '-' }}</p>
                                 </td>
@@ -60,7 +86,7 @@
                                     Rp {{ number_format($count->expected_cash ?? 0, 0, ',', '.') }}
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-right text-sm font-medium text-slate-900 dark:text-white">
-                                    Rp {{ number_format($count->actual_cash ?? 0, 0, ',', '.') }}
+                                    Rp {{ number_format($count->closing_cash ?? 0, 0, ',', '.') }}
                                 </td>
                                 <td class="whitespace-nowrap px-5 py-4 text-right">
                                     <span class="text-sm font-medium {{ $difference >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400' }}">
@@ -81,10 +107,10 @@
                                 <td class="whitespace-nowrap px-5 py-4 text-sm text-slate-500 dark:text-white/60">
                                     {{ $count->closed_at?->format('d M Y H:i') ?? '-' }}
                                 </td>
-                                <td class="whitespace-nowrap px-5 py-4">
-                                    <button class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-white/10 dark:hover:text-white" title="View Details">
+                                <td class="whitespace-nowrap px-5 py-4" onclick="event.stopPropagation()">
+                                    <a href="{{ route('transactions.settlements.show', $count) }}" class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-white/10 dark:hover:text-white inline-flex" title="View Details">
                                         @svg('heroicon-o-eye', 'h-4 w-4')
-                                    </button>
+                                    </a>
                                 </td>
                             </tr>
                         @endforeach
@@ -93,7 +119,7 @@
             </div>
 
             <div class="border-t border-slate-100 px-5 py-4 dark:border-white/10">
-                {{ $cashCounts->links() }}
+                <x-table.pagination :paginator="$cashCounts" :per-page-options="$perPageOptions" />
             </div>
         @else
             <div class="flex flex-col items-center justify-center py-16 text-center">

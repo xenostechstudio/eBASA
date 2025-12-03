@@ -78,7 +78,14 @@
                     </thead>
                     <tbody class="divide-y divide-slate-100 dark:divide-white/10">
                         @foreach ($shifts as $shift)
-                            <tr class="transition hover:bg-slate-50 dark:hover:bg-white/5">
+                            <tr
+                                @if ($shift->status === 'closed')
+                                    onclick="window.location='{{ route('transactions.settlements.show', $shift) }}'"
+                                    class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-white/5"
+                                @else
+                                    class="transition hover:bg-slate-50 dark:hover:bg-white/5"
+                                @endif
+                            >
                                 <td class="whitespace-nowrap px-5 py-4">
                                     <p class="text-sm font-medium text-slate-900 dark:text-white">{{ $shift->cashier?->name ?? '-' }}</p>
                                 </td>
@@ -109,10 +116,16 @@
                                 <td class="whitespace-nowrap px-5 py-4 text-right text-sm font-medium text-slate-900 dark:text-white">
                                     {{ $shift->transactions_count ?? 0 }}
                                 </td>
-                                <td class="whitespace-nowrap px-5 py-4">
-                                    <button class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-white/10 dark:hover:text-white" title="View Details">
-                                        @svg('heroicon-o-eye', 'h-4 w-4')
-                                    </button>
+                                <td class="whitespace-nowrap px-5 py-4" onclick="event.stopPropagation()">
+                                    @if ($shift->status === 'closed')
+                                        <a href="{{ route('transactions.settlements.show', $shift) }}" class="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-white/10 dark:hover:text-white inline-flex" title="View Settlement">
+                                            @svg('heroicon-o-eye', 'h-4 w-4')
+                                        </a>
+                                    @else
+                                        <span class="rounded-lg p-2 text-slate-300 dark:text-white/20 inline-flex" title="Shift still open">
+                                            @svg('heroicon-o-eye', 'h-4 w-4')
+                                        </span>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach

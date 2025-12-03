@@ -3,6 +3,7 @@
 namespace App\Livewire\Transaction;
 
 use App\Models\CashierShift;
+use App\Models\Transaction;
 use App\Support\TransactionNavigation;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -17,9 +18,31 @@ class Settlements extends Component
     #[Url]
     public string $search = '';
 
+    public int $perPage = 15;
+
+    public array $perPageOptions = [15, 30, 50];
+
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPerPage($value): void
+    {
+        $value = (int) $value;
+        $this->perPage = in_array($value, $this->perPageOptions, true) ? $value : 15;
+        $this->resetPage();
+    }
+
     public function render()
     {
+        $activeBranchId = (int) session('active_branch_id', 0);
+        $activeBranchId = $activeBranchId > 0 ? $activeBranchId : null;
+
         $settlements = CashierShift::with(['cashier', 'branch'])
+            ->when($activeBranchId, function ($query) use ($activeBranchId) {
+                $query->where('branch_id', $activeBranchId);
+            })
             ->where('status', 'closed')
             ->when($this->search, function ($query) {
                 $query->whereHas('cashier', function ($q) {
@@ -27,19 +50,31 @@ class Settlements extends Component
                 });
             })
             ->orderBy('closed_at', 'desc')
-            ->paginate(15);
+            ->paginate($this->perPage);
 
         $stats = [
-            'totalSettlements' => CashierShift::where('status', 'closed')->count(),
-            'todaySettlements' => CashierShift::where('status', 'closed')
+            'totalSettlements' => CashierShift::when($activeBranchId, function ($query) use ($activeBranchId) {
+                    $query->where('branch_id', $activeBranchId);
+                })
+                ->where('status', 'closed')
+                ->count(),
+            'todaySettlements' => CashierShift::when($activeBranchId, function ($query) use ($activeBranchId) {
+                    $query->where('branch_id', $activeBranchId);
+                })
+                ->where('status', 'closed')
                 ->whereDate('closed_at', today())
                 ->count(),
-            'totalCashCollected' => CashierShift::where('status', 'closed')->sum('actual_cash'),
+            'totalCashCollected' => CashierShift::when($activeBranchId, function ($query) use ($activeBranchId) {
+                    $query->where('branch_id', $activeBranchId);
+                })
+                ->where('status', 'closed')
+                ->sum('closing_cash'),
         ];
 
         return view('livewire.transaction.settlements', [
             'settlements' => $settlements,
             'stats' => $stats,
+            'perPageOptions' => $this->perPageOptions,
         ])->layoutData([
             'pageTitle' => 'Settlements',
             'pageTagline' => 'Transaction Module',

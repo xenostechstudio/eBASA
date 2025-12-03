@@ -8,6 +8,7 @@
             validationMessage: '',
             modalActive: false,
             skipNextEnter: false,
+            hasSubmitted: false,
             closeValidation() {
                 this.showValidation = false;
             },
@@ -44,6 +45,11 @@
                     this.validationMessage = 'Jumlah bayar belum mencukupi total.';
                     this.showValidation = true;
                     return;
+                }
+
+                if (!this.hasSubmitted && this.$wire && typeof this.$wire.completeCheckout === 'function') {
+                    this.hasSubmitted = true;
+                    this.$wire.completeCheckout(this.paymentMethod, paid);
                 }
 
                 this.validationMessage = 'Pembayaran valid. Lanjutkan untuk menyelesaikan transaksi.';

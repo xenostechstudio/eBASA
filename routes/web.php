@@ -99,6 +99,7 @@ use App\Livewire\Transaction\Index as TransactionIndex;
 use App\Livewire\Transaction\Refunds as TransactionRefunds;
 use App\Livewire\Transaction\Reports as TransactionReports;
 use App\Livewire\Transaction\Settlements as TransactionSettlements;
+use App\Livewire\Transaction\SettlementShow as TransactionSettlementShow;
 use App\Livewire\Transaction\Shifts as TransactionShifts;
 use App\Models\Branch;
 use Illuminate\Http\Request;
@@ -129,6 +130,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', TransactionIndex::class)->name('index');
         Route::get('/reports', TransactionReports::class)->name('reports');
         Route::get('/settlements', TransactionSettlements::class)->name('settlements');
+        Route::get('/settlements/{shift}', TransactionSettlementShow::class)->name('settlements.show');
         Route::get('/refunds', TransactionRefunds::class)->name('refunds');
         Route::get('/shifts', TransactionShifts::class)->name('shifts');
         Route::get('/cash-counts', TransactionCashCounts::class)->name('cash-counts');

@@ -17,9 +17,31 @@ class Refunds extends Component
     #[Url]
     public string $search = '';
 
+    public ?int $selectedTransactionId = null;
+
+    public ?Transaction $selectedTransaction = null;
+
+    public function viewTransaction(int $id): void
+    {
+        $this->selectedTransactionId = $id;
+        $this->selectedTransaction = Transaction::with(['items', 'branch', 'cashier'])->find($id);
+    }
+
+    public function closeTransactionDetail(): void
+    {
+        $this->selectedTransactionId = null;
+        $this->selectedTransaction = null;
+    }
+
     public function render()
     {
+        $activeBranchId = (int) session('active_branch_id', 0);
+        $activeBranchId = $activeBranchId > 0 ? $activeBranchId : null;
+
         $refunds = Transaction::with(['branch', 'cashier'])
+            ->when($activeBranchId, function ($query) use ($activeBranchId) {
+                $query->where('branch_id', $activeBranchId);
+            })
             ->where('status', 'refunded')
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
@@ -31,9 +53,20 @@ class Refunds extends Component
             ->paginate(15);
 
         $stats = [
-            'totalRefunds' => Transaction::where('status', 'refunded')->count(),
-            'totalRefundAmount' => Transaction::where('status', 'refunded')->sum('total_amount'),
-            'todayRefunds' => Transaction::where('status', 'refunded')
+            'totalRefunds' => Transaction::when($activeBranchId, function ($query) use ($activeBranchId) {
+                    $query->where('branch_id', $activeBranchId);
+                })
+                ->where('status', 'refunded')
+                ->count(),
+            'totalRefundAmount' => Transaction::when($activeBranchId, function ($query) use ($activeBranchId) {
+                    $query->where('branch_id', $activeBranchId);
+                })
+                ->where('status', 'refunded')
+                ->sum('total_amount'),
+            'todayRefunds' => Transaction::when($activeBranchId, function ($query) use ($activeBranchId) {
+                    $query->where('branch_id', $activeBranchId);
+                })
+                ->where('status', 'refunded')
                 ->whereDate('updated_at', today())
                 ->count(),
         ];

@@ -42,16 +42,16 @@
                             </div>
 
                             <div class="grid gap-5 md:grid-cols-12">
-                                <x-form.input label="Full name" model="form.full_name" placeholder="e.g. Andira Mahendra" col-span="8" :required="true" />
-                                <x-form.input label="Preferred name" model="form.preferred_name" placeholder="Nickname (optional)" col-span="4" />
-                                <x-form.input label="Employee code" model="form.code" placeholder="EMP-001" col-span="4" :required="true" />
-                                <x-form.input label="Work email" type="email" model="form.email" placeholder="user@company.com" col-span="4" :required="true" />
-                                <x-form.input label="Phone" model="form.phone" placeholder="+62 812 0000 0000" col-span="4" />
-                                <x-form.input label="WhatsApp number" model="form.whatsapp_number" placeholder="+62 811 1111 111" col-span="4" />
+                                <x-form.input label="Full name" model="form.full_name" placeholder="e.g. Andira Mahendra" col-span="8" :required="true" helper="Legal name as appears on official documents" />
+                                <x-form.input label="Preferred name" model="form.preferred_name" placeholder="Nickname (optional)" col-span="4" helper="Name used in daily communication" />
+                                <x-form.input label="Employee code" model="form.code" placeholder="EMP-001" col-span="4" :required="true" helper="Unique identifier for this employee" />
+                                <x-form.input label="Work email" type="email" model="form.email" placeholder="user@company.com" col-span="4" :required="true" helper="Primary email for work communication" />
+                                <x-form.input label="Phone" model="form.phone" placeholder="+62 812 0000 0000" col-span="4" helper="Mobile number with country code" />
+                                <x-form.input label="WhatsApp number" model="form.whatsapp_number" placeholder="+62 811 1111 111" col-span="4" helper="For instant messaging and notifications" />
                                 <x-form.input label="Date of birth" type="date" model="form.date_of_birth" col-span="4" />
-                                <x-form.input label="NIK" model="form.nik" placeholder="16 digit national ID" col-span="4" :required="true" />
-                                <x-form.input label="NPWP" model="form.npwp" placeholder="Tax number (optional)" col-span="4" />
-                                <x-form.input label="Address" model="form.address" :textarea="true" rows="3" placeholder="Street, city, province" col-span="12" />
+                                <x-form.input label="NIK" model="form.nik" placeholder="16 digit national ID" col-span="4" :required="true" helper="Indonesian national identity number" />
+                                <x-form.input label="NPWP" model="form.npwp" placeholder="Tax number (optional)" col-span="4" helper="Tax identification number" />
+                                <x-form.input label="Address" model="form.address" :textarea="true" rows="3" placeholder="Street, city, province" col-span="12" helper="Full residential address" />
                             </div>
                         </div>
                     @elseif ($activeTab === 'emergency')
@@ -70,8 +70,8 @@
                             </div>
 
                             <div class="grid gap-5 md:grid-cols-12">
-                                <x-form.input label="Contact name" model="form.emergency_contact_name" placeholder="Person to notify in emergency" col-span="6" />
-                                <x-form.input label="Contact WhatsApp" model="form.emergency_contact_whatsapp" placeholder="+62 ..." col-span="6" />
+                                <x-form.input label="Contact name" model="form.emergency_contact_name" placeholder="Person to notify in emergency" col-span="6" helper="Family member or close friend" />
+                                <x-form.input label="Contact WhatsApp" model="form.emergency_contact_whatsapp" placeholder="+62 ..." col-span="6" helper="Reachable phone number" />
                             </div>
 
                             @if ($isEditing)
@@ -89,9 +89,9 @@
                                     </div>
 
                                     <div class="grid gap-5 md:grid-cols-12">
-                                        <x-form.input label="Bank name" model="form.bank_name" placeholder="e.g. BCA, Mandiri, BNI" col-span="4" />
-                                        <x-form.input label="Account number" model="form.bank_account_number" placeholder="Account digits" col-span="4" />
-                                        <x-form.input label="Account holder name" model="form.bank_account_name" placeholder="Name as registered" col-span="4" />
+                                        <x-form.input label="Bank name" model="form.bank_name" placeholder="e.g. BCA, Mandiri, BNI" col-span="4" helper="Bank for salary transfer" />
+                                        <x-form.input label="Account number" model="form.bank_account_number" placeholder="Account digits" col-span="4" helper="Digits only, no spaces" />
+                                        <x-form.input label="Account holder name" model="form.bank_account_name" placeholder="Name as registered" col-span="4" helper="Must match bank records" />
                                     </div>
                                 </div>
                             @endif
@@ -102,55 +102,54 @@
         </div>
 
         {{-- Footer with Auditing Info --}}
-        <div class="flex flex-col gap-3 border-t border-slate-200 px-6 py-4 dark:border-white/10 md:flex-row md:items-center md:justify-between">
+        <div class="flex flex-col gap-2 border-t border-slate-200 px-6 py-4 dark:border-white/10 md:flex-row md:items-center md:justify-between">
             @if ($isEditing && isset($employee) && $employee)
-                <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-400 dark:text-white/40">
-                    <div class="flex items-center gap-1.5">
-                        @svg('heroicon-o-clock', 'h-3.5 w-3.5')
-                        <span>Created</span>
+                <div class="text-[11px] text-slate-400 dark:text-white/40">
+                    <p>
+                        Created
                         <span class="font-medium text-slate-500 dark:text-white/60">
-                            {{ optional($employee->created_at)->format(config('basa.datetime_format', 'd M Y H:i')) }}
+                            {{ optional($employee->created_at)->format(config('basa.datetime_format')) }}
                         </span>
                         @if ($employee->createdBy)
-                            <span>by</span>
-                            <span class="font-medium text-slate-600 dark:text-white/80">{{ $employee->createdBy->name }}</span>
-                        @endif
-                    </div>
-                    @if ($employee->updated_at && $employee->updated_at->ne($employee->created_at))
-                        <div class="flex items-center gap-1.5">
-                            @svg('heroicon-o-pencil-square', 'h-3.5 w-3.5')
-                            <span>Updated</span>
-                            <span class="font-medium text-slate-500 dark:text-white/60">
-                                {{ optional($employee->updated_at)->format(config('basa.datetime_format', 'd M Y H:i')) }}
+                            by
+                            <span class="font-medium text-slate-600 dark:text-white/80">
+                                {{ $employee->createdBy->name }}
                             </span>
-                            @if ($employee->updatedBy)
-                                <span>by</span>
-                                <span class="font-medium text-slate-600 dark:text-white/80">{{ $employee->updatedBy->name }}</span>
-                            @endif
-                        </div>
-                    @endif
+                        @endif
+                    </p>
+                    <p>
+                        Last updated
+                        <span class="font-medium text-slate-500 dark:text-white/60">
+                            {{ optional($employee->updated_at)->format(config('basa.datetime_format')) }}
+                        </span>
+                        @if ($employee->updatedBy)
+                            by
+                            <span class="font-medium text-slate-600 dark:text-white/80">
+                                {{ $employee->updatedBy->name }}
+                            </span>
+                        @endif
+                    </p>
                 </div>
-            @else
-                <div></div>
             @endif
 
-            <div class="flex items-center justify-end gap-3">
-                <a
+            <div class="flex items-center justify-end gap-3 md:ml-auto">
+                <x-button.secondary
+                    type="button"
                     href="{{ route('hr.employees') }}"
-                    class="inline-flex h-10 items-center rounded-xl border border-slate-200 px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:text-white/80 dark:hover:bg-white/5"
+                    tag="a"
                 >
                     Cancel
-                </a>
+                </x-button.secondary>
 
-                <button
+                <x-button.primary
                     type="submit"
-                    class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-50 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90"
+                    class="h-10"
                 >
                     <span>
                         @svg('heroicon-o-check', 'h-4 w-4')
                     </span>
-                    <span>{{ $isEditing ? 'Update Employee' : 'Create Employee' }}</span>
-                </button>
+                    <span>{{ $isEditing ? 'Save Changes' : 'Create Employee' }}</span>
+                </x-button.primary>
             </div>
         </div>
     </div>
