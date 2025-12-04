@@ -1,48 +1,47 @@
 <div class="space-y-6">
     {{-- Stats Cards --}}
     <div class="grid gap-4 md:grid-cols-2">
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-white/5">
-            <div class="flex items-center gap-3">
-                @svg('heroicon-o-calculator', 'h-5 w-5 text-sky-500')
-                <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/40">Total Counted</p>
-            </div>
-            <p class="mt-3 text-3xl font-bold text-slate-900 dark:text-white">{{ number_format($stats['totalCounted']) }}</p>
-            <p class="mt-1 text-xs text-slate-500 dark:text-white/60">Cash counts recorded</p>
-        </div>
-        <div class="rounded-2xl border border-amber-200 bg-amber-50/50 p-6 dark:border-amber-500/20 dark:bg-amber-500/10">
-            <div class="flex items-center gap-3">
-                @svg('heroicon-o-exclamation-triangle', 'h-5 w-5 text-amber-500')
-                <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-600 dark:text-amber-400">Discrepancies</p>
-            </div>
-            <p class="mt-3 text-3xl font-bold text-slate-900 dark:text-white">{{ number_format($stats['discrepancies']) }}</p>
-            <p class="mt-1 text-xs text-slate-500 dark:text-white/60">Counts with differences</p>
-        </div>
+        <x-stat.card
+            label="Total Counted"
+            :value="number_format($stats['totalCounted'])"
+            description="Cash counts recorded"
+            icon="heroicon-o-calculator"
+            icon-color="text-sky-500"
+        />
+        <x-stat.card
+            label="Discrepancies"
+            :value="number_format($stats['discrepancies'])"
+            description="Counts with differences"
+            icon="heroicon-o-exclamation-triangle"
+            icon-color="text-amber-500"
+        />
     </div>
 
     {{-- Cash Counts Table --}}
     <div class="rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-white/5">
         <div class="border-b border-slate-100 px-5 py-4 dark:border-white/10">
-            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                     <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Cash Count History</h2>
                     <p class="text-xs text-slate-500 dark:text-white/60">Cash reconciliation records from closed shifts</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
+                    {{-- Search --}}
                     <div class="relative">
                         @svg('heroicon-o-magnifying-glass', 'pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400')
                         <input
                             type="text"
                             wire:model.live.debounce.300ms="search"
                             placeholder="Search cashier or branch..."
-                            class="h-10 w-64 rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
+                            class="h-10 w-48 rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40"
                         >
                     </div>
 
+                    {{-- Status Filter --}}
                     <div class="relative">
-                        @svg('heroicon-o-funnel', 'pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400')
                         <select
                             wire:model.live="discrepancyFilter"
-                            class="h-10 appearance-none rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-8 text-sm text-slate-700 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                            class="h-10 appearance-none rounded-xl border border-slate-200 bg-slate-50 pl-3 pr-8 text-sm text-slate-700 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white"
                         >
                             <option value="">All Counts</option>
                             <option value="discrepancy">With Discrepancy</option>
@@ -50,6 +49,37 @@
                         </select>
                         @svg('heroicon-s-chevron-down', 'pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400')
                     </div>
+
+                    {{-- Date From --}}
+                    <input
+                        type="date"
+                        wire:model.live="dateFrom"
+                        class="h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                        title="From date"
+                    >
+
+                    {{-- Date To --}}
+                    <input
+                        type="date"
+                        wire:model.live="dateTo"
+                        class="h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-700 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                        title="To date"
+                    >
+
+                    {{-- Clear Filters --}}
+                    @if ($search || $discrepancyFilter || $dateFrom || $dateTo)
+                        <button
+                            wire:click="clearFilters"
+                            class="inline-flex h-10 items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm text-slate-600 transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/5 dark:text-white/70 dark:hover:bg-white/10"
+                            title="Clear filters"
+                        >
+                            @svg('heroicon-o-x-mark', 'h-4 w-4')
+                            <span class="hidden sm:inline">Clear</span>
+                        </button>
+                    @endif
+
+                    {{-- Export --}}
+                    <x-table.export-dropdown method="export" />
                 </div>
             </div>
         </div>

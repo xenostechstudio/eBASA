@@ -107,40 +107,5 @@
         </div>
 
         @livewireScripts
-
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const branchSwitcher = document.querySelector('[data-branch-switcher]');
-
-                if (!branchSwitcher) {
-                    return;
-                }
-
-                const trigger = branchSwitcher.querySelector('[data-branch-trigger]');
-                const panel = branchSwitcher.querySelector('[data-branch-panel]');
-
-                const togglePanel = (show) => {
-                    if (!panel) return;
-
-                    if (show) {
-                        panel.classList.remove('hidden');
-                    } else {
-                        panel.classList.add('hidden');
-                    }
-                };
-
-                trigger?.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                    const isHidden = panel?.classList.contains('hidden');
-                    togglePanel(isHidden);
-                });
-
-                document.addEventListener('click', (event) => {
-                    if (!branchSwitcher.contains(event.target)) {
-                        togglePanel(false);
-                    }
-                });
-            });
-        </script>
     </body>
 </html>

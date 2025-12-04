@@ -27,11 +27,20 @@
     </div>
 
     {{-- Receipts Table --}}
-    <div class="rounded-2xl border border-slate-300 bg-white shadow-sm dark:border-white/10 dark:bg-white/5">
+    <div class="rounded-2xl border border-slate-200 bg-white dark:border-white/10 dark:bg-white/5">
         <div class="border-b border-slate-100 px-5 py-4 dark:border-white/10">
-            <div class="flex flex-wrap items-center justify-end gap-3">
-                {{-- Selection Summary --}}
-                <x-table.selection-summary
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                {{-- Left: Search --}}
+                <div class="relative">
+                    @svg('heroicon-o-magnifying-glass', 'pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400')
+                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search receipts..."
+                        class="h-10 w-64 rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-300 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40">
+                </div>
+
+                {{-- Right: Selection, Filters, Export --}}
+                <div class="flex items-center gap-2">
+                    {{-- Selection Summary --}}
+                    <x-table.selection-summary
                     :count="count($selectedItems)"
                     :total="count($receipts)"
                     description="receipts selected"
@@ -39,16 +48,9 @@
                     select-page-action="selectPage"
                     deselect-action="deselectAll"
                     :show-delete="false"
-                />
+                    />
 
-                {{-- Search --}}
-                <div class="relative">
-                    @svg('heroicon-o-magnifying-glass', 'pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400')
-                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Search receipts..."
-                        class="h-10 w-64 rounded-xl border border-slate-300 bg-white pl-10 pr-4 text-sm text-slate-700 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/40">
-                </div>
-
-                {{-- Dynamic Filters --}}
+                    {{-- Dynamic Filters --}}
                 <x-table.dynamic-filters :filters="[
                     'status' => [
                         'label' => 'Status',
@@ -64,6 +66,7 @@
                 ]" />
 
                 <x-table.export-dropdown aria-label="Export receipts" />
+                </div>
             </div>
         </div>
 

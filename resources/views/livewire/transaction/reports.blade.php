@@ -1,30 +1,27 @@
 <div class="space-y-6">
     {{-- Stats Cards --}}
     <div class="grid gap-4 md:grid-cols-3">
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-white/5">
-            <div class="flex items-center gap-3">
-                @svg('heroicon-o-banknotes', 'h-5 w-5 text-emerald-500')
-                <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/40">Total Revenue</p>
-            </div>
-            <p class="mt-3 text-3xl font-bold text-slate-900 dark:text-white">Rp {{ number_format($stats['totalRevenue'], 0, ',', '.') }}</p>
-            <p class="mt-1 text-xs text-slate-500 dark:text-white/60">All time completed transactions</p>
-        </div>
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-white/5">
-            <div class="flex items-center gap-3">
-                @svg('heroicon-o-receipt-percent', 'h-5 w-5 text-sky-500')
-                <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/40">Total Transactions</p>
-            </div>
-            <p class="mt-3 text-3xl font-bold text-slate-900 dark:text-white">{{ number_format($stats['totalTransactions']) }}</p>
-            <p class="mt-1 text-xs text-slate-500 dark:text-white/60">All recorded transactions</p>
-        </div>
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-white/10 dark:bg-white/5">
-            <div class="flex items-center gap-3">
-                @svg('heroicon-o-calculator', 'h-5 w-5 text-amber-500')
-                <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/40">Avg. Transaction</p>
-            </div>
-            <p class="mt-3 text-3xl font-bold text-slate-900 dark:text-white">Rp {{ number_format($stats['avgTransaction'], 0, ',', '.') }}</p>
-            <p class="mt-1 text-xs text-slate-500 dark:text-white/60">Average transaction value</p>
-        </div>
+        <x-stat.card
+            label="Total Revenue"
+            :value="'Rp ' . number_format($stats['totalRevenue'], 0, ',', '.')"
+            description="All time completed transactions"
+            icon="heroicon-o-banknotes"
+            icon-color="text-emerald-500"
+        />
+        <x-stat.card
+            label="Total Transactions"
+            :value="number_format($stats['totalTransactions'])"
+            description="All recorded transactions"
+            icon="heroicon-o-receipt-percent"
+            icon-color="text-sky-500"
+        />
+        <x-stat.card
+            label="Avg. Transaction"
+            :value="'Rp ' . number_format($stats['avgTransaction'], 0, ',', '.')"
+            description="Average transaction value"
+            icon="heroicon-o-calculator"
+            icon-color="text-amber-500"
+        />
     </div>
 
     {{-- Reports Section --}}

@@ -43,6 +43,11 @@
     $locales = collect(config('locale.available'));
     $currentLocale = $locales->firstWhere('code', app()->getLocale()) ?? $locales->first();
     $otherLocales = $locales->where('code', '!=', app()->getLocale());
+
+    // Branch switcher data
+    $branches = \App\Models\Branch::query()->orderBy('name')->get();
+    $activeBranchId = (int) session('active_branch_id');
+    $activeBranch = $branches->firstWhere('id', $activeBranchId);
 @endphp
 
 <aside class="fixed inset-y-0 left-0 z-30 flex">
@@ -174,6 +179,23 @@
                                 @svg('heroicon-o-chevron-right', 'h-4 w-4 text-slate-400 dark:text-white/40')
                             </span>
                         </button>
+
+                        {{-- Branch Sub-menu Trigger --}}
+                        <button
+                            type="button"
+                            @click="submenu = submenu === 'branch' ? null : 'branch'"
+                            class="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-white/80 dark:hover:bg-white/5"
+                            :class="submenu === 'branch' ? 'bg-slate-50 dark:bg-white/5' : ''"
+                        >
+                            <span class="flex items-center gap-3">
+                                @svg('heroicon-o-building-storefront', 'h-5 w-5 text-slate-400 dark:text-white/40')
+                                <span>Branch</span>
+                            </span>
+                            <span class="flex items-center gap-2">
+                                <span class="text-xs text-slate-400 dark:text-white/40">{{ $activeBranch?->name ?? 'All' }}</span>
+                                @svg('heroicon-o-chevron-right', 'h-4 w-4 text-slate-400 dark:text-white/40')
+                            </span>
+                        </button>
                     </div>
 
                     {{-- Divider --}}
@@ -266,6 +288,56 @@
                             <span>Auto (System)</span>
                             <template x-if="theme === 'system'">@svg('heroicon-o-check', 'ml-auto h-4 w-4')</template>
                         </button>
+                    </div>
+                </div>
+
+                {{-- Branch Sub-dropdown --}}
+                <div
+                    x-cloak
+                    x-show="submenu === 'branch'"
+                    x-transition:enter="transition ease-out duration-100"
+                    x-transition:enter-start="opacity-0 translate-x-2"
+                    x-transition:enter-end="opacity-100 translate-x-0"
+                    x-transition:leave="transition ease-in duration-75"
+                    x-transition:leave-start="opacity-100 translate-x-0"
+                    x-transition:leave-end="opacity-0 translate-x-2"
+                    class="absolute bottom-0 left-full z-50 ml-[15.5rem] w-48 origin-bottom-left rounded-2xl border border-slate-300 bg-white p-2 shadow-xl dark:border-white/10 dark:bg-slate-900"
+                >
+                    <p class="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/40">Select Branch</p>
+                    <div class="max-h-64 space-y-0.5 overflow-y-auto">
+                        {{-- All Branches Option --}}
+                        <form method="POST" action="{{ route('branch.switch') }}" class="m-0">
+                            @csrf
+                            <input type="hidden" name="branch_id" value="all">
+                            <button
+                                type="submit"
+                                class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition {{ !$activeBranchId ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-700 hover:bg-slate-50 dark:text-white/80 dark:hover:bg-white/5' }}"
+                            >
+                                @svg('heroicon-o-globe-alt', 'h-5 w-5')
+                                <span>All Branches</span>
+                                @if (!$activeBranchId)
+                                    @svg('heroicon-o-check', 'ml-auto h-4 w-4')
+                                @endif
+                            </button>
+                        </form>
+
+                        {{-- Individual Branches --}}
+                        @foreach ($branches as $branch)
+                            <form method="POST" action="{{ route('branch.switch') }}" class="m-0">
+                                @csrf
+                                <input type="hidden" name="branch_id" value="{{ $branch->id }}">
+                                <button
+                                    type="submit"
+                                    class="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition {{ $activeBranchId === $branch->id ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-700 hover:bg-slate-50 dark:text-white/80 dark:hover:bg-white/5' }}"
+                                >
+                                    @svg('heroicon-o-building-storefront', 'h-5 w-5')
+                                    <span class="truncate">{{ $branch->name }}</span>
+                                    @if ($activeBranchId === $branch->id)
+                                        @svg('heroicon-o-check', 'ml-auto h-4 w-4 flex-shrink-0')
+                                    @endif
+                                </button>
+                            </form>
+                        @endforeach
                     </div>
                 </div>
             </div>

@@ -3,6 +3,7 @@
 namespace App\Livewire\Pos;
 
 use App\Models\CashierShift;
+use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
 use Illuminate\Contracts\View\View;
@@ -16,6 +17,10 @@ class Screen extends Component
 {
     /** @var array<int, array{id: int|null, name: string, sku: string, qty: int, price: int, total: int}> */
     public array $cart = [];
+
+    public string $barcodeInput = '';
+
+    public ?array $scannedProduct = null;
     public function mount(): void
     {
         $this->initializeDemoCart();
@@ -30,6 +35,47 @@ class Screen extends Component
             ['id' => 4, 'name' => 'ABC Kecap Manis 135ml', 'sku' => 'SKU-ABC-045', 'qty' => 2, 'price' => 9000, 'total' => 18000],
             ['id' => 5, 'name' => 'Ultra Milk Full Cream 1L', 'sku' => 'SKU-MIL-908', 'qty' => 2, 'price' => 18500, 'total' => 37000],
         ];
+    }
+
+    public function searchByBarcode(): void
+    {
+        if (empty($this->barcodeInput)) {
+            return;
+        }
+
+        $product = Product::where(function ($query) {
+                $query->where('barcode', $this->barcodeInput)
+                    ->orWhere('sku', $this->barcodeInput);
+            })
+            ->where('is_active', true)
+            ->first();
+
+        if ($product) {
+            $this->scannedProduct = [
+                'id' => $product->id,
+                'name' => $product->name,
+                'sku' => $product->sku,
+                'barcode' => $product->barcode,
+                'price' => (int) $product->selling_price,
+                'image' => $product->image_path,
+                'stock' => $product->stock_quantity ?? 0,
+            ];
+
+            // Add to cart
+            $this->addToCart(
+                $product->id,
+                $product->name,
+                $product->sku,
+                (int) $product->selling_price
+            );
+
+            $this->dispatch('pos-product-scanned');
+        } else {
+            $this->scannedProduct = null;
+            $this->dispatch('pos-product-not-found');
+        }
+
+        $this->barcodeInput = '';
     }
 
     public function addToCart(int $productId, string $name, string $sku, int $price): void

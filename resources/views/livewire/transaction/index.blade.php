@@ -1,61 +1,41 @@
 <div class="space-y-6">
     {{-- Stats Cards --}}
     <div class="grid gap-4 md:grid-cols-5">
-        <div class="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 transition hover:border-slate-300 hover:shadow-sm dark:border-white/10 dark:bg-white/5 dark:hover:border-white/20">
-            <div class="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-slate-100/50 dark:bg-white/5"></div>
-            <div class="relative">
-                <div class="flex items-center gap-2">
-                    @svg('heroicon-o-currency-dollar', 'h-4 w-4 text-slate-400 dark:text-white/40')
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-white/40">Today's Sales</p>
-                </div>
-                <p class="mt-3 text-2xl font-bold text-slate-900 dark:text-white">Rp {{ number_format($todaySales, 0, ',', '.') }}</p>
-                <p class="mt-1 text-xs text-slate-500 dark:text-white/60">Total revenue today</p>
-            </div>
-        </div>
-        <div class="group relative overflow-hidden rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5 transition hover:border-emerald-300 hover:shadow-sm dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:hover:border-emerald-500/30">
-            <div class="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-emerald-100/50 dark:bg-emerald-500/10"></div>
-            <div class="relative">
-                <div class="flex items-center gap-2">
-                    @svg('heroicon-o-check-circle', 'h-4 w-4 text-emerald-500 dark:text-emerald-400')
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">Completed</p>
-                </div>
-                <p class="mt-3 text-2xl font-bold text-slate-900 dark:text-white">{{ number_format($completedCount) }}</p>
-                <p class="mt-1 text-xs text-slate-500 dark:text-white/60">Successful transactions</p>
-            </div>
-        </div>
-        <div class="group relative overflow-hidden rounded-2xl border border-amber-200 bg-amber-50/50 p-5 transition hover:border-amber-300 hover:shadow-sm dark:border-amber-500/20 dark:bg-amber-500/10 dark:hover:border-amber-500/30">
-            <div class="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-amber-100/50 dark:bg-amber-500/10"></div>
-            <div class="relative">
-                <div class="flex items-center gap-2">
-                    @svg('heroicon-o-clock', 'h-4 w-4 text-amber-500 dark:text-amber-400')
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-amber-600 dark:text-amber-400">Pending</p>
-                </div>
-                <p class="mt-3 text-2xl font-bold text-slate-900 dark:text-white">{{ number_format($pendingCount) }}</p>
-                <p class="mt-1 text-xs text-slate-500 dark:text-white/60">Awaiting completion</p>
-            </div>
-        </div>
-        <div class="group relative overflow-hidden rounded-2xl border border-red-200 bg-red-50/50 p-5 transition hover:border-red-300 hover:shadow-sm dark:border-red-500/20 dark:bg-red-500/10 dark:hover:border-red-500/30">
-            <div class="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-red-100/50 dark:bg-red-500/10"></div>
-            <div class="relative">
-                <div class="flex items-center gap-2">
-                    @svg('heroicon-o-arrow-uturn-left', 'h-4 w-4 text-red-500 dark:text-red-400')
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-red-600 dark:text-red-400">Refunded</p>
-                </div>
-                <p class="mt-3 text-2xl font-bold text-slate-900 dark:text-white">{{ number_format($refundedCount) }}</p>
-                <p class="mt-1 text-xs text-slate-500 dark:text-white/60">Returned transactions</p>
-            </div>
-        </div>
-        <div class="group relative overflow-hidden rounded-2xl border border-sky-200 bg-sky-50/50 p-5 transition hover:border-sky-300 hover:shadow-sm dark:border-sky-500/20 dark:bg-sky-500/10 dark:hover:border-sky-500/30">
-            <div class="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-sky-100/50 dark:bg-sky-500/10"></div>
-            <div class="relative">
-                <div class="flex items-center gap-2">
-                    @svg('heroicon-o-user-group', 'h-4 w-4 text-sky-500 dark:text-sky-400')
-                    <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-sky-600 dark:text-sky-400">Open Shifts</p>
-                </div>
-                <p class="mt-3 text-2xl font-bold text-slate-900 dark:text-white">{{ number_format($openShifts) }}</p>
-                <p class="mt-1 text-xs text-slate-500 dark:text-white/60">Active cashiers</p>
-            </div>
-        </div>
+        <x-stat.card
+            label="Today's Sales"
+            :value="'Rp ' . number_format($todaySales, 0, ',', '.')"
+            description="Total revenue today"
+            icon="heroicon-o-currency-dollar"
+            icon-color="text-emerald-500"
+        />
+        <x-stat.card
+            label="Completed"
+            :value="number_format($completedCount)"
+            description="Successful transactions"
+            icon="heroicon-o-check-circle"
+            icon-color="text-emerald-500"
+        />
+        <x-stat.card
+            label="Pending"
+            :value="number_format($pendingCount)"
+            description="Awaiting completion"
+            icon="heroicon-o-clock"
+            icon-color="text-amber-500"
+        />
+        <x-stat.card
+            label="Refunded"
+            :value="number_format($refundedCount)"
+            description="Returned transactions"
+            icon="heroicon-o-arrow-uturn-left"
+            icon-color="text-red-500"
+        />
+        <x-stat.card
+            label="Open Shifts"
+            :value="number_format($openShifts)"
+            description="Active cashiers"
+            icon="heroicon-o-user-group"
+            icon-color="text-sky-500"
+        />
     </div>
 
     {{-- Transactions Table --}}
@@ -231,97 +211,5 @@
     </div>
 
     {{-- Transaction Detail Modal --}}
-    @if ($selectedTransaction)
-        <div class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4" role="dialog" aria-modal="true">
-            <div wire:click="closeTransactionDetail" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity dark:bg-slate-950/70"></div>
-
-            <div class="relative z-10 flex w-full max-w-lg flex-col rounded-3xl bg-white text-slate-900 shadow-2xl dark:bg-slate-900 dark:text-white">
-                {{-- Header --}}
-                <div class="flex items-center justify-between border-b border-slate-200 px-6 py-4 dark:border-white/10">
-                    <div>
-                        <p class="font-mono text-sm font-semibold text-slate-900 dark:text-white">{{ $selectedTransaction->transaction_code }}</p>
-                        <p class="text-xs text-slate-500 dark:text-white/60">{{ $selectedTransaction->created_at?->format('d M Y H:i') }}</p>
-                    </div>
-                    <button wire:click="closeTransactionDetail" class="rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-white/10 dark:hover:text-white">
-                        @svg('heroicon-o-x-mark', 'h-5 w-5')
-                    </button>
-                </div>
-
-                {{-- Receipt Content --}}
-                <div class="flex-1 overflow-y-auto p-6 font-mono text-xs">
-                    {{-- Store Info --}}
-                    <div class="border-b-2 border-dashed border-slate-300 pb-3 text-center dark:border-white/20">
-                        <p class="text-sm font-bold text-slate-900 dark:text-white">{{ $selectedTransaction->branch?->name ?? '-' }}</p>
-                        <p class="mt-1 text-slate-500 dark:text-white/60">Cashier: {{ $selectedTransaction->cashier?->name ?? '-' }}</p>
-                    </div>
-
-                    {{-- Items --}}
-                    <div class="mt-4 max-h-48 space-y-1 overflow-y-auto border-b border-dashed border-slate-300 pb-4 dark:border-white/20">
-                        @forelse ($selectedTransaction->items as $item)
-                            <div class="flex justify-between text-slate-700 dark:text-white/80">
-                                <div class="flex-1 truncate pr-2">
-                                    <span class="text-slate-500 dark:text-white/60">{{ $item->quantity }}x</span>
-                                    {{ Str::limit($item->product_name, 28) }}
-                                </div>
-                                <span class="tabular-nums">{{ number_format($item->subtotal, 0, ',', '.') }}</span>
-                            </div>
-                            <div class="pl-4 text-[10px] text-slate-400 dark:text-white/40">
-                                @ Rp {{ number_format($item->unit_price, 0, ',', '.') }}
-                            </div>
-                        @empty
-                            <p class="text-center text-slate-400 dark:text-white/40">No items recorded</p>
-                        @endforelse
-                    </div>
-
-                    {{-- Totals --}}
-                    <div class="mt-4 space-y-1">
-                        <div class="flex justify-between text-slate-600 dark:text-white/70">
-                            <span>Subtotal</span>
-                            <span class="tabular-nums">{{ number_format($selectedTransaction->subtotal, 0, ',', '.') }}</span>
-                        </div>
-                        <div class="flex justify-between text-emerald-600 dark:text-emerald-300">
-                            <span>Discount</span>
-                            <span class="tabular-nums">-{{ number_format($selectedTransaction->discount_amount, 0, ',', '.') }}</span>
-                        </div>
-                        <div class="flex justify-between text-slate-600 dark:text-white/70">
-                            <span>Tax</span>
-                            <span class="tabular-nums">{{ number_format($selectedTransaction->tax_amount, 0, ',', '.') }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Footer with Total --}}
-                <div class="border-t border-slate-200 px-6 py-4 dark:border-white/10">
-                    <div class="flex items-center justify-between text-base font-bold text-slate-900 dark:text-white">
-                        <span>TOTAL</span>
-                        <span class="tabular-nums">Rp {{ number_format($selectedTransaction->total_amount, 0, ',', '.') }}</span>
-                    </div>
-                    <div class="mt-2 flex justify-between text-xs text-slate-500 dark:text-white/60">
-                        <span>Paid</span>
-                        <span class="tabular-nums">Rp {{ number_format($selectedTransaction->paid_amount, 0, ',', '.') }}</span>
-                    </div>
-                    <div class="flex justify-between text-xs text-slate-500 dark:text-white/60">
-                        <span>Change</span>
-                        <span class="tabular-nums">Rp {{ number_format($selectedTransaction->change_amount, 0, ',', '.') }}</span>
-                    </div>
-                    <div class="mt-3 flex items-center justify-between">
-                        <span class="inline-flex items-center rounded-lg bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 dark:bg-white/10 dark:text-white/80">
-                            {{ $selectedTransaction->payment_method_label }}
-                        </span>
-                        @php
-                            $statusColors = [
-                                'completed' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400',
-                                'pending' => 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400',
-                                'cancelled' => 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-white/60',
-                                'refunded' => 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400',
-                            ];
-                        @endphp
-                        <span class="inline-flex items-center rounded-lg px-2 py-1 text-xs font-medium {{ $statusColors[$selectedTransaction->status] ?? $statusColors['pending'] }}">
-                            {{ ucfirst($selectedTransaction->status) }}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endif
+    <x-transaction-receipt-modal :transaction="$selectedTransaction" />
 </div>
