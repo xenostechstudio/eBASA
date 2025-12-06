@@ -2,6 +2,7 @@
 
 namespace App\Livewire\GeneralSetup\Users;
 
+use App\Models\Branch;
 use App\Models\Employee;
 use App\Models\Role;
 use App\Models\User;
@@ -27,10 +28,14 @@ class Edit extends Component
     public string $password = '';
     public string $password_confirmation = '';
 
+    // Branch access
+    public string $branch_access_type = 'selected';
+    public array $selected_branch_ids = [];
+
     public function mount(User $user): void
     {
         $this->userId = $user->id;
-        $this->editingUser = $user->load(['employee', 'createdBy', 'updatedBy', 'roles']);
+        $this->editingUser = $user->load(['employee', 'createdBy', 'updatedBy', 'roles', 'branches']);
 
         $this->employee_id = $user->employee_id;
         $this->name = $user->name;
@@ -38,6 +43,10 @@ class Edit extends Component
         $this->role_id = $user->roles()->first()?->id;
         $this->password = '';
         $this->password_confirmation = '';
+
+        // Branch access
+        $this->branch_access_type = $user->branch_access_type ?? 'selected';
+        $this->selected_branch_ids = $user->branches()->pluck('branches.id')->toArray();
     }
 
     protected function rules(): array
@@ -48,6 +57,9 @@ class Edit extends Component
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $this->userId,
             'password' => 'nullable|string|min:8|confirmed',
+            'branch_access_type' => 'required|in:all,selected',
+            'selected_branch_ids' => 'array',
+            'selected_branch_ids.*' => 'exists:branches,id',
         ];
     }
 
@@ -63,6 +75,14 @@ class Edit extends Component
     {
         return Role::orderBy('name')
             ->get(['id', 'name', 'slug']);
+    }
+
+    #[Computed]
+    public function branches()
+    {
+        return Branch::where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'code', 'name', 'city']);
     }
 
     public function updatedEmployeeId($value): void
@@ -119,11 +139,22 @@ class Edit extends Component
             $user->password = Hash::make($this->password);
         }
 
+        // Update branch access type
+        $user->branch_access_type = $this->branch_access_type;
+
         $user->save();
 
         $user->roles()->sync($this->role_id ? [$this->role_id] : []);
 
-        $this->editingUser = $user->fresh(['employee', 'createdBy', 'updatedBy', 'roles']);
+        // Sync branch access - only sync selected branches if type is 'selected'
+        if ($this->branch_access_type === 'selected') {
+            $user->branches()->sync($this->selected_branch_ids);
+        } else {
+            // If 'all' access, clear specific branch assignments
+            $user->branches()->sync([]);
+        }
+
+        $this->editingUser = $user->fresh(['employee', 'createdBy', 'updatedBy', 'roles', 'branches']);
         $this->password = '';
         $this->password_confirmation = '';
 

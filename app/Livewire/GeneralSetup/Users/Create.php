@@ -2,6 +2,7 @@
 
 namespace App\Livewire\GeneralSetup\Users;
 
+use App\Models\Branch;
 use App\Models\Employee;
 use App\Models\Role;
 use App\Models\User;
@@ -24,6 +25,10 @@ class Create extends Component
     public string $password = '';
     public string $password_confirmation = '';
 
+    // Branch access
+    public string $branch_access_type = 'selected';
+    public array $selected_branch_ids = [];
+
     protected function rules(): array
     {
         return [
@@ -32,6 +37,9 @@ class Create extends Component
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
+            'branch_access_type' => 'required|in:all,selected',
+            'selected_branch_ids' => 'array',
+            'selected_branch_ids.*' => 'exists:branches,id',
         ];
     }
 
@@ -47,6 +55,14 @@ class Create extends Component
     {
         return Role::orderBy('name')
             ->get(['id', 'name', 'slug']);
+    }
+
+    #[Computed]
+    public function branches()
+    {
+        return Branch::where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'code', 'name', 'city']);
     }
 
     public function updatedEmployeeId($value): void
@@ -77,12 +93,18 @@ class Create extends Component
 
         $user = User::create([
             'employee_id' => $this->employee_id,
+            'branch_access_type' => $this->branch_access_type,
             'name' => $this->name,
             'email' => $this->email,
             'password' => Hash::make($this->password),
         ]);
 
         $user->roles()->sync($this->role_id ? [$this->role_id] : []);
+
+        // Sync branch access - only sync selected branches if type is 'selected'
+        if ($this->branch_access_type === 'selected') {
+            $user->branches()->sync($this->selected_branch_ids);
+        }
 
         session()->flash('flash', [
             'type' => 'success',

@@ -3,7 +3,9 @@
 namespace App\Livewire\Inventory\Stock\Levels;
 
 use App\Models\Branch;
+use App\Models\BranchProduct;
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\Warehouse;
 use App\Support\InventoryNavigation;
 use Illuminate\Contracts\View\View;
@@ -17,7 +19,6 @@ class Index extends Component
     use WithPagination;
 
     public string $search = '';
-    public string $warehouseFilter = 'all';
     public string $categoryFilter = 'all';
     public string $stockFilter = 'all';
     public string $sortField = 'name';
@@ -29,13 +30,6 @@ class Index extends Component
 
     public function updatedSearch(): void
     {
-        $this->resetPage();
-        $this->resetSelection();
-    }
-
-    public function setWarehouseFilter(string $warehouseId): void
-    {
-        $this->warehouseFilter = $warehouseId;
         $this->resetPage();
         $this->resetSelection();
     }
@@ -125,51 +119,92 @@ class Index extends Component
         return empty(array_diff($this->pageItemIds, $selectedIds));
     }
 
-    public function goToProduct(int $productId): void
+    public function goToProduct(int $branchProductId): void
     {
-        $this->redirectRoute('general-setup.products.edit', ['product' => $productId], navigate: true);
+        // Redirect to inventory catalog products (opens edit modal via URL param)
+        $this->redirectRoute('inventory.catalog.products', ['edit' => $branchProductId], navigate: true);
+    }
+
+    public function goToAdjustment(): void
+    {
+        $this->redirectRoute('inventory.stock.adjustments.create', navigate: true);
     }
 
     public function render(): View
     {
-        $activeBranchId = (int) session('active_branch_id', 0) ?: null;
+        $branchId = (int) session('active_branch_id', 0) ?: null;
+        $activeBranch = $branchId ? Branch::find($branchId) : null;
 
-        $productsQuery = Product::query()
-            ->with(['category']);
+        // Query branch products with their master product data
+        $query = BranchProduct::query()
+            ->with(['product.category', 'branch'])
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId));
 
         if ($this->search !== '') {
-            $productsQuery->where(function ($query) {
-                $query->where('name', 'like', '%'.$this->search.'%')
-                    ->orWhere('sku', 'like', '%'.$this->search.'%');
+            $query->whereHas('product', function ($q) {
+                $q->where('name', 'ilike', '%' . $this->search . '%')
+                    ->orWhere('sku', 'ilike', '%' . $this->search . '%');
             });
         }
 
         if ($this->categoryFilter !== 'all') {
-            $productsQuery->where('category_id', (int) $this->categoryFilter);
+            $query->whereHas('product', function ($q) {
+                $q->where('category_id', (int) $this->categoryFilter);
+            });
         }
 
-        $allowedSorts = ['name', 'sku', 'stock_quantity', 'min_stock_level'];
-        $sortField = in_array($this->sortField, $allowedSorts, true) ? $this->sortField : 'name';
+        if ($this->stockFilter !== 'all') {
+            switch ($this->stockFilter) {
+                case 'in_stock':
+                    $query->where('stock_quantity', '>', 0)
+                        ->whereColumn('stock_quantity', '>', 'min_stock_level');
+                    break;
+                case 'low_stock':
+                    $query->where('stock_quantity', '>', 0)
+                        ->whereColumn('stock_quantity', '<=', 'min_stock_level');
+                    break;
+                case 'out_of_stock':
+                    $query->where('stock_quantity', '<=', 0);
+                    break;
+            }
+        }
 
-        $products = $productsQuery
-            ->orderBy($sortField, $this->sortDirection)
-            ->paginate(10);
+        // Handle sorting
+        if (in_array($this->sortField, ['stock_quantity', 'min_stock_level'])) {
+            $query->orderBy($this->sortField, $this->sortDirection);
+        } else {
+            // Sort by product fields
+            $query->orderBy(
+                Product::select($this->sortField)
+                    ->whereColumn('products.id', 'branch_products.product_id')
+                    ->limit(1),
+                $this->sortDirection
+            );
+        }
 
-        $this->pageItemIds = $products->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $branchProducts = $query->paginate(15);
+
+        $this->pageItemIds = $branchProducts->pluck('id')->map(fn ($id) => (int) $id)->all();
         $this->selectPage = $this->pageHasAllSelected();
 
+        // Stats for branch products
+        $statsQuery = BranchProduct::query()
+            ->when($branchId, fn ($q) => $q->where('branch_id', $branchId));
+
         $stats = [
-            'totalProducts' => Product::count(),
-            'inStock' => Product::where('stock_quantity', '>', 0)->count(),
-            'lowStock' => Product::whereColumn('stock_quantity', '<=', 'min_stock_level')
-                ->where('stock_quantity', '>', 0)->count(),
-            'outOfStock' => Product::where('stock_quantity', '<=', 0)->count(),
+            'totalProducts' => (clone $statsQuery)->count(),
+            'inStock' => (clone $statsQuery)->where('stock_quantity', '>', 0)
+                ->whereColumn('stock_quantity', '>', 'min_stock_level')->count(),
+            'lowStock' => (clone $statsQuery)->where('stock_quantity', '>', 0)
+                ->whereColumn('stock_quantity', '<=', 'min_stock_level')->count(),
+            'outOfStock' => (clone $statsQuery)->where('stock_quantity', '<=', 0)->count(),
         ];
 
         return view('livewire.inventory.stock.levels.index', [
-            'products' => $products,
-            'warehouses' => Warehouse::orderBy('name')->get(['id', 'name']),
+            'branchProducts' => $branchProducts,
+            'categories' => ProductCategory::orderBy('name')->get(['id', 'name']),
             'stats' => $stats,
+            'activeBranch' => $activeBranch,
         ])->layoutData([
             'pageTitle' => 'Stock Levels',
             'pageTagline' => 'Inventory · Stock',

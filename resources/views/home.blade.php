@@ -31,7 +31,11 @@
             })();
         </script>
 
+        @livewireStyles
+
         <style>
+            [x-cloak] { display: none !important; }
+
             [data-theme-options] button[data-theme-choice] {
                 border: 1px solid rgba(148, 163, 184, 0.6);
                 background-color: rgba(255, 255, 255, 0.2);
@@ -155,7 +159,6 @@
                 const themeButtons = themeOptions ? Array.from(themeOptions.querySelectorAll('[data-theme-choice]')) : [];
                 const storageKey = 'ebasa-theme';
                 const mediaQuery = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-                const branchSwitcher = document.querySelector('[data-branch-switcher]');
 
                 const closeAll = (except = null) => {
                     dropdowns.forEach((dropdown) => {
@@ -229,32 +232,9 @@
                         applyThemeState('system');
                     }
                 });
-
-                if (branchSwitcher) {
-                    const trigger = branchSwitcher.querySelector('[data-branch-trigger]');
-                    const panel = branchSwitcher.querySelector('[data-branch-panel]');
-                    const togglePanel = (show) => {
-                        if (!panel) return;
-                        if (show) {
-                            panel.classList.remove('hidden');
-                        } else {
-                            panel.classList.add('hidden');
-                        }
-                    };
-
-                    trigger?.addEventListener('click', (event) => {
-                        event.stopPropagation();
-                        const isHidden = panel?.classList.contains('hidden');
-                        togglePanel(isHidden);
-                    });
-
-                    document.addEventListener('click', (event) => {
-                        if (!branchSwitcher.contains(event.target)) {
-                            togglePanel(false);
-                        }
-                    });
-                }
             });
         </script>
+
+        @livewireScripts
     </body>
 </html>

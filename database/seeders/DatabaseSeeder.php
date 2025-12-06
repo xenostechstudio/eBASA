@@ -28,6 +28,10 @@ class DatabaseSeeder extends Seeder
             ShiftSeeder::class,
             LeaveTypeSeeder::class,
             ProductSeeder::class,
+            SupplierSeeder::class,
+            BranchProductSeeder::class,
+            BundleSeeder::class,
+            PriceListSeeder::class,
             UserSeeder::class,
             TransactionSeeder::class,
         ]);

@@ -64,6 +64,21 @@ class Product extends Model
             ->withTimestamps();
     }
 
+    public function branchProducts(): HasMany
+    {
+        return $this->hasMany(BranchProduct::class);
+    }
+
+    public function bundleItems(): HasMany
+    {
+        return $this->hasMany(BundleItem::class);
+    }
+
+    public function priceListItems(): HasMany
+    {
+        return $this->hasMany(PriceListItem::class);
+    }
+
     public function createdBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');

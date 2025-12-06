@@ -1,0 +1,268 @@
+<div class="space-y-6">
+    {{-- Header --}}
+    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+            <nav class="flex items-center gap-2 text-sm text-slate-500 dark:text-white/50">
+                <a href="{{ route('inventory.catalog.bundles') }}" class="hover:text-slate-700 dark:hover:text-white" wire:navigate>Bundles</a>
+                <span>/</span>
+                <span class="text-slate-900 dark:text-white">{{ $bundle->name }}</span>
+            </nav>
+            <h1 class="mt-2 text-2xl font-bold text-slate-900 dark:text-white">Edit Bundle</h1>
+            @if ($activeBranch)
+                <p class="mt-1 text-sm text-slate-500 dark:text-white/60">{{ $activeBranch->name }}</p>
+            @endif
+        </div>
+        <div class="flex items-center gap-3">
+            <button wire:click="delete" wire:confirm="Are you sure you want to delete this bundle?" type="button"
+                class="inline-flex h-10 items-center gap-2 rounded-xl border border-rose-300 bg-white px-4 text-sm font-medium text-rose-600 transition hover:bg-rose-50 dark:border-rose-500/30 dark:bg-rose-500/10 dark:text-rose-400 dark:hover:bg-rose-500/20">
+                @svg('heroicon-o-trash', 'h-4 w-4')
+                <span>Delete</span>
+            </button>
+            <a href="{{ route('inventory.catalog.bundles') }}" wire:navigate
+                class="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20">
+                Cancel
+            </a>
+            <button wire:click="save" type="button"
+                class="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-white/90">
+                @svg('heroicon-o-check', 'h-4 w-4')
+                <span>Save Changes</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="grid gap-6 lg:grid-cols-3">
+        {{-- Main Form --}}
+        <div class="space-y-6 lg:col-span-2">
+            {{-- Basic Info --}}
+            <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5">
+                <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Bundle Information</h3>
+                <p class="mt-1 text-sm text-slate-500 dark:text-white/50">Basic details about this bundle.</p>
+
+                <div class="mt-6 grid gap-4 md:grid-cols-2">
+                    <div>
+                        <label class="block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-white/50">SKU</label>
+                        <input type="text" wire:model="sku"
+                            class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-slate-950/40 dark:text-white">
+                        @error('sku') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-white/50">Name <span class="text-rose-500">*</span></label>
+                        <input type="text" wire:model="name" placeholder="Bundle name"
+                            class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-slate-950/40 dark:text-white dark:placeholder:text-white/30">
+                        @error('name') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-white/50">Description</label>
+                        <textarea wire:model="description" rows="2" placeholder="Bundle description..."
+                            class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-slate-950/40 dark:text-white dark:placeholder:text-white/30"></textarea>
+                        @error('description') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+            </div>
+
+            {{-- Bundle Items --}}
+            <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Bundle Items</h3>
+                        <p class="mt-1 text-sm text-slate-500 dark:text-white/50">Products included in this bundle.</p>
+                    </div>
+                    <button wire:click="addBundleItem" type="button"
+                        class="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-white/20 dark:bg-white/10 dark:text-white dark:hover:bg-white/20">
+                        @svg('heroicon-o-plus', 'h-4 w-4')
+                        <span>Add Item</span>
+                    </button>
+                </div>
+
+                @error('bundleItems') <p class="mt-4 text-xs text-rose-500">{{ $message }}</p> @enderror
+
+                {{-- Items Table --}}
+                @if (count($bundleItems) > 0)
+                    <div class="mt-6 overflow-hidden rounded-xl border border-slate-200 dark:border-white/10">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-slate-200 bg-slate-50/50 dark:border-white/10 dark:bg-white/5">
+                                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-white/50">Product</th>
+                                    <th class="w-28 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-white/50">Qty</th>
+                                    <th class="w-36 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-white/50">Unit Price</th>
+                                    <th class="w-36 px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-white/50">Subtotal</th>
+                                    <th class="w-12 px-4 py-3"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-white/5">
+                                @foreach ($bundleItems as $index => $item)
+                                    <tr class="group">
+                                        <td class="px-4 py-3">
+                                            <div x-data="{
+                                                open: false,
+                                                search: '',
+                                                selected: @js($products->firstWhere('id', $item['product_id'])),
+                                                products: @js($products),
+                                                get filtered() {
+                                                    if (!this.search) return this.products;
+                                                    return this.products.filter(p => 
+                                                        p.name.toLowerCase().includes(this.search.toLowerCase()) ||
+                                                        p.sku.toLowerCase().includes(this.search.toLowerCase())
+                                                    );
+                                                },
+                                                selectProduct(product) {
+                                                    this.selected = product;
+                                                    this.open = false;
+                                                    this.search = '';
+                                                    $wire.set('bundleItems.{{ $index }}.product_id', product.id);
+                                                    $wire.set('bundleItems.{{ $index }}.unit_price', product.selling_price);
+                                                }
+                                            }" class="relative">
+                                                <button @click="open = !open" type="button"
+                                                    class="flex w-full items-center justify-between rounded-lg border border-slate-300 bg-white px-3 py-2 text-left text-sm dark:border-white/10 dark:bg-slate-950/40">
+                                                    <span x-text="selected ? selected.name : 'Select product...'" 
+                                                        :class="selected ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-white/40'"></span>
+                                                    @svg('heroicon-o-chevron-down', 'h-4 w-4 text-slate-400')
+                                                </button>
+                                                
+                                                <div x-show="open" @click.away="open = false" x-transition
+                                                    class="absolute left-0 top-full z-50 mt-1 w-80 rounded-xl border border-slate-200 bg-white shadow-lg dark:border-white/10 dark:bg-slate-900">
+                                                    <div class="p-2">
+                                                        <div class="relative">
+                                                            @svg('heroicon-o-magnifying-glass', 'absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400')
+                                                            <input type="text" x-model="search" placeholder="Search products..."
+                                                                class="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm focus:border-slate-400 focus:outline-none dark:border-white/10 dark:bg-white/5 dark:text-white">
+                                                        </div>
+                                                    </div>
+                                                    <div class="max-h-48 overflow-y-auto">
+                                                        <template x-for="product in filtered" :key="product.id">
+                                                            <button @click="selectProduct(product)" type="button"
+                                                                class="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-white/5">
+                                                                <div>
+                                                                    <p class="font-medium text-slate-900 dark:text-white" x-text="product.name"></p>
+                                                                    <p class="text-xs text-slate-500 dark:text-white/50" x-text="product.sku"></p>
+                                                                </div>
+                                                                <span class="text-xs text-slate-500" x-text="'Rp ' + new Intl.NumberFormat('id-ID').format(product.selling_price)"></span>
+                                                            </button>
+                                                        </template>
+                                                        <div x-show="filtered.length === 0" class="px-3 py-4 text-center text-sm text-slate-500">
+                                                            No products found
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            @error('bundleItems.'.$index.'.product_id') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <input type="number" min="1" wire:model.live="bundleItems.{{ $index }}.quantity"
+                                                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-center dark:border-white/10 dark:bg-slate-950/40 dark:text-white">
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <input type="number" min="0" step="100" wire:model.live="bundleItems.{{ $index }}.unit_price"
+                                                class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-slate-950/40 dark:text-white">
+                                        </td>
+                                        <td class="px-4 py-3 text-right">
+                                            <span class="font-medium text-slate-900 dark:text-white">
+                                                Rp {{ number_format(($item['unit_price'] ?? 0) * ($item['quantity'] ?? 1), 0, ',', '.') }}
+                                            </span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <button wire:click="removeBundleItem({{ $index }})" type="button"
+                                                class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 opacity-0 transition group-hover:opacity-100 hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-500/20 dark:hover:text-rose-400">
+                                                @svg('heroicon-o-trash', 'h-4 w-4')
+                                            </button>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                            <tfoot>
+                                <tr class="border-t border-slate-200 bg-slate-50/50 dark:border-white/10 dark:bg-white/5">
+                                    <td colspan="3" class="px-4 py-3 text-right text-sm font-medium text-slate-600 dark:text-white/70">Total Original Price</td>
+                                    <td class="px-4 py-3 text-right text-sm font-bold text-slate-900 dark:text-white">Rp {{ number_format($this->originalPrice, 0, ',', '.') }}</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                @else
+                    <div class="mt-6 flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 py-12 text-center dark:border-white/10">
+                        @svg('heroicon-o-cube', 'h-10 w-10 text-slate-300 dark:text-white/20')
+                        <p class="mt-3 text-sm text-slate-500 dark:text-white/50">No items added yet</p>
+                        <button wire:click="addBundleItem" type="button"
+                            class="mt-3 text-sm font-medium text-slate-900 hover:underline dark:text-white">
+                            Add your first item
+                        </button>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- Sidebar --}}
+        <div class="lg:col-span-1">
+            <div class="sticky top-24 space-y-6">
+                {{-- Pricing --}}
+                <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5">
+                    <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Pricing</h3>
+
+                    <div class="mt-4 space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-white/50">Bundle Price <span class="text-rose-500">*</span></label>
+                            <input type="number" min="0" step="100" wire:model.live="bundle_price" placeholder="0"
+                                class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-slate-950/40 dark:text-white">
+                            @error('bundle_price') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
+                        </div>
+
+                        <dl class="space-y-3 border-t border-slate-200 pt-4 text-sm dark:border-white/10">
+                            <div class="flex justify-between">
+                                <dt class="text-slate-500 dark:text-white/60">Original Price</dt>
+                                <dd class="font-medium text-slate-900 dark:text-white">Rp {{ number_format($this->originalPrice, 0, ',', '.') }}</dd>
+                            </div>
+                            <div class="flex justify-between">
+                                <dt class="text-slate-500 dark:text-white/60">Bundle Price</dt>
+                                <dd class="font-medium text-slate-900 dark:text-white">Rp {{ number_format((float)($bundle_price ?: 0), 0, ',', '.') }}</dd>
+                            </div>
+                            <div class="flex justify-between border-t border-slate-200 pt-3 dark:border-white/10">
+                                <dt class="text-slate-500 dark:text-white/60">Savings</dt>
+                                <dd class="font-semibold text-emerald-600 dark:text-emerald-400">
+                                    @if ($this->discountAmount > 0)
+                                        Rp {{ number_format($this->discountAmount, 0, ',', '.') }} ({{ $this->discountPercent }}%)
+                                    @else
+                                        -
+                                    @endif
+                                </dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+
+                {{-- Validity & Status --}}
+                <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/5">
+                    <h3 class="text-lg font-semibold text-slate-900 dark:text-white">Validity & Status</h3>
+
+                    <div class="mt-4 space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-white/50">Valid From</label>
+                            <input type="date" wire:model="valid_from"
+                                class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-slate-950/40 dark:text-white">
+                            @error('valid_from') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-white/50">Valid Until</label>
+                            <input type="date" wire:model="valid_until"
+                                class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 focus:border-slate-400 focus:outline-none focus:ring-0 dark:border-white/10 dark:bg-slate-950/40 dark:text-white">
+                            <p class="mt-1 text-xs text-slate-400">Leave empty for no expiry</p>
+                            @error('valid_until') <p class="mt-1 text-xs text-rose-500">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div class="border-t border-slate-200 pt-4 dark:border-white/10">
+                            <label class="flex items-center gap-3">
+                                <input type="checkbox" wire:model="is_active"
+                                    class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500 dark:border-white/30 dark:bg-white/10">
+                                <span class="text-sm text-slate-700 dark:text-white/80">Active</span>
+                            </label>
+                            <p class="mt-1 ml-7 text-xs text-slate-400">Bundle will be available for sale</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

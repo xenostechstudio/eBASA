@@ -62,8 +62,14 @@ use App\Livewire\HumanResource\Attendance\Shifts\Index as HrShiftIndex;
 use App\Livewire\HumanResource\Attendance\Shifts\Create as HrShiftCreate;
 use App\Livewire\HumanResource\Attendance\Shifts\Edit as HrShiftEdit;
 use App\Livewire\Inventory\Catalog\Bundles\Index as InventoryCatalogBundles;
+use App\Livewire\Inventory\Catalog\Bundles\Create as InventoryCatalogBundlesCreate;
+use App\Livewire\Inventory\Catalog\Bundles\Edit as InventoryCatalogBundlesEdit;
 use App\Livewire\Inventory\Catalog\PriceLists\Index as InventoryCatalogPriceLists;
+use App\Livewire\Inventory\Catalog\PriceLists\Create as InventoryCatalogPriceListsCreate;
+use App\Livewire\Inventory\Catalog\PriceLists\Edit as InventoryCatalogPriceListsEdit;
 use App\Livewire\Inventory\Catalog\Products\Index as InventoryCatalogProducts;
+use App\Livewire\Inventory\Catalog\Products\Create as InventoryCatalogProductsCreate;
+use App\Livewire\Inventory\Catalog\Products\Edit as InventoryCatalogProductsEdit;
 use App\Livewire\Inventory\Portal as InventoryPortal;
 use App\Livewire\Inventory\Stock\Adjustments\Create as InventoryStockAdjustmentsCreate;
 use App\Livewire\Inventory\Stock\Adjustments\Index as InventoryStockAdjustments;
@@ -152,8 +158,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::prefix('catalog')->name('catalog.')->group(function () {
             Route::get('/products', InventoryCatalogProducts::class)->name('products');
+            Route::get('/products/create', InventoryCatalogProductsCreate::class)->name('products.create');
+            Route::get('/products/{branchProduct}/edit', InventoryCatalogProductsEdit::class)->name('products.edit');
             Route::get('/bundles', InventoryCatalogBundles::class)->name('bundles');
+            Route::get('/bundles/create', InventoryCatalogBundlesCreate::class)->name('bundles.create');
+            Route::get('/bundles/{bundle}/edit', InventoryCatalogBundlesEdit::class)->name('bundles.edit');
             Route::get('/price-lists', InventoryCatalogPriceLists::class)->name('price-lists');
+            Route::get('/price-lists/create', InventoryCatalogPriceListsCreate::class)->name('price-lists.create');
+            Route::get('/price-lists/{priceList}/edit', InventoryCatalogPriceListsEdit::class)->name('price-lists.edit');
         });
 
         // Inventory branches list (reusing General Setup branches component)

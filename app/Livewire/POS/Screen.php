@@ -2,8 +2,11 @@
 
 namespace App\Livewire\Pos;
 
+use App\Models\Branch;
+use App\Models\BranchProduct;
 use App\Models\CashierShift;
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
 use Illuminate\Contracts\View\View;
@@ -15,26 +18,19 @@ use Livewire\Component;
 #[Layout('layouts.pos')]
 class Screen extends Component
 {
-    /** @var array<int, array{id: int|null, name: string, sku: string, qty: int, price: int, total: int}> */
+    /** @var array<int, array{id: int|null, branch_product_id: int|null, name: string, sku: string, qty: int, price: int, total: int, stock: int}> */
     public array $cart = [];
 
     public string $barcodeInput = '';
+    public string $productSearch = '';
+    public string $categoryFilter = 'all';
 
     public ?array $scannedProduct = null;
+
     public function mount(): void
     {
-        $this->initializeDemoCart();
-    }
-
-    public function initializeDemoCart(): void
-    {
-        $this->cart = [
-            ['id' => 1, 'name' => 'Indomie Goreng Fried Noodles', 'sku' => 'SKU-IND-001', 'qty' => 3, 'price' => 3500, 'total' => 10500],
-            ['id' => 2, 'name' => 'Indomie Kari Ayam Noodles', 'sku' => 'SKU-IND-002', 'qty' => 5, 'price' => 3400, 'total' => 17000],
-            ['id' => 3, 'name' => 'ABC Sambal Extra Pedas 135ml', 'sku' => 'SKU-ABC-221', 'qty' => 1, 'price' => 12800, 'total' => 12800],
-            ['id' => 4, 'name' => 'ABC Kecap Manis 135ml', 'sku' => 'SKU-ABC-045', 'qty' => 2, 'price' => 9000, 'total' => 18000],
-            ['id' => 5, 'name' => 'Ultra Milk Full Cream 1L', 'sku' => 'SKU-MIL-908', 'qty' => 2, 'price' => 18500, 'total' => 37000],
-        ];
+        // Initialize empty cart - products will be loaded from branch inventory
+        $this->cart = [];
     }
 
     public function searchByBarcode(): void
@@ -43,33 +39,52 @@ class Screen extends Component
             return;
         }
 
-        $product = Product::where(function ($query) {
+        $branchId = (int) session('active_branch_id', 0);
+
+        if ($branchId <= 0) {
+            $this->dispatch('pos-no-branch');
+            return;
+        }
+
+        // Search in branch products first
+        $branchProduct = BranchProduct::with('product')
+            ->where('branch_id', $branchId)
+            ->where('is_available', true)
+            ->whereHas('product', function ($query) {
                 $query->where('barcode', $this->barcodeInput)
                     ->orWhere('sku', $this->barcodeInput);
             })
-            ->where('is_active', true)
             ->first();
 
-        if ($product) {
+        if ($branchProduct && $branchProduct->product) {
+            $product = $branchProduct->product;
+            $effectivePrice = (int) ($branchProduct->selling_price ?? $product->selling_price ?? 0);
+
             $this->scannedProduct = [
                 'id' => $product->id,
+                'branch_product_id' => $branchProduct->id,
                 'name' => $product->name,
                 'sku' => $product->sku,
                 'barcode' => $product->barcode,
-                'price' => (int) $product->selling_price,
+                'price' => $effectivePrice,
                 'image' => $product->image_path,
-                'stock' => $product->stock_quantity ?? 0,
+                'stock' => $branchProduct->stock_quantity ?? 0,
             ];
 
-            // Add to cart
-            $this->addToCart(
-                $product->id,
-                $product->name,
-                $product->sku,
-                (int) $product->selling_price
-            );
-
-            $this->dispatch('pos-product-scanned');
+            // Check stock before adding
+            if ($branchProduct->stock_quantity <= 0) {
+                $this->dispatch('pos-out-of-stock', name: $product->name);
+            } else {
+                $this->addToCart(
+                    $product->id,
+                    $branchProduct->id,
+                    $product->name,
+                    $product->sku,
+                    $effectivePrice,
+                    $branchProduct->stock_quantity
+                );
+                $this->dispatch('pos-product-scanned');
+            }
         } else {
             $this->scannedProduct = null;
             $this->dispatch('pos-product-not-found');
@@ -78,21 +93,81 @@ class Screen extends Component
         $this->barcodeInput = '';
     }
 
-    public function addToCart(int $productId, string $name, string $sku, int $price): void
+    public function addProductToCart(int $branchProductId): void
     {
-        $existingIndex = collect($this->cart)->search(fn ($item) => $item['id'] === $productId);
+        $branchId = (int) session('active_branch_id', 0);
+
+        $branchProduct = BranchProduct::with('product')
+            ->where('id', $branchProductId)
+            ->where('branch_id', $branchId)
+            ->where('is_available', true)
+            ->first();
+
+        if (!$branchProduct || !$branchProduct->product) {
+            return;
+        }
+
+        $product = $branchProduct->product;
+        $effectivePrice = (int) ($branchProduct->selling_price ?? $product->selling_price ?? 0);
+
+        // Check stock
+        $currentQtyInCart = collect($this->cart)
+            ->where('branch_product_id', $branchProductId)
+            ->sum('qty');
+
+        if ($currentQtyInCart >= $branchProduct->stock_quantity) {
+            $this->dispatch('pos-insufficient-stock', name: $product->name, available: $branchProduct->stock_quantity);
+            return;
+        }
+
+        $this->addToCart(
+            $product->id,
+            $branchProduct->id,
+            $product->name,
+            $product->sku,
+            $effectivePrice,
+            $branchProduct->stock_quantity
+        );
+
+        $this->scannedProduct = [
+            'id' => $product->id,
+            'branch_product_id' => $branchProduct->id,
+            'name' => $product->name,
+            'sku' => $product->sku,
+            'barcode' => $product->barcode,
+            'price' => $effectivePrice,
+            'image' => $product->image_path,
+            'stock' => $branchProduct->stock_quantity,
+        ];
+
+        $this->dispatch('pos-product-added');
+    }
+
+    public function addToCart(int $productId, int $branchProductId, string $name, string $sku, int $price, int $stock): void
+    {
+        $existingIndex = collect($this->cart)->search(fn ($item) => $item['branch_product_id'] === $branchProductId);
 
         if ($existingIndex !== false) {
-            $this->cart[$existingIndex]['qty']++;
-            $this->cart[$existingIndex]['total'] = $this->cart[$existingIndex]['qty'] * $this->cart[$existingIndex]['price'];
+            $newQty = $this->cart[$existingIndex]['qty'] + 1;
+
+            // Check stock limit
+            if ($newQty > $stock) {
+                $this->dispatch('pos-insufficient-stock', name: $name, available: $stock);
+                return;
+            }
+
+            $this->cart[$existingIndex]['qty'] = $newQty;
+            $this->cart[$existingIndex]['total'] = $newQty * $this->cart[$existingIndex]['price'];
         } else {
             $this->cart[] = [
                 'id' => $productId,
+                'branch_product_id' => $branchProductId,
                 'name' => $name,
                 'sku' => $sku,
                 'qty' => 1,
                 'price' => $price,
                 'total' => $price,
+                'stock' => $stock,
             ];
         }
     }
@@ -105,6 +180,13 @@ class Screen extends Component
         }
 
         if (isset($this->cart[$index])) {
+            $stock = $this->cart[$index]['stock'] ?? PHP_INT_MAX;
+
+            if ($qty > $stock) {
+                $this->dispatch('pos-insufficient-stock', name: $this->cart[$index]['name'], available: $stock);
+                $qty = $stock;
+            }
+
             $this->cart[$index]['qty'] = $qty;
             $this->cart[$index]['total'] = $qty * $this->cart[$index]['price'];
         }
@@ -119,14 +201,15 @@ class Screen extends Component
     public function clearCart(): void
     {
         $this->cart = [];
+        $this->scannedProduct = null;
     }
 
     public function getCartTotals(): array
     {
         $subtotal = collect($this->cart)->sum('total');
-        $discount = (int) round($subtotal * 0.05);
+        $discount = 0; // Can be calculated based on price lists/promos
         $taxableAmount = $subtotal - $discount;
-        $tax = (int) round($taxableAmount * 0.10);
+        $tax = (int) round($taxableAmount * 0.11); // 11% PPN
         $total = $taxableAmount + $tax;
 
         return [
@@ -157,6 +240,7 @@ class Screen extends Component
             ->first();
 
         if (! $shift) {
+            $this->dispatch('pos-no-shift');
             return;
         }
 
@@ -203,6 +287,12 @@ class Screen extends Component
                     'discount_amount' => 0,
                     'subtotal' => $item['total'],
                 ]);
+
+                // Deduct stock from branch inventory
+                if (isset($item['branch_product_id'])) {
+                    BranchProduct::where('id', $item['branch_product_id'])
+                        ->decrement('stock_quantity', $item['qty']);
+                }
             }
 
             $shift->increment('total_transactions');
@@ -212,6 +302,7 @@ class Screen extends Component
         });
 
         $this->cart = [];
+        $this->scannedProduct = null;
         $this->dispatch('pos-checkout-complete');
     }
 
@@ -245,45 +336,73 @@ class Screen extends Component
 
     public function render(): View
     {
-        $shiftSummary = [
-            'branch' => 'BASA Mart – Tegal',
-            'cashier' => 'Ayu Pratama',
-            'since' => '08:00 WIB',
-            'sales' => 1520000,
-            'transactions' => 37,
-            'cashOnHand' => 450000,
-        ];
+        $branchId = (int) session('active_branch_id', 0);
+        $activeBranch = $branchId ? Branch::find($branchId) : null;
+        $user = Auth::user();
 
-        $quickActions = [
-            ['label' => 'Suspend Sale', 'icon' => 'pause'],
+        // Get current shift info
+        $currentShift = null;
+        if ($user && $branchId) {
+            $currentShift = CashierShift::where('branch_id', $branchId)
+                ->where('cashier_id', $user->id)
+                ->where('status', 'open')
+                ->first();
+        }
+
+        // Get branch products for catalog
+        $catalogQuery = BranchProduct::with(['product.category'])
+            ->where('branch_id', $branchId)
+            ->where('is_available', true)
+            ->where('stock_quantity', '>', 0);
+
+        if ($this->productSearch !== '') {
+            $catalogQuery->whereHas('product', function ($q) {
+                $q->where('name', 'ilike', '%' . $this->productSearch . '%')
+                    ->orWhere('sku', 'ilike', '%' . $this->productSearch . '%')
+                    ->orWhere('barcode', 'ilike', '%' . $this->productSearch . '%');
+            });
+        }
+
+        if ($this->categoryFilter !== 'all') {
+            $catalogQuery->whereHas('product', function ($q) {
+                $q->where('category_id', (int) $this->categoryFilter);
+            });
+        }
+
+        $catalogProducts = $catalogQuery
+            ->orderBy('is_featured', 'desc')
+            ->limit(24)
+            ->get()
+            ->map(function ($bp) {
+                return [
+                    'id' => $bp->id,
+                    'product_id' => $bp->product_id,
+                    'name' => $bp->product->name,
+                    'sku' => $bp->product->sku,
+                    'price' => (int) ($bp->selling_price ?? $bp->product->selling_price ?? 0),
+                    'stock' => $bp->stock_quantity,
+                    'image' => $bp->product->image_path,
+                    'is_featured' => $bp->is_featured,
+                    'category' => $bp->product->category->name ?? null,
+                ];
+            });
+
+        // Get categories for filter
+        $categories = ProductCategory::whereHas('products.branchProducts', function ($q) use ($branchId) {
+            $q->where('branch_id', $branchId)->where('is_available', true);
+        })->orderBy('name')->get(['id', 'name']);
+
+        $shiftSummary = [
+            'branch' => $activeBranch?->name ?? 'No Branch Selected',
+            'cashier' => $user?->name ?? 'Unknown',
+            'since' => $currentShift?->started_at?->format('H:i') ?? '-',
+            'sales' => $currentShift?->total_sales ?? 0,
+            'transactions' => $currentShift?->total_transactions ?? 0,
+            'cashOnHand' => ($currentShift?->opening_cash ?? 0) + ($currentShift?->total_sales ?? 0),
         ];
 
         $cartItems = $this->cart;
         $paymentSummary = $this->getCartTotals();
-
-        $suspendedSales = [
-            ['number' => '#1032', 'amount' => 120000, 'time' => '14:02', 'note' => 'Customer grabbing cash'],
-            ['number' => '#1033', 'amount' => 45000, 'time' => '14:05', 'note' => 'Split payment'],
-        ];
-
-        $catalogTiles = [
-            ['title' => 'Teh Botol Sosro', 'price' => 6500, 'badge' => 'Popular'],
-            ['title' => 'Pocari Sweat 350ml', 'price' => 8500, 'badge' => 'Chilled'],
-            ['title' => 'Downy Softener 900ml', 'price' => 32500, 'badge' => 'Promo'],
-            ['title' => 'Roti Aoka Cokelat', 'price' => 9500, 'badge' => 'Fresh'],
-            ['title' => 'Fresh Eggs 1 Doz', 'price' => 28500, 'badge' => 'Bulk'],
-            ['title' => 'Bango Kecap 520ml', 'price' => 29500, 'badge' => 'Favorite'],
-        ];
-
-        $notifications = [
-            ['type' => 'warning', 'message' => 'Inventory sync delayed 2 min'],
-        ];
-
-
-        $checkoutPromos = [
-            ['label' => 'Member Weekend', 'description' => 'Automatic loyalty discount', 'amount' => -3500],
-            ['label' => 'Buy 2 Snack Bundle', 'description' => 'Combo savings applied', 'amount' => -1500],
-        ];
 
         $paymentMethods = [
             ['label' => 'Cash', 'status' => 'ready', 'shortcut' => 'F7'],
@@ -292,132 +411,16 @@ class Screen extends Component
             ['label' => 'Split', 'status' => 'custom', 'shortcut' => 'F10'],
         ];
 
-        $splitPayments = [
-            ['method' => 'Cash', 'amount' => 30000],
-            ['method' => 'QRIS', 'amount' => 28315],
-        ];
-
-        $cashierTransactions = [
-            [
-                'number' => '#POS-2034',
-                'time' => '08:12',
-                'items' => 4,
-                'amount' => 78_000,
-                'channel' => 'Cash',
-                'receipt' => [
-                    'items' => [
-                        ['name' => 'Indomie Goreng', 'qty' => 2, 'price' => 3_500, 'total' => 7_000],
-                        ['name' => 'Aqua 600ml', 'qty' => 4, 'price' => 4_000, 'total' => 16_000],
-                        ['name' => 'SilverQueen 65g', 'qty' => 1, 'price' => 14_500, 'total' => 14_500],
-                    ],
-                    'subtotal' => 37_500,
-                    'discount' => 2_500,
-                    'tax' => 3_000,
-                    'total' => 38_000,
-                ],
-            ],
-            [
-                'number' => '#POS-2035',
-                'time' => '08:25',
-                'items' => 2,
-                'amount' => 42_500,
-                'channel' => 'QRIS',
-                'receipt' => [
-                    'items' => [
-                        ['name' => 'Pocari Sweat 350ml', 'qty' => 2, 'price' => 8_500, 'total' => 17_000],
-                        ['name' => 'Downy Softener 900ml', 'qty' => 1, 'price' => 32_500, 'total' => 32_500],
-                    ],
-                    'subtotal' => 49_500,
-                    'discount' => 7_000,
-                    'tax' => 2_475,
-                    'total' => 44_975,
-                ],
-            ],
-            [
-                'number' => '#POS-2036',
-                'time' => '08:41',
-                'items' => 6,
-                'amount' => 132_400,
-                'channel' => 'Debit',
-                'receipt' => [
-                    'items' => [
-                        ['name' => 'Ultra Milk 1L', 'qty' => 3, 'price' => 18_500, 'total' => 55_500],
-                        ['name' => 'Bango Kecap 520ml', 'qty' => 1, 'price' => 29_500, 'total' => 29_500],
-                        ['name' => 'Lays Rumput Laut 55g', 'qty' => 4, 'price' => 8_500, 'total' => 34_000],
-                    ],
-                    'subtotal' => 119_000,
-                    'discount' => 6_000,
-                    'tax' => 11_900,
-                    'total' => 124_900,
-                ],
-            ],
-            [
-                'number' => '#POS-2037',
-                'time' => '08:55',
-                'items' => 1,
-                'amount' => 18_500,
-                'channel' => 'Cash',
-                'receipt' => [
-                    'items' => [
-                        ['name' => 'Lifebuoy Body Wash 450ml', 'qty' => 1, 'price' => 18_500, 'total' => 18_500],
-                    ],
-                    'subtotal' => 18_500,
-                    'discount' => 0,
-                    'tax' => 1_850,
-                    'total' => 20_350,
-                ],
-            ],
-            [
-                'number' => '#POS-2038',
-                'time' => '09:07',
-                'items' => 5,
-                'amount' => 99_800,
-                'channel' => 'QRIS',
-                'receipt' => [
-                    'items' => [
-                        ['name' => 'Teh Botol Sosro', 'qty' => 6, 'price' => 6_500, 'total' => 39_000],
-                        ['name' => 'Indomie Kari Ayam', 'qty' => 5, 'price' => 3_400, 'total' => 17_000],
-                        ['name' => 'ABC Sambal Extra Pedas', 'qty' => 2, 'price' => 12_800, 'total' => 25_600],
-                    ],
-                    'subtotal' => 81_600,
-                    'discount' => 4_100,
-                    'tax' => 8_160,
-                    'total' => 85_660,
-                ],
-            ],
-            [
-                'number' => '#POS-2039',
-                'time' => '09:15',
-                'items' => 3,
-                'amount' => 61_500,
-                'channel' => 'Cash',
-                'receipt' => [
-                    'items' => [
-                        ['name' => 'Sari Roti Tawar', 'qty' => 1, 'price' => 19_500, 'total' => 19_500],
-                        ['name' => 'Good Day Freeze Coffee', 'qty' => 3, 'price' => 9_000, 'total' => 27_000],
-                        ['name' => 'Dettol Handwash Refill', 'qty' => 1, 'price' => 23_500, 'total' => 23_500],
-                    ],
-                    'subtotal' => 70_000,
-                    'discount' => 8_500,
-                    'tax' => 7_000,
-                    'total' => 68_500,
-                ],
-            ],
-        ];
-
-        /** @noinspection PhpUndefinedMethodInspection */
         return view('livewire.pos.screen', [
             'shiftSummary' => $shiftSummary,
-            'quickActions' => $quickActions,
             'cartItems' => $cartItems,
-            'suspendedSales' => $suspendedSales,
-            'catalogTiles' => $catalogTiles,
-            'notifications' => $notifications,
+            'catalogProducts' => $catalogProducts,
+            'categories' => $categories,
             'paymentSummary' => $paymentSummary,
-            'checkoutPromos' => $checkoutPromos,
             'paymentMethods' => $paymentMethods,
-            'splitPayments' => $splitPayments,
-            'cashierTransactions' => $cashierTransactions,
+            'activeBranch' => $activeBranch,
+            'currentShift' => $currentShift,
+            'hasShift' => $currentShift !== null,
         ])->layoutData([
             'pageTitle' => 'Point of Sale',
         ]);

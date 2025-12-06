@@ -2,11 +2,14 @@
 
 namespace App\Livewire\Inventory\Catalog\Products;
 
-use App\Models\Product;
+use App\Models\Branch;
+use App\Models\BranchProduct;
 use App\Models\ProductCategory;
 use App\Support\InventoryNavigation;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Response;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -15,17 +18,52 @@ class Index extends Component
 {
     use WithPagination;
 
+    #[Url(except: '')]
     public string $search = '';
+
+    #[Url(except: 'all')]
     public string $categoryFilter = 'all';
+
+    #[Url(except: 'all')]
     public string $statusFilter = 'all';
+
+    #[Url(except: 'all')]
+    public string $stockFilter = 'all';
+
+    #[Url(except: 'name')]
     public string $sortField = 'name';
+
+    #[Url(except: 'asc')]
     public string $sortDirection = 'asc';
+
+    #[Url(except: '15')]
+    public int $perPage = 15;
 
     public array $selectedItems = [];
     public bool $selectPage = false;
     public array $pageItemIds = [];
 
+    protected $queryString = ['search', 'categoryFilter', 'statusFilter', 'stockFilter', 'sortField', 'sortDirection', 'perPage'];
+
     public function updatedSearch(): void
+    {
+        $this->resetPage();
+        $this->resetSelection();
+    }
+
+    public function updatedCategoryFilter(): void
+    {
+        $this->resetPage();
+        $this->resetSelection();
+    }
+
+    public function updatedStatusFilter(): void
+    {
+        $this->resetPage();
+        $this->resetSelection();
+    }
+
+    public function updatedStockFilter(): void
     {
         $this->resetPage();
         $this->resetSelection();
@@ -45,6 +83,18 @@ class Index extends Component
         $this->resetSelection();
     }
 
+    public function setStockFilter(string $stock): void
+    {
+        $this->stockFilter = $stock;
+        $this->resetPage();
+        $this->resetSelection();
+    }
+
+    public function updatedPerPage(): void
+    {
+        $this->resetPage();
+    }
+
     public function setSort(string $field): void
     {
         if ($this->sortField === $field) {
@@ -54,6 +104,16 @@ class Index extends Component
 
         $this->sortField = $field;
         $this->sortDirection = 'asc';
+    }
+
+    public function clearFilters(): void
+    {
+        $this->search = '';
+        $this->categoryFilter = 'all';
+        $this->statusFilter = 'all';
+        $this->stockFilter = 'all';
+        $this->resetPage();
+        $this->resetSelection();
     }
 
     public function toggleSelectPage(): void
@@ -70,7 +130,12 @@ class Index extends Component
 
     public function selectAll(): void
     {
-        $allIds = Product::query()->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $branchId = (int) session('active_branch_id', 0) ?: null;
+        if (! $branchId) {
+            return;
+        }
+
+        $allIds = $this->getFilteredQuery()->pluck('branch_products.id')->map(fn ($id) => (int) $id)->all();
         $this->selectedItems = array_map('strval', $allIds);
         $this->selectPage = true;
     }
@@ -86,9 +151,48 @@ class Index extends Component
             return;
         }
 
-        Product::query()->whereIn('id', array_map('intval', $this->selectedItems))->delete();
+        BranchProduct::whereIn('id', array_map('intval', $this->selectedItems))->delete();
         $this->resetSelection();
-        $this->dispatch('notify', message: 'Selected products deleted');
+
+        session()->flash('flash', [
+            'type' => 'success',
+            'title' => 'Products removed',
+            'message' => 'Selected products removed from this branch.',
+        ]);
+    }
+
+    public function export(string $format = 'csv'): \Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $branchId = (int) session('active_branch_id', 0) ?: null;
+        $products = $this->getFilteredQuery()->with(['product.category'])->get();
+
+        $filename = 'branch-products-' . now()->format('Y-m-d-His') . '.' . $format;
+
+        return Response::streamDownload(function () use ($products) {
+            $handle = fopen('php://output', 'w');
+
+            // Header
+            fputcsv($handle, ['SKU', 'Name', 'Category', 'Selling Price', 'Cost Price', 'Stock', 'Min Stock', 'Status', 'Featured']);
+
+            foreach ($products as $bp) {
+                fputcsv($handle, [
+                    $bp->product->sku ?? '',
+                    $bp->product->name ?? '',
+                    $bp->product->category->name ?? '',
+                    $bp->selling_price ?? $bp->product->selling_price ?? 0,
+                    $bp->cost_price ?? $bp->product->cost_price ?? 0,
+                    $bp->stock_quantity ?? 0,
+                    $bp->min_stock_level ?? 0,
+                    $bp->is_available ? 'Available' : 'Unavailable',
+                    $bp->is_featured ? 'Yes' : 'No',
+                ]);
+            }
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ]);
     }
 
     protected function resetSelection(): void
@@ -97,53 +201,105 @@ class Index extends Component
         $this->selectPage = false;
     }
 
-    public function goToProduct(int $productId): void
+    public function goToProduct(int $branchProductId): void
     {
-        $this->redirectRoute('general-setup.products.edit', ['product' => $productId], navigate: true);
+        $this->redirectRoute('inventory.catalog.products.edit', ['branchProduct' => $branchProductId], navigate: true);
     }
 
-    public function render(): View
+    protected function getFilteredQuery()
     {
-        $productsQuery = Product::query()->with(['category']);
+        $branchId = (int) session('active_branch_id', 0) ?: null;
+
+        $query = BranchProduct::query()
+            ->with(['product.category', 'branch']);
+
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
+        }
 
         if ($this->search !== '') {
-            $productsQuery->where(function ($query) {
-                $query->where('name', 'like', '%'.$this->search.'%')
-                    ->orWhere('sku', 'like', '%'.$this->search.'%');
+            $query->whereHas('product', function ($q) {
+                $q->where('name', 'ilike', '%' . $this->search . '%')
+                    ->orWhere('sku', 'ilike', '%' . $this->search . '%')
+                    ->orWhere('barcode', 'ilike', '%' . $this->search . '%');
             });
         }
 
         if ($this->categoryFilter !== 'all') {
-            $productsQuery->where('category_id', (int) $this->categoryFilter);
+            $query->whereHas('product', function ($q) {
+                $q->where('category_id', (int) $this->categoryFilter);
+            });
         }
 
         if ($this->statusFilter !== 'all') {
-            $productsQuery->where('is_active', $this->statusFilter === 'active');
+            $query->where('is_available', $this->statusFilter === 'available');
         }
 
-        $allowedSorts = ['name', 'sku', 'selling_price', 'stock_quantity'];
-        $sortField = in_array($this->sortField, $allowedSorts, true) ? $this->sortField : 'name';
+        if ($this->stockFilter !== 'all') {
+            switch ($this->stockFilter) {
+                case 'low':
+                case 'low_stock':
+                    $query->where('stock_quantity', '>', 0)
+                        ->whereColumn('stock_quantity', '<=', 'min_stock_level');
+                    break;
+                case 'out':
+                case 'out_of_stock':
+                    $query->where('stock_quantity', '<=', 0);
+                    break;
+                case 'in':
+                case 'in_stock':
+                    $query->where('stock_quantity', '>', 0)
+                        ->whereColumn('stock_quantity', '>', 'min_stock_level');
+                    break;
+            }
+        }
 
-        $products = $productsQuery
-            ->orderBy($sortField, $this->sortDirection)
-            ->paginate(10);
+        // Sort handling
+        if (in_array($this->sortField, ['name', 'sku', 'selling_price'])) {
+            $query->join('products', 'branch_products.product_id', '=', 'products.id')
+                ->select('branch_products.*')
+                ->orderBy('products.' . $this->sortField, $this->sortDirection);
+        } else {
+            $query->orderBy($this->sortField, $this->sortDirection);
+        }
 
-        $this->pageItemIds = $products->pluck('id')->map(fn ($id) => (int) $id)->all();
+        return $query;
+    }
+
+    public function render(): View
+    {
+        $branchId = (int) session('active_branch_id', 0) ?: null;
+        $activeBranch = $branchId ? Branch::find($branchId) : null;
+
+        $branchProducts = $this->getFilteredQuery()->paginate($this->perPage);
+
+        $this->pageItemIds = $branchProducts->pluck('id')->map(fn ($id) => (int) $id)->all();
         $this->selectPage = ! empty($this->pageItemIds) && empty(array_diff($this->pageItemIds, array_map('intval', $this->selectedItems)));
 
+        // Stats for current branch
+        $statsQuery = BranchProduct::query();
+        if ($branchId) {
+            $statsQuery->where('branch_id', $branchId);
+        }
+
         $stats = [
-            'totalProducts' => Product::count(),
-            'active' => Product::where('is_active', true)->count(),
-            'inactive' => Product::where('is_active', false)->count(),
-            'categories' => ProductCategory::count(),
+            'totalProducts' => (clone $statsQuery)->count(),
+            'available' => (clone $statsQuery)->where('is_available', true)->count(),
+            'unavailable' => (clone $statsQuery)->where('is_available', false)->count(),
+            'lowStock' => (clone $statsQuery)->whereColumn('stock_quantity', '<=', 'min_stock_level')->where('stock_quantity', '>', 0)->count(),
+            'outOfStock' => (clone $statsQuery)->where('stock_quantity', '<=', 0)->count(),
         ];
 
+        $hasActiveFilters = $this->search !== '' || $this->categoryFilter !== 'all' || $this->statusFilter !== 'all' || $this->stockFilter !== 'all';
+
         return view('livewire.inventory.catalog.products.index', [
-            'products' => $products,
+            'branchProducts' => $branchProducts,
             'categories' => ProductCategory::orderBy('name')->get(['id', 'name']),
             'stats' => $stats,
+            'activeBranch' => $activeBranch,
+            'hasActiveFilters' => $hasActiveFilters,
         ])->layoutData([
-            'pageTitle' => 'Products',
+            'pageTitle' => 'Branch Products',
             'pageTagline' => 'Inventory · Catalog',
             'activeModule' => 'inventory',
             'navLinks' => InventoryNavigation::links('catalog', 'products'),
